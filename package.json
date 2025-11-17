@@ -6,10 +6,10 @@
 	"scripts": {
 		"build": "turbo run build ",
 		"dev": "turbo run dev",
-		"lint": "biome check --write .",
-		"lint:check": "biome check .",
-		"format": "biome format --write .",
-		"format:check": "biome format --check .",
+		"lint": "bunx biome check --write .",
+		"lint:check": "bunx biome check .",
+		"format": "bunx biome format --write .",
+		"format:check": "bunx biome format --check .",
 		"check-types": "turbo run check-types",
 		"test": "turbo run test",
 		"test:watch": "turbo run test:watch",
@@ -31,7 +31,7 @@
 	"packageManager": "bun@1.2.18",
 	"workspaces": [
 		"examples/*",
-		"packages/*"
+		"packages/*/*"
 
 	],
 	"dependencies": {

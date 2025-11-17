@@ -1,0 +1,10 @@
+{
+	"$schema": "https://l8b.dev/schemas/looti.json",
+	"version": "1.0.0",
+	"name": "blueprint",
+	"assets": {
+		"sprites": "src/assets/sprites",
+		"fonts": "src/assets/fonts",
+		"audio": "src/assets/audio"
+	}
+}
