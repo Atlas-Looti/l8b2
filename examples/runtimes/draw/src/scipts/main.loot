@@ -6,6 +6,8 @@ y = 0
 size = 4
 pointer_x = 0
 pointer_y = 0
+ 
+
 
 init = function()
   screen.fillRect(0,0,screen.width,screen.height,"#000")
