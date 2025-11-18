@@ -69,6 +69,7 @@ start = function()
   startLevel(0)
   show_controls = 1
   gesture_lock = 1
+  print("game started")
 end
 
 startLevel = function(lvl)
@@ -93,6 +94,8 @@ gameOver = function()
   show_controls = 0
   lostSound()
   closeDoor()
+  print("game ended")
+  print("score: " + score)
 end
 
 init = function()
