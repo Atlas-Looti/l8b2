@@ -10,7 +10,7 @@
 
 import { Runtime } from "@l8b/runtime";
 
-import mainLootiScript from "./scipts/main.ls?raw";
+import mainLootiScript from "./scripts/main.loot?raw";
 
 // Debug: log the game code
 console.log("Game code to parse:");
