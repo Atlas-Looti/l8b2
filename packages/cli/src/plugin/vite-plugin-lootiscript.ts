@@ -1,10 +1,38 @@
+/**
+ * Vite plugin for handling LootiScript (.loot) files
+ * 
+ * Provides:
+ * - Raw import support for .loot files (?raw query)
+ * - Hot module replacement (HMR) for .loot files
+ * - Proper MIME type serving
+ */
+
 import type { Plugin } from 'vite';
 import fs from 'fs-extra';
 import path from 'path';
 
-// Simple cache for file reads (cleared on file changes via HMR)
-const fileCache = new Map<string, { content: string; mtime: number }>();
+/**
+ * File cache entry for HMR
+ */
+interface FileCacheEntry {
+    content: string;
+    mtime: number;
+}
 
+/**
+ * Simple cache for file reads (cleared on file changes via HMR)
+ */
+const fileCache = new Map<string, FileCacheEntry>();
+
+const LOOT_EXTENSION = '.loot';
+const RAW_QUERY = '?raw';
+const TEXT_PLAIN_MIME = 'text/plain';
+
+/**
+ * Create Vite plugin for LootiScript files
+ * 
+ * @returns Vite plugin instance
+ */
 export function lootiScriptPlugin(): Plugin {
     let root: string = '';
 
@@ -18,12 +46,12 @@ export function lootiScriptPlugin(): Plugin {
 
         async load(id) {
             // Handle .loot?raw imports - return the file content as a string
-            if (!id.endsWith('.loot') && !id.includes('.loot?')) {
+            if (!id.endsWith(LOOT_EXTENSION) && !id.includes(`${LOOT_EXTENSION}?`)) {
                 return null;
             }
 
             // Remove query params and get clean file path
-            let filePath = id.replace(/\?raw$/, '').replace(/\?.*$/, '');
+            let filePath = id.replace(RAW_QUERY, '').replace(/\?.*$/, '');
             
             // Resolve path relative to root if it's a relative/absolute path from Vite
             if (!path.isAbsolute(filePath)) {
@@ -61,33 +89,34 @@ export function lootiScriptPlugin(): Plugin {
                 if (err.code === 'ENOENT') {
                     return null;
                 }
-                console.error(`Error reading .loot file ${filePath}:`, error);
+                console.error(`Error reading ${LOOT_EXTENSION} file ${filePath}:`, error);
                 return null;
             }
         },
 
         handleHotUpdate({ file, server }) {
             // Clear cache for changed file
-            if (file.endsWith('.loot')) {
+            if (file.endsWith(LOOT_EXTENSION)) {
                 fileCache.delete(file);
                 
                 // Trigger full reload when .loot files change
                 server.ws.send({
                     type: 'full-reload',
-                    path: '*'
+                    path: '*',
                 });
                 return [];
             }
+            return;
         },
 
         configureServer(server) {
             // Ensure .loot files are served with correct MIME type
             server.middlewares.use((req, res, next) => {
-                if (req.url?.endsWith('.loot')) {
-                    res.setHeader('Content-Type', 'text/plain');
+                if (req.url?.endsWith(LOOT_EXTENSION)) {
+                    res.setHeader('Content-Type', TEXT_PLAIN_MIME);
                 }
                 next();
             });
-        }
+        },
     };
 }

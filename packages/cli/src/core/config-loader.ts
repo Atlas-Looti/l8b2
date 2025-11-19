@@ -1,29 +1,30 @@
 import fs from 'fs-extra';
 import path from 'path';
 import type { LootiConfig } from '../types/config';
+import {
+    DEFAULT_GAME_NAME,
+    DEFAULT_CANVAS_ID,
+    DEFAULT_ORIENTATION,
+    DEFAULT_ASPECT,
+    ASPECT_SIZES,
+    DEFAULT_CANVAS_SIZE,
+} from '../utils';
 
 const DEFAULT_CONFIG: LootiConfig = {
-    name: 'LootiScript Game',
-    orientation: 'any',
-    aspect: 'free',
+    name: DEFAULT_GAME_NAME,
+    orientation: DEFAULT_ORIENTATION,
+    aspect: DEFAULT_ASPECT,
     canvas: {
-        id: 'game',
+        id: DEFAULT_CANVAS_ID,
     },
 };
 
-// Aspect ratio to size mapping
-const ASPECT_SIZES: Record<string, [number, number]> = {
-    'free': [1920, 1080],
-    '16x9': [1920, 1080],
-    '4x3': [1600, 1200],
-    '1x1': [1080, 1080],
-    '2x1': [2560, 1280],
-    '>16x9': [1920, 1080], // Minimum
-    '>4x3': [1600, 1200], // Minimum
-    '>1x1': [1080, 1080], // Minimum
-    '>2x1': [2560, 1280], // Minimum
-};
-
+/**
+ * Load and merge configuration from l8b.config.json
+ * 
+ * @param projectPath - Root path of the project
+ * @returns Merged configuration with defaults
+ */
 export async function loadConfig(projectPath: string = process.cwd()): Promise<LootiConfig> {
     const configPath = path.join(projectPath, 'l8b.config.json');
 
@@ -37,17 +38,17 @@ export async function loadConfig(projectPath: string = process.cwd()): Promise<L
         }
     }
 
-    const config = { ...DEFAULT_CONFIG, ...userConfig };
+    const config: LootiConfig = { ...DEFAULT_CONFIG, ...userConfig };
 
     // Ensure canvas object exists
     if (!config.canvas) {
-        config.canvas = { id: 'game' };
+        config.canvas = { id: DEFAULT_CANVAS_ID };
     }
 
     // Calculate dimensions based on aspect ratio if not explicitly provided
     if (!config.width || !config.height) {
-        const aspect = config.aspect || 'free';
-        const [w, h] = ASPECT_SIZES[aspect] || [1920, 1080];
+        const aspect = config.aspect || DEFAULT_ASPECT;
+        const [w, h] = ASPECT_SIZES[aspect] || DEFAULT_CANVAS_SIZE;
         
         // Apply orientation
         if (config.orientation === 'portrait' && w > h) {
@@ -65,9 +66,16 @@ export async function loadConfig(projectPath: string = process.cwd()): Promise<L
     return config;
 }
 
+/**
+ * Get canvas dimensions from config with fallbacks
+ * 
+ * @param config - Game configuration
+ * @returns Canvas width and height
+ */
 export function getCanvasSize(config: LootiConfig): { width: number; height: number } {
-    const width = config.width || config.canvas?.width || 1920;
-    const height = config.height || config.canvas?.height || 1080;
+    const [defaultWidth, defaultHeight] = DEFAULT_CANVAS_SIZE;
+    const width = config.width || config.canvas?.width || defaultWidth;
+    const height = config.height || config.canvas?.height || defaultHeight;
     return { width, height };
 }
 

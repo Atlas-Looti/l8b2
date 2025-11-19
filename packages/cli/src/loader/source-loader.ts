@@ -1,8 +1,22 @@
+/**
+ * Source file loader for LootiScript projects
+ * 
+ * Recursively finds and loads all .loot source files from standard locations.
+ */
+
 import fs from 'fs-extra';
 import path from 'path';
 
+// Standard source directories
+const SOURCE_DIRECTORIES = ['scripts', 'src/l8b/ls'];
+
 /**
- * Recursively find all .loot files in a directory (optimized with parallel reads)
+ * Recursively find all .loot files in a directory
+ * 
+ * Uses parallel reads for better performance.
+ * 
+ * @param dir - Directory to scan
+ * @returns Array of full file paths
  */
 async function findLootFiles(dir: string): Promise<string[]> {
     if (!await fs.pathExists(dir)) {
@@ -45,16 +59,18 @@ async function findLootFiles(dir: string): Promise<string[]> {
 
 /**
  * Load all .loot source files and return as Record<moduleName, filePath>
- * For Vite dev server, we return paths so they can be imported with ?raw
+ * 
+ * For Vite dev server, returns paths with leading / so they can be imported with ?raw.
+ * Module names are relative paths without .loot extension (e.g., 'main', 'scenes/level1').
+ * 
+ * @param projectPath - Root path of the project
+ * @returns Map of module names to file paths (relative to project root with leading /)
  */
 export async function loadSources(projectPath: string = process.cwd()): Promise<Record<string, string>> {
     const sources: Record<string, string> = {};
 
-    // Check for standard locations (template structure and fish structure)
-    const locations = [
-        path.join(projectPath, 'scripts'),
-        path.join(projectPath, 'src', 'l8b', 'ls')
-    ];
+    // Check for standard locations
+    const locations = SOURCE_DIRECTORIES.map(dir => path.join(projectPath, ...dir.split('/')));
 
     // Scan all locations in parallel
     const scanTasks = locations.map(dir => findLootFiles(dir));
@@ -88,7 +104,10 @@ export async function loadSources(projectPath: string = process.cwd()): Promise<
 }
 
 /**
- * Read source file content (for static/pre-compiled use cases)
+ * Read source file content
+ * 
+ * @param filePath - Path to the source file
+ * @returns File content as string
  */
 export async function readSourceContent(filePath: string): Promise<string> {
     return await fs.readFile(filePath, 'utf-8');

@@ -2,7 +2,7 @@
  * L8BVM - Virtual Machine wrapper for lootiscript
  */
 
-import { Compiler, Processor, Program, Runner } from "@l8b/lootiscript";
+import { Compiler, Processor, Program, Runner, Routine } from "@l8b/lootiscript";
 import { StorageService } from "../storage";
 import type { ErrorInfo, GlobalAPI, MetaFunctions, VMContext } from "../types";
 import { createVMContext } from "./context";
@@ -110,6 +110,50 @@ export class L8BVM {
 				line: err.line,
 				column: err.column,
 				file: err.file || name,
+				stack: err.stack,
+			};
+			throw err;
+		}
+	}
+
+	/**
+	 * Load a pre-compiled routine (for production builds)
+	 * @param routineData - Either a Routine instance (already imported) or serialized routine data (from routine.export())
+	 * @param filename - Name of the file for error reporting
+	 */
+	loadRoutine(routineData: any, filename: string = ""): void {
+		this.error_info = null;
+		
+		try {
+			let routine: Routine;
+			
+			// If routineData is already a Routine instance, use it directly
+			// Otherwise, import it from serialized data
+			if (routineData instanceof Routine) {
+				routine = routineData;
+			} else {
+				// Import from serialized data
+				routine = new Routine(0).import(routineData);
+			}
+			
+			// Add to main thread for execution
+			this.runner.main_thread.addCall(routine);
+			this.runner.tick();
+		} catch (err: any) {
+			const errorMessage =
+				(typeof err === "object" &&
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
+					? err.error
+					: err.message) || String(err);
+
+			this.error_info = {
+				error: errorMessage,
+				type: "compile",
+				line: err.line,
+				column: err.column,
+				file: err.file || filename,
 				stack: err.stack,
 			};
 			throw err;

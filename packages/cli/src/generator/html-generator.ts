@@ -1,40 +1,90 @@
+/**
+ * HTML generator for LootiScript projects
+ * 
+ * Generates the index.html file with embedded game configuration,
+ * source imports, and runtime initialization.
+ */
+
 import type { LootiConfig } from '../types/config';
 import { getCanvasSize } from '../core/config-loader';
 import type { Resources } from '@l8b/runtime';
+import type { CompiledModule } from '../compiler';
+import { DEFAULT_CANVAS_ID } from '../utils';
 
 /**
  * Generate variable name from module name (sanitized for JS)
+ * 
+ * @param name - Module name to sanitize
+ * @returns Sanitized variable name safe for JavaScript
  */
 function sanitizeVarName(name: string): string {
     return name.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
+/**
+ * Generate HTML for the game
+ * 
+ * @param config - Game configuration
+ * @param sources - Map of module names to source file paths (for development)
+ * @param resources - Game resources (images, maps, sounds, music)
+ * @param compiledModules - Pre-compiled modules (for production)
+ * @returns Generated HTML string
+ */
 export function generateHTML(
     config: LootiConfig,
     sources: Record<string, string>,
-    resources: Resources
+    resources: Resources,
+    compiledModules?: CompiledModule[]
 ): string {
     const { width, height } = getCanvasSize(config);
-    
-    const canvasId = config.canvas?.id || 'game';
+    const canvasId = config.canvas?.id || DEFAULT_CANVAS_ID;
     const isFreeAspect = config.aspect === 'free';
     const baseUrl = config.url || '/';
 
-    // Generate import statements and source map in single pass
-    const sourceEntries = Object.entries(sources);
-    const sourceImports = sourceEntries
-        .map(([name, filePath]) => {
-            const varName = sanitizeVarName(name);
-            return `import ${varName} from '${filePath}?raw';`;
-        })
-        .join('\n      ');
+    // Determine if we're using pre-compiled routines (production) or sources (development)
+    const isProduction = compiledModules && compiledModules.length > 0;
+    
+    let sourceImports = '';
+    let sourceMap = '';
+    let compiledRoutinesMap = '';
+    
+    if (isProduction && compiledModules) {
+        // Production: Use pre-compiled routines
+        // Import compiled routines as JS modules
+        const compiledImports = compiledModules
+            .map((module) => {
+                const varName = sanitizeVarName(module.name);
+                return `import ${varName} from '/compiled/${module.name}.js';`;
+            })
+            .join('\n      ');
+        
+        sourceImports = compiledImports;
+        
+        // Create map of compiled routines (with Routine.import())
+        // When using default import, the variable is already the default export
+        compiledRoutinesMap = compiledModules
+            .map((module) => {
+                const varName = sanitizeVarName(module.name);
+                return `'${module.name}': new Routine(0).import(${varName}.routine)`;
+            })
+            .join(',\n          ');
+    } else {
+        // Development: Use source files
+        const sourceEntries = Object.entries(sources);
+        sourceImports = sourceEntries
+            .map(([name, filePath]) => {
+                const varName = sanitizeVarName(name);
+                return `import ${varName} from '${filePath}?raw';`;
+            })
+            .join('\n      ');
 
-    const sourceMap = sourceEntries
-        .map(([name]) => {
-            const varName = sanitizeVarName(name);
-            return `'${name}': ${varName}`;
-        })
-        .join(',\n          ');
+        sourceMap = sourceEntries
+            .map(([name]) => {
+                const varName = sanitizeVarName(name);
+                return `'${name}': ${varName}`;
+            })
+            .join(',\n          ');
+    }
 
     // Prepare resources object for Runtime (with null coalescing)
     const resourcesObj = {
@@ -62,7 +112,7 @@ export function generateHTML(
     <style>
       @font-face {
         font-family: "BitCell";
-        src: url("/@l8b/fonts/BitCell.ttf") format("truetype");
+        src: url("/fonts/BitCell.ttf") format("truetype");
         font-display: swap;
       }
       ${/* External fonts (like PressStart2P) should be added manually by developers in public/fonts */ ''}
@@ -97,7 +147,11 @@ export function generateHTML(
   <body>
     <canvas id="${canvasId}"></canvas>
     <script type="module">
-      import { Runtime } from '@l8b/runtime';
+      ${isProduction 
+        ? `// Production: Use bundled runtime
+import { Runtime, Routine } from '/runtime.js';`
+        : `// Development: Use Vite-resolved modules
+import { Runtime } from '@l8b/runtime';`}
       
       ${sourceImports}
 
@@ -137,14 +191,11 @@ export function generateHTML(
 
       const resources = ${JSON.stringify(resourcesObj)};
 
-      const runtime = new Runtime({
+      const runtimeOptions = {
         canvas: canvas,
         width: canvas.width,
         height: canvas.height,
         url: '${baseUrl}',
-        sources: {
-          ${sourceMap}
-        },
         resources: resources,
         listener: {
           log: (message) => {
@@ -154,10 +205,24 @@ export function generateHTML(
             console.error('[GAME ERROR]', error);
           },
           postMessage: (msg) => {
-            console.log('[GAME MESSAGE]', msg);
+            ${isProduction ? '// Compilation messages are handled during build' : "console.log('[GAME MESSAGE]', msg);"}
           },
         },
-      });
+      };
+
+      ${isProduction ? `
+      // Production: Use pre-compiled routines
+      runtimeOptions.compiledRoutines = {
+        ${compiledRoutinesMap}
+      };
+      ` : `
+      // Development: Use source files
+      runtimeOptions.sources = {
+        ${sourceMap}
+      };
+      `}
+
+      const runtime = new Runtime(runtimeOptions);
 
       // Handle window resize - make canvas responsive (with debounce)
       let resizeTimeout = null;

@@ -30,8 +30,10 @@ export interface RuntimeDebugOptions {
 export interface RuntimeOptions {
 	/** Base URL for loading assets */
 	url?: string;
-	/** Source code files */
+	/** Source code files (for development) */
 	sources?: Record<string, string>;
+	/** Pre-compiled routines (for production) - Record of module name to Routine instance */
+	compiledRoutines?: Record<string, any>;
 	/** Resources metadata */
 	resources?: Resources;
 	/** Listener for events (logging, errors) */

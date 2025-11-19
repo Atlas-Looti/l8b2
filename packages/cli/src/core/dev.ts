@@ -1,6 +1,13 @@
+/**
+ * Development server for LootiScript projects
+ * 
+ * Provides hot module replacement (HMR) and live reloading
+ * for LootiScript game development.
+ */
+
 import { createServer } from 'vite';
+import type { ViteDevServer } from 'vite';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import chokidar from 'chokidar';
 import fs from 'fs-extra';
 
@@ -9,9 +16,17 @@ import { detectResources } from '../loader/auto-detect';
 import { loadSources } from '../loader/source-loader';
 import { generateHTML } from '../generator/html-generator';
 import { lootiScriptPlugin } from '../plugin/vite-plugin-lootiscript';
+import { 
+    getCliPackageRoot, 
+    getBitCellFontPaths, 
+    DEFAULT_PORT, 
+    DEFAULT_HOST, 
+    CACHE_TTL_MS,
+    FONT_BITCELL,
+    FONT_CONTENT_TYPE,
+    FONT_CACHE_CONTROL,
+} from '../utils';
 import type { Resources } from '@l8b/runtime';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Cache for resources and sources to avoid re-scanning on every request
 interface CacheEntry<T> {
@@ -21,17 +36,33 @@ interface CacheEntry<T> {
 
 let cachedResources: CacheEntry<Resources> | null = null;
 let cachedSources: CacheEntry<Record<string, string>> | null = null;
-const CACHE_TTL = 100; // Cache for 100ms to batch requests
 
+/**
+ * Get CLI package root directory
+ */
+const cliPackageRoot = getCliPackageRoot();
+
+export interface DevOptions {
+    port?: number;
+    host?: string | boolean;
+}
+
+/**
+ * Start development server for LootiScript project
+ * 
+ * @param projectPath - Root path of the project
+ * @param options - Server options (port, host)
+ * @returns Vite dev server instance
+ */
 export async function dev(
     projectPath: string = process.cwd(), 
-    options: { port?: number, host?: string | boolean } = {}
-) {
+    options: DevOptions = {}
+): Promise<ViteDevServer> {
     const config = await loadConfig(projectPath);
     
     // Get port and host from config or options
-    const port = options.port || config.dev?.port || 3000;
-    const host = options.host !== undefined ? options.host : (config.dev?.host || false);
+    const port = options.port || config.dev?.port || DEFAULT_PORT;
+    const host = options.host !== undefined ? options.host : (config.dev?.host ?? DEFAULT_HOST);
 
     // Setup file watchers to invalidate cache on changes
     const watcher = chokidar.watch([
@@ -55,10 +86,12 @@ export async function dev(
     watcher.on('add', clearCache);
     watcher.on('unlink', clearCache);
 
-    // Helper to get or cache resources
+    /**
+     * Get or cache resources
+     */
     const getResources = async (): Promise<Resources> => {
         const now = Date.now();
-        if (cachedResources && (now - cachedResources.timestamp) < CACHE_TTL) {
+        if (cachedResources && (now - cachedResources.timestamp) < CACHE_TTL_MS) {
             return cachedResources.data;
         }
         const resources = await detectResources(projectPath);
@@ -66,10 +99,12 @@ export async function dev(
         return resources;
     };
 
-    // Helper to get or cache sources
+    /**
+     * Get or cache sources
+     */
     const getSources = async (): Promise<Record<string, string>> => {
         const now = Date.now();
-        if (cachedSources && (now - cachedSources.timestamp) < CACHE_TTL) {
+        if (cachedSources && (now - cachedSources.timestamp) < CACHE_TTL_MS) {
             return cachedSources.data;
         }
         const sources = await loadSources(projectPath);
@@ -89,25 +124,35 @@ export async function dev(
             {
                 name: 'l8b-html-generator',
                 configureServer(server) {
-                    // Serve BitCell font from CLI package (built to dist/assets/fonts or dev from src/assets/fonts)
-                    const cliDistAssetsPath = path.join(__dirname, '../assets/fonts');
-                    const cliSrcAssetsPath = path.join(__dirname, '../../src/assets/fonts');
+                    const fontPaths = getBitCellFontPaths(cliPackageRoot);
+                    const normalizedDistFontPath = path.normalize(fontPaths.dist);
+                    const normalizedSrcFontPath = path.normalize(fontPaths.src);
                     
+                    // Place middleware BEFORE other middlewares to catch font requests early
                     server.middlewares.use(async (req, res, next) => {
                         // Serve BitCell font from CLI package
-                        if (req.url === '/@l8b/fonts/BitCell.ttf') {
-                            // Try dist first (production), then src (development)
-                            let fontPath = path.join(cliDistAssetsPath, 'BitCell.ttf');
+                        const fontUrl = `/fonts/${FONT_BITCELL}`;
+                        if (req.url && (req.url === fontUrl || req.url.startsWith(fontUrl))) {
+                            // Try dist first, then src
+                            let fontPath = normalizedDistFontPath;
                             if (!(await fs.pathExists(fontPath))) {
-                                fontPath = path.join(cliSrcAssetsPath, 'BitCell.ttf');
+                                fontPath = normalizedSrcFontPath;
                             }
                             
                             if (await fs.pathExists(fontPath)) {
-                                const fontData = await fs.readFile(fontPath);
-                                res.setHeader('Content-Type', 'font/ttf');
-                                res.setHeader('Cache-Control', 'public, max-age=31536000');
-                                res.end(fontData);
-                                return;
+                                try {
+                                    const fontData = await fs.readFile(fontPath);
+                                    res.setHeader('Content-Type', FONT_CONTENT_TYPE);
+                                    res.setHeader('Cache-Control', FONT_CACHE_CONTROL);
+                                    res.end(fontData);
+                                    return;
+                                } catch (error) {
+                                    console.error('[L8B CLI] Error serving BitCell font:', error);
+                                }
+                            } else {
+                                console.warn(
+                                    `[L8B CLI] BitCell font not found. Tried:\n  ${normalizedDistFontPath}\n  ${normalizedSrcFontPath}`
+                                );
                             }
                         }
                         
@@ -162,15 +207,30 @@ export async function dev(
 
     await server.listen();
     
-    console.log(`\n🚀 L8B Dev Server running!\n`);
+    console.log('\n🚀 L8B Dev Server running!\n');
     server.printUrls();
     
-    // Cleanup on process exit
-    process.on('SIGTERM', () => {
-        watcher.close().catch(() => {});
-    });
-    process.on('SIGINT', () => {
-        watcher.close().catch(() => {});
+    /**
+     * Cleanup function for graceful shutdown
+     */
+    const cleanup = async () => {
+        console.log('\n\nShutting down server...');
+        try {
+            await watcher.close();
+            await server.close();
+            process.exit(0);
+        } catch (error) {
+            console.error('Error during cleanup:', error);
+            process.exit(1);
+        }
+    };
+    
+    process.on('SIGTERM', cleanup);
+    process.on('SIGINT', cleanup);
+    
+    // Handle uncaught errors
+    process.on('unhandledRejection', (reason) => {
+        console.error('Unhandled rejection:', reason);
     });
     
     return server;

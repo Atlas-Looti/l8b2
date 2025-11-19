@@ -239,17 +239,41 @@ export class RuntimeOrchestrator {
 			});
 		}
 
-		// Execute all source files
+		// Load pre-compiled routines (production) or source files (development)
+		const compiledRoutines = this.options.compiledRoutines || {};
 		const sources = this.options.sources || {};
-		if (Object.keys(sources).length > 0) {
+		
+		if (Object.keys(compiledRoutines).length > 0) {
+			// Production: Load pre-compiled routines
+			this.logStep("vm: loading compiled routines", {
+				files: Object.keys(compiledRoutines),
+			});
+			for (const [file, routine] of Object.entries(compiledRoutines)) {
+				try {
+					this.vm.loadRoutine(routine, file);
+				} catch (err: any) {
+					this.reportError({
+						error: err.message || String(err),
+						type: "compile",
+						stack: err.stack,
+						file,
+					});
+					this.logStep("vm: routine load error", {
+						file,
+						message: err?.message || String(err),
+					});
+				}
+			}
+		} else if (Object.keys(sources).length > 0) {
+			// Development: Compile and execute source files
 			this.logStep("vm: executing sources", {
 				files: Object.keys(sources),
 			});
+			for (const [file, src] of Object.entries(sources)) {
+				this.sourceUpdater.updateSource(file, src, false);
+			}
 		} else {
-			this.logStep("vm: no sources provided");
-		}
-		for (const [file, src] of Object.entries(sources)) {
-			this.sourceUpdater.updateSource(file, src, false);
+			this.logStep("vm: no sources or compiled routines provided");
 		}
 
 		// Call init() if it exists

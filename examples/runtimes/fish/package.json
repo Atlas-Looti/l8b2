@@ -4,7 +4,9 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "l8b dev"
+		"dev": "l8b dev",
+		"build": "l8b build",
+		"start": "l8b start"
 	},
 	"dependencies": {
 		"@l8b/runtime": "workspace:*"
