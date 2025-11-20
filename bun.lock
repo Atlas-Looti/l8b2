@@ -138,11 +138,7 @@
       "name": "@l8b/time",
       "version": "0.0.1",
     },
-    "packages/lootiscript": {
-      "name": "@l8b/lootiscript",
-      "version": "0.0.1",
-    },
-    "packages/runtime": {
+    "packages/enggine/runtime": {
       "name": "@l8b/runtime",
       "version": "0.0.1",
       "dependencies": {
@@ -154,6 +150,10 @@
         "@l8b/sprites": "workspace:*",
         "@l8b/time": "workspace:*",
       },
+    },
+    "packages/lootiscript": {
+      "name": "@l8b/lootiscript",
+      "version": "0.0.1",
     },
   },
   "packages": {
@@ -263,7 +263,7 @@
 
     "@l8b/palette": ["@l8b/palette@workspace:packages/core/palette"],
 
-    "@l8b/runtime": ["@l8b/runtime@workspace:packages/runtime"],
+    "@l8b/runtime": ["@l8b/runtime@workspace:packages/enggine/runtime"],
 
     "@l8b/screen": ["@l8b/screen@workspace:packages/core/screen"],
 
