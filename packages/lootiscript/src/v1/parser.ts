@@ -36,6 +36,7 @@ import {
 } from "./program";
 import { Token } from "./token";
 import { Tokenizer } from "./tokenizer";
+import { SyntaxError as LootiSyntaxError, formatSourceContext } from "./error-handler";
 
 /**
  * Parser for LootiScript
@@ -47,7 +48,7 @@ export class Parser {
 	tokenizer: Tokenizer;
 	program: Program;
 	current_block: Statement[];
-	current: { line: number; column: number };
+	current: Token;
 	verbose: boolean;
 	nesting: number;
 	object_nesting: number;
@@ -60,7 +61,7 @@ export class Parser {
 		column: number;
 	}>;
 	unexpected_eof?: boolean;
-	error_info?: { error: string; line: number; column: number };
+	error_info?: { error: string; line: number; column: number; context?: string; };
 	last_function_call?: FunctionCall;
 	static multipliers: Record<string, number> = {
 		millisecond: 1,
@@ -87,10 +88,18 @@ export class Parser {
 		this.tokenizer = new Tokenizer(this.input, this.filename);
 		this.program = new Program();
 		this.current_block = [];
+		// Initialize with a dummy token (will be replaced by first nextToken call)
 		this.current = {
 			line: 1,
 			column: 1,
-		};
+			tokenizer: this.tokenizer,
+			type: 0,
+			value: "",
+			start: 0,
+			length: 0,
+			index: 0,
+			is_binary_operator: false
+		} as Token;
 		this.verbose = false;
 		this.nesting = 0;
 		this.object_nesting = 0;
@@ -176,17 +185,34 @@ export class Parser {
 			return this;
 		} catch (error1) {
 			err = error1;
-			//console.info "Error at line: #{@current.line} column: #{@current.column}"
+
+			// Handle LootiSyntaxError (already formatted)
+			if (err instanceof LootiSyntaxError) {
+				return (this.error_info = {
+					error: err.message,
+					line: err.line,
+					column: err.column,
+					context: err.context
+				}) as any;
+			}
+
 			if (this.not_terminated.length > 0 && err === "Unexpected end of file") {
 				nt = this.not_terminated[this.not_terminated.length - 1];
+				const context = formatSourceContext(
+					nt.tokenizer.input,
+					nt.line,
+					nt.column,
+					2
+				);
 				return (this.error_info = {
 					error: `Unterminated '${nt.value}' ; no matching 'end' found`,
 					line: nt.line,
 					column: nt.column,
-				}) as { error: string; line: number; column: number };
+					context: context
+				}) as any;
 			} else {
 				return (this.error_info = {
-					error: err,
+					error: typeof err === 'string' ? err : err.message || String(err),
 					line: this.current.line,
 					column: this.current.column,
 				}) as { error: string; line: number; column: number };
@@ -680,8 +706,25 @@ export class Parser {
 		return token;
 	}
 
+	/**
+	 * Throw enhanced error with source context
+	 */
 	error(text: string): never {
-		throw text;
+		const token = this.current;
+		const context = formatSourceContext(
+			token.tokenizer.input,
+			token.line,
+			token.column,
+			2
+		);
+
+		throw new LootiSyntaxError(
+			text,
+			token.tokenizer.filename,
+			token.line,
+			token.column,
+			context
+		);
 	}
 
 	parseFor(fortoken: Token): For | ForIn {

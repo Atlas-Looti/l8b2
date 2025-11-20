@@ -1,26 +1,20 @@
 /**
- * Runner - Runtime execution engine for LootiScript
+ * Runner - Manages LootiScript execution lifecycle
  *
- * Manages script execution, threads, and runtime context.
+ * Handles multiple threads, scheduling, and global environment setup.
  */
 
 import { Random } from "../random";
 import { Parser } from "./parser";
 import { Program } from "./program";
 import { Routine } from "./routine";
+import { MathLib, StringLib, ListLib, JSONLib } from "@l8b/stdlib";
+
 
 // Forward declarations for circular dependencies
 declare class Compiler {
 	program: Program;
 	routine: Routine;
-}
-
-declare class Processor {
-	done: boolean;
-	time_limit: number;
-	load(routine: Routine): void;
-	run(context: any): any;
-	routineAsFunction(routine: Routine, context: any): (...args: any[]) => any;
 }
 
 /**
@@ -158,7 +152,9 @@ export class Thread {
 }
 
 /**
- * Runner - Runtime execution engine for LootiScript
+ * Runner - Manages LootiScript execution lifecycle
+ *
+ * Handles multiple threads, scheduling, and global environment setup.
  */
 export class Runner {
 	l8bvm: L8BVM;
@@ -214,58 +210,23 @@ export class Runner {
 				}
 			},
 		} as any;
-		this.l8bvm.context.global.List = {
-			sortList: (f: any) => {
-				let funk: any;
-				const self = this;
-				const Function = Program as any;
-				if (f != null && f instanceof Function.Function) {
-					funk = (a: any, b: any) =>
-						f.call(self.l8bvm.context.global, [a, b], true);
-				} else if (f != null && typeof f === "function") {
-					funk = f;
-				}
-				return (self as any).sort(funk);
-			},
-			"+": (a: any[], b: any, self?: boolean) => {
-				if (!self) {
-					// not +=, clone array a
-					a = [...a];
-				}
-				if (Array.isArray(b)) {
-					return a.concat(b);
-				} else {
-					a.push(b);
-					return a;
-				}
-			},
-			"-": (a: any[], b: any, self?: boolean) => {
-				let index: number;
-				if (!self) {
-					// not -=, clone array a
-					a = [...a];
-				}
-				index = a.indexOf(b);
-				if (index >= 0) {
-					a.splice(index, 1);
-				}
-				return a;
-			},
-		};
-		this.l8bvm.context.global.Object = {};
+		// Inject standard library
+		this.l8bvm.context.global.Math = MathLib;
+		this.l8bvm.context.global.JSON = JSONLib;
+		this.l8bvm.context.global.List = ListLib;
+
+		// Extend String with stdlib utilities
 		this.l8bvm.context.global.String = {
-			fromCharCode: (...args: number[]) => String.fromCharCode(...args),
-			"+": (a: string, b: any) => a + b,
+			fromCharCode: function () {
+				return String.fromCharCode.apply(null, arguments as any);
+			},
+			...StringLib,
 		};
+
 		this.l8bvm.context.global.Number = {
-			parse: (s: string | number) => {
-				let res: number;
-				res = Number.parseFloat(String(s));
-				if (isFinite(res)) {
-					return res;
-				} else {
-					return 0;
-				}
+			parse: function (str: string) {
+				const res = Number.parseFloat(str);
+				return isFinite(res) ? res : 0;
 			},
 			toString: function (this: number) {
 				return this.toString();

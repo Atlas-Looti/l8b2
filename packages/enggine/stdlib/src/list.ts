@@ -1,0 +1,128 @@
+/**
+ * List (Array) utilities for LootiScript
+ * 
+ * Provides functional programming helpers and array manipulation.
+ */
+
+export const ListLib = {
+    // Functional programming
+    map: (arr: any[], fn: (item: any, index: number) => any): any[] =>
+        arr.map(fn),
+
+    filter: (arr: any[], fn: (item: any, index: number) => boolean): any[] =>
+        arr.filter(fn),
+
+    reduce: (arr: any[], fn: (acc: any, item: any, index: number) => any, initial: any): any =>
+        arr.reduce(fn, initial),
+
+    find: (arr: any[], fn: (item: any, index: number) => boolean): any =>
+        arr.find(fn) ?? null,
+
+    findIndex: (arr: any[], fn: (item: any, index: number) => boolean): number =>
+        arr.findIndex(fn),
+
+    some: (arr: any[], fn: (item: any, index: number) => boolean): boolean =>
+        arr.some(fn),
+
+    every: (arr: any[], fn: (item: any, index: number) => boolean): boolean =>
+        arr.every(fn),
+
+    // Array manipulation (non-mutating by default)
+    reverse: (arr: any[]): any[] => [...arr].reverse(),
+
+    sort: (arr: any[], fn?: (a: any, b: any) => number): any[] =>
+        [...arr].sort(fn),
+
+    slice: (arr: any[], start: number, end?: number): any[] =>
+        arr.slice(start, end),
+
+    concat: (...arrays: any[][]): any[] =>
+        ([] as any[]).concat(...arrays),
+
+    flat: (arr: any[], depth: number = 1): any[] =>
+        arr.flat(depth),
+
+    flatMap: (arr: any[], fn: (item: any, index: number) => any): any[] =>
+        arr.flatMap(fn),
+
+    // Searching
+    indexOf: (arr: any[], item: any, fromIndex?: number): number =>
+        arr.indexOf(item, fromIndex),
+
+    lastIndexOf: (arr: any[], item: any, fromIndex?: number): number =>
+        arr.lastIndexOf(item, fromIndex),
+
+    includes: (arr: any[], item: any, fromIndex?: number): boolean =>
+        arr.includes(item, fromIndex),
+
+    // Length
+    length: (arr: any[]): number => arr.length,
+
+    // Accessing
+    first: (arr: any[]): any => arr[0] ?? null,
+
+    last: (arr: any[]): any => arr[arr.length - 1] ?? null,
+
+    at: (arr: any[], index: number): any => {
+        // Support negative indices
+        const normalized = index < 0 ? arr.length + index : index;
+        return arr[normalized] ?? null;
+    },
+
+    // Array operations (mutating - returns modified array)
+    push: (arr: any[], ...items: any[]): any[] => {
+        arr.push(...items);
+        return arr;
+    },
+
+    pop: (arr: any[]): any => arr.pop() ?? null,
+
+    shift: (arr: any[]): any => arr.shift() ?? null,
+
+    unshift: (arr: any[], ...items: any[]): any[] => {
+        arr.unshift(...items);
+        return arr;
+    },
+
+    splice: (arr: any[], start: number, deleteCount?: number, ...items: any[]): any[] =>
+        arr.splice(start, deleteCount ?? arr.length - start, ...items),
+
+    // Utility
+    fill: (arr: any[], value: any, start?: number, end?: number): any[] =>
+        [...arr].fill(value, start, end),
+
+    join: (arr: any[], separator: string = ","): string =>
+        arr.join(separator),
+
+    unique: (arr: any[]): any[] =>
+        [...new Set(arr)],
+
+    shuffle: (arr: any[]): any[] => {
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    },
+
+    chunk: (arr: any[], size: number): any[][] => {
+        const result: any[][] = [];
+        for (let i = 0; i < arr.length; i += size) {
+            result.push(arr.slice(i, i + size));
+        }
+        return result;
+    },
+
+    sum: (arr: number[]): number =>
+        arr.reduce((sum, n) => sum + n, 0),
+
+    average: (arr: number[]): number =>
+        arr.length > 0 ? arr.reduce((sum, n) => sum + n, 0) / arr.length : 0,
+
+    min: (arr: number[]): number =>
+        arr.length > 0 ? Math.min(...arr) : 0,
+
+    max: (arr: number[]): number =>
+        arr.length > 0 ? Math.max(...arr) : 0,
+};

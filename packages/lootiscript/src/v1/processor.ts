@@ -5,6 +5,7 @@
  */
 
 import { Routine } from "./routine";
+import type { CallFrame } from "./error-handler";
 
 /**
  * Runtime context for script execution
@@ -49,6 +50,7 @@ export class Processor {
 	locals: any[];
 	stack: any[];
 	call_stack: any[];
+	call_stack_frames: CallFrame[]; // NEW: Stack trace frames
 	log: boolean;
 	time_limit: number;
 	done: boolean;
@@ -67,6 +69,7 @@ export class Processor {
 		this.locals = [];
 		this.stack = [];
 		this.call_stack = [];
+		this.call_stack_frames = []; // NEW: Initialize stack frames
 		this.log = false;
 		this.time_limit = Number.POSITIVE_INFINITY;
 		this.done = true;
@@ -91,12 +94,36 @@ export class Processor {
 		this.stack_index = -1;
 		this.op_index = 0;
 		this.call_stack_index = 0;
+		this.call_stack_frames = []; // NEW: Reset stack frames
 		this.global = null;
 		this.object = this.routine.object || null;
 		this.locals_offset = 0;
 		this.call_super = null;
 		this.call_supername = "";
 		this.done = false;
+	}
+
+	/**
+	 * Generate stack trace from call frames
+	 */
+	generateStackTrace(): CallFrame[] {
+		return [...this.call_stack_frames].reverse();
+	}
+
+	/**
+	 * Format stack trace as string
+	 */
+	formatStackTrace(): string {
+		const frames = this.generateStackTrace();
+		if (frames.length === 0) {
+			return '';
+		}
+
+		return frames
+			.map(frame =>
+				`  at ${frame.functionName} (${frame.file}:${frame.line}:${frame.column})`
+			)
+			.join('\n');
 	}
 
 	resolveParentClass(obj: RuntimeValue, global: RuntimeGlobal): void {
@@ -112,7 +139,7 @@ export class Processor {
 		}
 	}
 
-	applyFunction(_args: any): void {}
+	applyFunction(_args: any): void { }
 
 	routineAsFunction(routine: Routine, context: RuntimeContext): Function {
 		var f: Function, proc: Processor;
@@ -1294,6 +1321,18 @@ export class Processor {
 						cs.super = call_super;
 						cs.supername = call_supername;
 						cs.op_index = op_index + 1;
+
+						// NEW: Track stack frame for error reporting
+						const token = routine.ref[op_index]?.token;
+						if (token) {
+							this.call_stack_frames.push({
+								functionName: (f as any).source || '[anonymous function]',
+								file: token.tokenizer.filename,
+								line: token.line,
+								column: token.column
+							});
+						}
+
 						locals_offset += routine.locals_size;
 						routine = f;
 						opcodes = f.opcodes;
