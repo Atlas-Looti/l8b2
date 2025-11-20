@@ -13,6 +13,7 @@ import type { PreviewServer } from 'vite';
 import { loadConfig } from './config-loader';
 import { DEFAULT_DIRS, DEFAULT_FILES } from '../utils/paths';
 import { DEFAULT_SERVER, FONT } from '../utils/constants';
+import { handleRuntimeLogRequest } from '../utils/runtime-logs';
 import { BuildError, ServerError } from '../utils/errors';
 
 /**
@@ -62,21 +63,24 @@ export async function start(
     const host = options.host !== undefined 
         ? options.host 
         : (config.dev?.host ?? DEFAULT_SERVER.HOST);
+    const normalizedHost = typeof host === 'boolean' 
+        ? (host ? '0.0.0.0' : 'localhost') 
+        : host;
     
     console.log(pc.cyan('\n  🚀 Starting production server...\n'));
     console.log(pc.gray(`  Project: ${projectPath}\n`));
     
     try {
         const server = await preview({
-            root: distDir,
-            server: {
-                port,
-                host: typeof host === 'boolean' ? (host ? '0.0.0.0' : 'localhost') : host,
-                strictPort: false,
+            root: projectPath,
+            build: {
+                outDir: DEFAULT_DIRS.BUILD_OUTPUT,
+                emptyOutDir: false,
             },
             preview: {
                 port,
-                host: typeof host === 'boolean' ? (host ? '0.0.0.0' : 'localhost') : host,
+                host: normalizedHost,
+                strictPort: false,
             },
             plugins: [
                 {
@@ -84,6 +88,10 @@ export async function start(
                     configurePreviewServer(server) {
                         // Add middleware to serve fonts explicitly
                         server.middlewares.use(async (req, res, next) => {
+                            if (handleRuntimeLogRequest(req, res)) {
+                                return;
+                            }
+
                             // Handle font requests
                             const fontUrl = `/fonts/${DEFAULT_FILES.BITCELL_FONT}`;
                             if (req.url && (req.url === fontUrl || req.url.startsWith(fontUrl))) {

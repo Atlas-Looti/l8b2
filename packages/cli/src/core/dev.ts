@@ -23,6 +23,7 @@ import {
     DEFAULT_FILES,
 } from '../utils/paths';
 import { DEFAULT_SERVER, CACHE, FONT } from '../utils/constants';
+import { handleRuntimeLogRequest } from '../utils/runtime-logs';
 import { ServerError } from '../utils/errors';
 import type { Resources } from '@l8b/runtime';
 
@@ -140,6 +141,10 @@ export async function dev(
                         
                         // Place middleware BEFORE other middlewares to catch font requests early
                         server.middlewares.use(async (req, res, next) => {
+                            if (handleRuntimeLogRequest(req, res)) {
+                                return;
+                            }
+
                             // Serve BitCell font from CLI package
                             const fontUrl = `/fonts/${DEFAULT_FILES.BITCELL_FONT}`;
                             if (req.url && (req.url === fontUrl || req.url.startsWith(fontUrl))) {
@@ -252,3 +257,4 @@ export async function dev(
             }
         );
     }
+};

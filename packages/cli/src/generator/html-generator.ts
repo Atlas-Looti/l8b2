@@ -7,6 +7,7 @@
 
 import type { LootiConfig } from '../types/config';
 import { getCanvasSize } from '../core/config-loader';
+import { INTERNAL_ENDPOINTS } from '../utils/constants';
 import type { Resources } from '@l8b/runtime';
 import type { CompiledModule } from '../compiler';
 
@@ -40,6 +41,21 @@ export function generateHTML(
     const canvasId = config.canvas?.id || 'game';
     const isFreeAspect = config.aspect === 'free';
     const baseUrl = config.url || '/';
+    const logging = config.logging || {};
+    const browserLogging = logging.browser || {};
+    const terminalLogging = logging.terminal || {};
+    const showBrowserLifecycleLogs = browserLogging.lifecycle ?? false;
+    const showBrowserCanvasLogs = browserLogging.canvas ?? false;
+    const showTerminalLifecycleLogs = terminalLogging.lifecycle ?? false;
+    const showTerminalCanvasLogs = terminalLogging.canvas ?? false;
+    const mirrorListenerLogs = terminalLogging.listener ?? false;
+    const mirrorListenerErrors = terminalLogging.errors ?? false;
+    const terminalLoggingEnabled = [
+        showTerminalLifecycleLogs,
+        showTerminalCanvasLogs,
+        mirrorListenerLogs,
+        mirrorListenerErrors,
+    ].some(Boolean);
 
     // Determine if we're using pre-compiled routines (production) or sources (development)
     const isProduction = compiledModules && compiledModules.length > 0;
@@ -191,6 +207,66 @@ import { Runtime } from '@l8b/runtime';`}
 
       const resources = ${JSON.stringify(resourcesObj)};
 
+      const shouldLogLifecycleBrowser = ${showBrowserLifecycleLogs};
+      const shouldLogLifecycleTerminal = ${showTerminalLifecycleLogs};
+      const shouldLogCanvasBrowser = ${showBrowserCanvasLogs};
+      const shouldLogCanvasTerminal = ${showTerminalCanvasLogs};
+      const mirrorListenerLogs = ${mirrorListenerLogs};
+      const mirrorListenerErrors = ${mirrorListenerErrors};
+      const sendTerminalLog = ${terminalLoggingEnabled ? `(entry) => {
+        const payload = JSON.stringify({
+          ...entry,
+          timestamp: Date.now(),
+        });
+
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon('${INTERNAL_ENDPOINTS.LOGGER}', blob);
+        } else {
+          fetch('${INTERNAL_ENDPOINTS.LOGGER}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {});
+        }
+      }` : '() => {}'};
+
+      const logLifecycle = (message) => {
+        if (!shouldLogLifecycleBrowser && !shouldLogLifecycleTerminal) {
+          return;
+        }
+        if (shouldLogLifecycleBrowser) {
+          console.log(message);
+        }
+        if (shouldLogLifecycleTerminal) {
+          sendTerminalLog({
+            level: 'info',
+            scope: 'runtime',
+            message,
+          });
+        }
+      };
+
+      const logCanvasSize = () => {
+        if (!shouldLogCanvasBrowser && !shouldLogCanvasTerminal) {
+          return;
+        }
+        const message = 'Canvas internal size: ' + canvas.width + 'x' + canvas.height + ', display size: ' + canvas.clientWidth + 'x' + canvas.clientHeight;
+        if (shouldLogCanvasBrowser) {
+          console.log(message);
+        }
+        if (shouldLogCanvasTerminal) {
+          sendTerminalLog({
+            level: 'info',
+            scope: 'runtime',
+            message,
+          });
+        }
+      };
+
       const runtimeOptions = {
         canvas: canvas,
         width: canvas.width,
@@ -200,9 +276,24 @@ import { Runtime } from '@l8b/runtime';`}
         listener: {
           log: (message) => {
             console.log('[GAME]', message);
+            if (mirrorListenerLogs) {
+              sendTerminalLog({
+                level: 'info',
+                scope: 'game',
+                message: String(message),
+              });
+            }
           },
           reportError: (error) => {
             console.error('[GAME ERROR]', error);
+            if (mirrorListenerErrors) {
+              sendTerminalLog({
+                level: 'error',
+                scope: 'game',
+                message: error?.error || error?.message || 'Runtime error',
+                details: error,
+              });
+            }
           },
           postMessage: (msg) => {
             ${isProduction ? '// Compilation messages are handled during build' : "console.log('[GAME MESSAGE]', msg);"}
@@ -252,18 +343,12 @@ import { Runtime } from '@l8b/runtime';`}
         }, 100); // Debounce 100ms
       };
 
-      const logCanvasSize = () => {
-        console.log(
-          'Canvas internal size: ' + canvas.width + 'x' + canvas.height + ', display size: ' + canvas.clientWidth + 'x' + canvas.clientHeight
-        );
-      };
-
       // Start the game
-      console.log('Starting L8B Runtime...');
+      logLifecycle('Starting L8B Runtime...');
       try {
         await runtime.start();
-        console.log('Runtime started successfully!');
-        console.log('Game is running...');
+        logLifecycle('Runtime started successfully!');
+        logLifecycle('Game is running...');
         logCanvasSize();
       } catch (err) {
         console.error(err);
@@ -271,7 +356,7 @@ import { Runtime } from '@l8b/runtime';`}
 
       // Make runtime accessible from console for debugging
       window.runtime = runtime;
-      console.log('Runtime available as window.runtime');
+      logLifecycle('Runtime available as window.runtime');
 
       // Add resize listener for responsive canvas
       window.addEventListener('resize', handleResize);

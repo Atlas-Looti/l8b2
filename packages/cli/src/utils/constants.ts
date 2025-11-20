@@ -13,6 +13,13 @@ export const DEFAULT_SERVER = {
 } as const;
 
 /**
+ * Internal endpoints
+ */
+export const INTERNAL_ENDPOINTS = {
+    LOGGER: '/__l8b/log',
+} as const;
+
+/**
  * Cache settings
  */
 export const CACHE = {

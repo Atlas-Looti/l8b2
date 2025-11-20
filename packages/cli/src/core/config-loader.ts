@@ -13,6 +13,19 @@ import { ConfigError } from '../utils/errors';
 /**
  * Default configuration values
  */
+const DEFAULT_LOGGING: NonNullable<LootiConfig['logging']> = {
+    browser: {
+        lifecycle: false,
+        canvas: false,
+    },
+    terminal: {
+        lifecycle: false,
+        canvas: false,
+        listener: false,
+        errors: true,
+    },
+};
+
 const DEFAULT_CONFIG: LootiConfig = {
     name: 'LootiScript Game',
     orientation: 'any',
@@ -20,7 +33,27 @@ const DEFAULT_CONFIG: LootiConfig = {
     canvas: {
         id: 'game',
     },
+    logging: DEFAULT_LOGGING,
 };
+
+function mergeLogging(
+    userLogging: LootiConfig['logging']
+): LootiConfig['logging'] {
+    if (!userLogging) {
+        return DEFAULT_LOGGING;
+    }
+
+    return {
+        browser: {
+            ...DEFAULT_LOGGING.browser,
+            ...userLogging.browser,
+        },
+        terminal: {
+            ...DEFAULT_LOGGING.terminal,
+            ...userLogging.terminal,
+        },
+    };
+}
 
 /**
  * Aspect ratio to size mapping
@@ -66,7 +99,15 @@ export async function loadConfig(projectPath: string = process.cwd()): Promise<L
         }
     }
 
-    const config: LootiConfig = { ...DEFAULT_CONFIG, ...userConfig };
+    const config: LootiConfig = { 
+        ...DEFAULT_CONFIG, 
+        ...userConfig,
+        canvas: {
+            ...DEFAULT_CONFIG.canvas,
+            ...(userConfig.canvas ?? {}),
+        },
+        logging: mergeLogging(userConfig.logging),
+    };
 
     // Ensure canvas object exists
     if (!config.canvas) {
