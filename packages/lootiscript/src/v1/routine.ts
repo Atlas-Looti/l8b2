@@ -4,6 +4,8 @@
  * Represents compiled bytecode ready for execution.
  */
 
+import { InlineCache } from "./inline-cache";
+
 // Forward declarations for circular dependencies
 declare class Transpiler {
 	transpile(routine: Routine): void;
@@ -94,6 +96,11 @@ class OPCODES_CLASS {
 	readonly EVERY = 111;
 	readonly DO = 112;
 	readonly SLEEP = 113;
+	
+	// Fused opcodes
+	readonly LOAD_VAR_CALL = 120;
+	readonly LOAD_PROP_CALL = 121;
+	readonly LOAD_CONST_ADD = 122;
 
 	constructor() {
 		this.set("TYPE", 1);
@@ -161,6 +168,10 @@ class OPCODES_CLASS {
 		this.set("EVERY", 111);
 		this.set("DO", 112);
 		this.set("SLEEP", 113);
+		// Fused opcodes
+		this.set("LOAD_VAR_CALL", 120); // Load variable + function call
+		this.set("LOAD_PROP_CALL", 121); // Load property + function call
+		this.set("LOAD_CONST_ADD", 122); // Load constant + add
 	}
 
 	[key: string | number]: any;
@@ -191,6 +202,9 @@ export class Routine {
 	as_function?: Function;
 	object?: any;
 	callback?: Function | null;
+	
+	// Inline caches mapped by opcode index
+	ics: Record<number, InlineCache>;
 
 	constructor(num_args: number = 0) {
 		this.num_args = num_args;
@@ -204,6 +218,7 @@ export class Routine {
 		this.import_refs = [];
 		this.import_values = [];
 		this.import_self = -1;
+		this.ics = {};
 	}
 
 	clone(): Routine {
@@ -213,6 +228,7 @@ export class Routine {
 		r.ref = this.ref;
 		r.locals_size = this.locals_size;
 		r.uses_arguments = this.uses_arguments;
+		// ICs are not cloned to start fresh
 		return r;
 	}
 

@@ -9,6 +9,7 @@ import { Parser } from "./parser";
 import { Program } from "./program";
 import { Routine } from "./routine";
 import { Processor } from "./processor";
+import { VMProfiler } from "./profiler";
 import { MathLib, StringLib, ListLib, JSONLib } from "@l8b/stdlib";
 
 // Forward declarations for circular dependencies
@@ -169,6 +170,7 @@ export class Runner {
 	cpu_load: number;
 	triggers_controls_update: boolean;
 	updateControls?: () => void;
+	profiler: VMProfiler;
 
 	constructor(l8bvm: L8BVM) {
 		this.l8bvm = l8bvm;
@@ -181,6 +183,8 @@ export class Runner {
 		this.cpu_load = 0;
 		this.triggers_controls_update = false;
 		// main_thread will be initialized in init()
+		// Profiler initialized with placeholder processor until init
+		this.profiler = new VMProfiler(null as any);
 	}
 
 	init(): boolean {
@@ -196,6 +200,23 @@ export class Runner {
 		this.threads = [this.main_thread];
 		this.current_thread = this.main_thread;
 		this.thread_index = 0;
+		
+		// Initialize profiler with main thread processor
+		this.profiler = new VMProfiler(this.main_thread.processor);
+		
+		// Expose profiler to system
+		this.system.profiler = {
+			start: () => {
+				this.main_thread.processor.profilingEnabled = true;
+				this.profiler.start();
+			},
+			stop: () => {
+				this.main_thread.processor.profilingEnabled = false;
+				return this.profiler.stop();
+			},
+			getMetrics: () => this.profiler.getAverageMetrics()
+		};
+
 		this.l8bvm.context.global.print = this.l8bvm.context.meta.print;
 		this.l8bvm.context.global.random = new Random(0);
 		this.l8bvm.context.global.Function = {
@@ -413,6 +434,12 @@ export class Runner {
 		}
 		time_limit = time + margin; // secondary threads get remaining time
 		time_out = this.system.preemptive ? time_limit : Infinity;
+		
+		// Record frame in profiler if active
+		if (this.main_thread.processor.profilingEnabled) {
+			this.profiler.frame();
+		}
+
 		processing = true;
 		while (processing) {
 			processing = false;

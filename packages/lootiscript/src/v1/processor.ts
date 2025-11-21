@@ -6,6 +6,7 @@
 
 import { Routine } from "./routine";
 import type { CallFrame } from "./error-handler";
+import { IC_STATE, InlineCache } from "./inline-cache";
 
 /**
  * Runtime context for script execution
@@ -64,6 +65,20 @@ export class Processor {
 	call_super: any;
 	call_supername: string;
 
+	// Profiling metrics
+	metrics: {
+		ops: number;
+		allocations: number;
+		cacheHits: number;
+		cacheMisses: number;
+	};
+	profilingEnabled: boolean;
+
+	// Memory Pools
+	static arrayPool: any[][] = [];
+	static objectPool: any[] = [];
+	static MAX_POOL_SIZE = 1000;
+
 	constructor(runner: any) {
 		this.runner = runner;
 		this.locals = [];
@@ -82,6 +97,59 @@ export class Processor {
 		this.locals_offset = 0;
 		this.call_super = null;
 		this.call_supername = "";
+		
+		this.metrics = {
+			ops: 0,
+			allocations: 0,
+			cacheHits: 0,
+			cacheMisses: 0
+		};
+		this.profilingEnabled = false;
+	}
+
+	/**
+	 * Get an array from the pool or create new
+	 */
+	getArray(): any[] {
+		if (Processor.arrayPool.length > 0) {
+			const arr = Processor.arrayPool.pop()!;
+			arr.length = 0; // Reset length but keep capacity
+			return arr;
+		}
+		return [];
+	}
+
+	/**
+	 * Recycle array to pool
+	 */
+	recycleArray(arr: any[]) {
+		if (Processor.arrayPool.length < Processor.MAX_POOL_SIZE) {
+			Processor.arrayPool.push(arr);
+		}
+	}
+
+	/**
+	 * Get object from pool or create new
+	 */
+	getObject(): any {
+		if (Processor.objectPool.length > 0) {
+			return Processor.objectPool.pop();
+		}
+		return {};
+	}
+
+	/**
+	 * Recycle object to pool (only simple objects)
+	 */
+	recycleObject(obj: any) {
+		if (Processor.objectPool.length < Processor.MAX_POOL_SIZE) {
+			// Clear properties - expensive, so only do for small objects
+			// For now we just pool if we can efficiently clear
+			for (const key in obj) {
+				delete obj[key];
+			}
+			Processor.objectPool.push(obj);
+		}
 	}
 
 	load(routine: Routine): void {
@@ -140,6 +208,61 @@ export class Processor {
 	}
 
 	applyFunction(_args: any): void { }
+
+	/**
+	 * Inline Cache Handler for Property Access
+	 */
+	resolvePropertyIC(obj: any, prop: string, ic: InlineCache): any {
+		if (obj == null) return null;
+		
+		// Check cache state
+		if (ic.state === IC_STATE.MONOMORPHIC) {
+			// Fast path: check if object shape matches cached shape
+			// Note: In JS engines, objects don't expose shape IDs easily.
+			// We use constructor/class as a proxy for shape.
+			const shape = obj.class || obj.constructor;
+			
+			if (shape === ic.shape) {
+				ic.hits++;
+				// In a real VM we'd use offset, here we just return the access
+				// since we can't easily get property offsets in JS objects
+				return obj[prop];
+			} else {
+				ic.misses++;
+				// Transition to polymorphic or update monomorphic
+				ic.state = IC_STATE.POLYMORPHIC;
+				ic.shapes = [ic.shape, shape];
+				ic.offsets = [0, 0]; // Placeholder
+			}
+		} else if (ic.state === IC_STATE.POLYMORPHIC) {
+			// Linear scan of small polymorphic cache
+			const shape = obj.class || obj.constructor;
+			if (ic.shapes && ic.shapes.length < 4) {
+				for (let i = 0; i < ic.shapes.length; i++) {
+					if (ic.shapes[i] === shape) {
+						ic.hits++;
+						return obj[prop];
+					}
+				}
+				// Add new shape
+				ic.shapes.push(shape);
+				ic.misses++;
+			} else {
+				// Too many shapes, go megamorphic
+				ic.state = IC_STATE.MEGAMORPHIC;
+			}
+		}
+		
+		// Uninitialized or Megamorphic fallback
+		if (ic.state === IC_STATE.UNINITIALIZED) {
+			ic.state = IC_STATE.MONOMORPHIC;
+			ic.shape = obj.class || obj.constructor;
+			ic.property = prop;
+			ic.hits = 1; // Count initialization as a hit for tracking
+		}
+		
+		return obj[prop];
+	}
 
 	routineAsFunction(routine: Routine, context: RuntimeContext): Function {
 		var f: Function, proc: Processor;
@@ -624,7 +747,14 @@ export class Processor {
 		locals_offset = this.locals_offset;
 		op_count = 0;
 		restore_op_index = -1;
+		
+		// Local cache of profiling state for performance
+		const profiling = this.profilingEnabled;
+
 		while (op_index < length) {
+			if (profiling) {
+				this.metrics.ops++;
+			}
 			switch (opcodes[op_index]) {
 				case 1: // OPCODE_TYPE
 					v = stack[stack_index];
@@ -807,11 +937,29 @@ export class Processor {
 				case 16: // OPCODE_LOAD_PROPERTY
 					obj = stack[stack_index - 1];
 					name = stack[stack_index];
-					v = obj[name];
-					while (v == null && obj.class != null) {
-						obj = obj.class;
-						v = obj[name];
+					
+					// Inline Cache Check
+					let ic = routine.ics[op_index];
+					if (!ic) {
+						ic = routine.ics[op_index] = {
+							state: IC_STATE.UNINITIALIZED,
+							hits: 0,
+							misses: 0,
+							property: name
+						};
 					}
+					
+					v = this.resolvePropertyIC(obj, name, ic);
+					
+					// Fallback logic if IC didn't fully resolve prototype chain
+					if (v == null && obj.class != null) {
+						let curr = obj;
+						while (v == null && curr.class != null) {
+							curr = curr.class;
+							v = curr[name];
+						}
+					}
+					
 					if (v == null) {
 						v = 0;
 						if (!routine.ref[op_index].nowarning) {
@@ -856,17 +1004,20 @@ export class Processor {
 					op_index++;
 					break;
 				case 18: // OPCODE_CREATE_OBJECT
-					stack[++stack_index] = {};
+					if (profiling) this.metrics.allocations++;
+					stack[++stack_index] = this.getObject();
 					op_index++;
 					break;
 				case 19: // OPCODE_MAKE_OBJECT
 					if (typeof stack[stack_index] !== "object") {
-						stack[stack_index] = {};
+						if (profiling) this.metrics.allocations++;
+						stack[stack_index] = this.getObject();
 					}
 					op_index++;
 					break;
 				case 20: // OPCODE_CREATE_ARRAY
-					stack[++stack_index] = [];
+					if (profiling) this.metrics.allocations++;
+					stack[++stack_index] = this.getArray();
 					op_index++;
 					break;
 				case 21: // OPCODE_STORE_LOCAL
@@ -1769,6 +1920,241 @@ export class Processor {
 					restore_op_index = op_index;
 					op_index = length; // stop the thread
 					break;
+
+				// Fused Opcodes
+				case 120: // LOAD_VAR_CALL
+					// { name: string, args: number }
+					name = arg1[op_index].name;
+					args = arg1[op_index].args;
+					
+					// Load Variable Logic
+					v = object[name];
+					if (v == null && object.class != null) {
+						obj = object;
+						while (v == null && obj.class != null) {
+							obj = obj.class;
+							v = obj[name];
+						}
+					}
+					if (v == null) {
+						v = global[name];
+					}
+					
+					// Check for warning (using undefined variable)
+					if (v == null && !routine.ref[op_index].nowarning) {
+						token = routine.ref[op_index].token;
+						id = token.tokenizer.filename + "-" + token.line + "-" + token.column;
+						if (!context.warnings.using_undefined_variable[id]) {
+							context.warnings.using_undefined_variable[id] = {
+								file: token.tokenizer.filename,
+								line: token.line,
+								column: token.column,
+								expression: name,
+							};
+						}
+					}
+					f = v != null ? v : 0;
+
+					// Function Call Logic
+					if (f instanceof Routine) {
+						cs = call_stack[call_stack_index] || (call_stack[call_stack_index] = {});
+						call_stack_index++;
+						cs.routine = routine;
+						cs.object = object;
+						cs.super = call_super;
+						cs.supername = call_supername;
+						cs.op_index = op_index + 1;
+
+						// NEW: Track stack frame for error reporting
+						const token = routine.ref[op_index]?.token;
+						if (token) {
+							this.call_stack_frames.push({
+								functionName: (f as any).source || '[anonymous function]',
+								file: token.tokenizer.filename,
+								line: token.line,
+								column: token.column
+							});
+						}
+
+						locals_offset += routine.locals_size;
+						routine = f;
+						opcodes = f.opcodes;
+						arg1 = f.arg1;
+						op_index = 0;
+						length = opcodes.length;
+						object = routine.object != null ? routine.object : global;
+						call_super = global;
+						call_supername = "";
+						
+						if (routine.uses_arguments) {
+							argv = stack.slice(stack_index - args + 1, stack_index + 1);
+						}
+						
+						if (args < f.num_args) {
+							for (i = m = args + 1, ref5 = f.num_args; m <= ref5; i = m += 1) {
+								stack[++stack_index] = 0;
+							}
+						} else if (args > f.num_args) {
+							stack_index -= args - f.num_args;
+						}
+						
+						stack[++stack_index] = args;
+						if (routine.uses_arguments) {
+							stack[++stack_index] = argv;
+						}
+					} else if (typeof f === "function") {
+						switch (args) {
+							case 0:
+								try { v = f(); } catch (e) { console.error(e); v = 0; }
+								stack[++stack_index] = v != null ? v : 0;
+								break;
+							case 1:
+								try { v = f(this.argToNative(stack[stack_index], context)); } 
+								catch (e) { console.error(e); v = 0; }
+								stack[stack_index] = v != null ? v : 0;
+								break;
+							default:
+								argv = [];
+								stack_index -= args - 1; // Point to first arg
+								for (i = 0; i < args; i++) {
+									argv[i] = this.argToNative(stack[stack_index + i], context);
+								}
+								try { v = f.apply(null, argv); } catch (e) { console.error(e); v = 0; }
+								stack[stack_index] = v != null ? v : 0;
+						}
+						op_index++;
+					} else {
+						// Not a function
+						stack_index -= args;
+						stack[++stack_index] = f != null ? f : 0;
+						op_index++;
+					}
+					break;
+
+				case 121: // LOAD_PROP_CALL
+					// args: number
+					args = arg1[op_index];
+					
+					// LOAD_PROPERTY logic
+					obj = stack[stack_index - 1];
+					name = stack[stack_index];
+					v = obj[name];
+					while (v == null && obj.class != null) {
+						obj = obj.class;
+						v = obj[name];
+					}
+					
+					if (v == null) {
+						v = 0;
+						if (!routine.ref[op_index].nowarning) {
+							routine.ref[op_index].nowarning = true;
+							if (!Array.isArray(obj)) {
+								token = routine.ref[op_index].token;
+								id = token.tokenizer.filename + "-" + token.line + "-" + token.column;
+								context.warnings.using_undefined_variable[id] = {
+									file: token.tokenizer.filename,
+									line: token.line,
+									column: token.column,
+									expression: name,
+								};
+							}
+						}
+					}
+					f = v;
+					stack[--stack_index] = f; // Replace name with function on stack
+
+					// FUNCTION_CALL logic (simplified duplication for fusion)
+					if (f instanceof Routine) {
+						stack_index--; // Pop function
+						cs = call_stack[call_stack_index] || (call_stack[call_stack_index] = {});
+						call_stack_index++;
+						cs.routine = routine;
+						cs.object = object;
+						cs.super = call_super;
+						cs.supername = call_supername;
+						cs.op_index = op_index + 1;
+
+						// NEW: Track stack frame for error reporting
+						const token = routine.ref[op_index]?.token;
+						if (token) {
+							this.call_stack_frames.push({
+								functionName: (f as any).source || '[anonymous function]',
+								file: token.tokenizer.filename,
+								line: token.line,
+								column: token.column
+							});
+						}
+
+						locals_offset += routine.locals_size;
+						routine = f;
+						opcodes = f.opcodes;
+						arg1 = f.arg1;
+						op_index = 0;
+						length = opcodes.length;
+						object = routine.object != null ? routine.object : global;
+						call_super = global;
+						call_supername = "";
+						
+						if (routine.uses_arguments) {
+							argv = stack.slice(stack_index - args + 1, stack_index + 1);
+						}
+						
+						if (args < f.num_args) {
+							for (i = m = args + 1, ref5 = f.num_args; m <= ref5; i = m += 1) {
+								stack[++stack_index] = 0;
+							}
+						} else if (args > f.num_args) {
+							stack_index -= args - f.num_args;
+						}
+						
+						stack[++stack_index] = args;
+						if (routine.uses_arguments) {
+							stack[++stack_index] = argv;
+						}
+					} else if (typeof f === "function") {
+						switch (args) {
+							case 0:
+								try { v = f(); } catch (e) { console.error(e); v = 0; }
+								stack[stack_index] = v != null ? v : 0;
+								break;
+							case 1:
+								try { v = f(this.argToNative(stack[stack_index - 1], context)); } 
+								catch (e) { console.error(e); v = 0; }
+								stack[stack_index - 1] = v != null ? v : 0;
+								stack_index--;
+								break;
+							default:
+								argv = [];
+								stack_index -= args;
+								for (i = 0; i < args; i++) {
+									argv[i] = this.argToNative(stack[stack_index + i], context);
+								}
+								try { v = f.apply(null, argv); } catch (e) { console.error(e); v = 0; }
+								stack[stack_index] = v != null ? v : 0;
+						}
+						op_index++;
+					} else {
+						stack_index -= args;
+						stack[stack_index] = f != null ? f : 0;
+						op_index++;
+					}
+					break;
+
+				case 122: // LOAD_CONST_ADD
+					// arg1[op_index] is the constant value
+					a = arg1[op_index];
+					b = stack[stack_index];
+					
+					if (typeof b === "number") {
+						b += a;
+						stack[stack_index] = isFinite(b) ? b : 0;
+					} else {
+						// Fallback to full add logic for non-numbers
+						stack[stack_index] = this.add(context, b, a, 0);
+					}
+					op_index++;
+					break;
+
 				case 200: // COMPILED
 					stack_index = arg1[op_index](
 						stack,

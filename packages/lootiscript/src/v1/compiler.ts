@@ -79,8 +79,73 @@ export class Compiler {
 		}
 		this.routine.optimize();
 		this.routine.resolveLabels();
+		this.optimizeFusedOpcodes();
 		this.count += this.routine.opcodes.length;
 		this.routine.locals_size = this.locals.max_index;
+	}
+
+	optimizeFusedOpcodes(): void {
+		const ops = this.routine.opcodes;
+		const args = this.routine.arg1;
+		const refs = this.routine.ref;
+		let i = 0;
+		
+		while (i < ops.length - 1) {
+			// Fusion: LOAD_VARIABLE + FUNCTION_CALL -> LOAD_VAR_CALL
+			if (ops[i] === OPCODES.LOAD_VARIABLE && 
+				ops[i+1] === OPCODES.FUNCTION_CALL) {
+				
+				const varName = args[i];
+				const numArgs = args[i+1];
+				const ref = refs[i+1];
+				
+				ops[i] = OPCODES.LOAD_VAR_CALL;
+				args[i] = { name: varName, args: numArgs };
+				refs[i] = ref;
+				
+				ops.splice(i + 1, 1);
+				args.splice(i + 1, 1);
+				refs.splice(i + 1, 1);
+				continue;
+			}
+			
+			// Fusion: LOAD_PROPERTY + FUNCTION_CALL -> LOAD_PROP_CALL
+			if (ops[i] === OPCODES.LOAD_PROPERTY &&
+				ops[i+1] === OPCODES.FUNCTION_CALL) {
+				
+				const numArgs = args[i+1];
+				const ref = refs[i+1];
+				
+				ops[i] = OPCODES.LOAD_PROP_CALL;
+				args[i] = numArgs;
+				refs[i] = ref;
+				
+				ops.splice(i + 1, 1);
+				args.splice(i + 1, 1);
+				refs.splice(i + 1, 1);
+				continue;
+			}
+			
+			// Fusion: LOAD_VALUE (number) + ADD -> LOAD_CONST_ADD
+			if (ops[i] === OPCODES.LOAD_VALUE && 
+				typeof args[i] === 'number' &&
+				ops[i+1] === OPCODES.ADD) {
+				
+				const val = args[i];
+				const ref = refs[i+1];
+				
+				ops[i] = OPCODES.LOAD_CONST_ADD;
+				args[i] = val;
+				refs[i] = ref;
+				
+				ops.splice(i + 1, 1);
+				args.splice(i + 1, 1);
+				refs.splice(i + 1, 1);
+				continue;
+			}
+
+			i++;
+		}
 	}
 
 	/**
