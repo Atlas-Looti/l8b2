@@ -1,63 +1,50 @@
 {
-	"name": "lootiscript-vscode",
-	"displayName": "LootiScript",
-	"description": "Language support for LootiScript",
-	"version": "0.0.1",
-	"publisher": "l8b",
-	"engines": {
-		"vscode": "^1.75.0"
-	},
-	"categories": [
-		"Programming Languages"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"languages": [
-			{
-				"id": "lootiscript",
-				"aliases": ["LootiScript", "loot"],
-				"extensions": [".loot"],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "lootiscript",
-				"scopeName": "source.loot",
-				"path": "./syntaxes/lootiscript.tmLanguage.json"
-			}
-		],
-		"snippets": [
-			{
-				"language": "lootiscript",
-				"path": "./snippets/lootiscript.code-snippets"
-			}
-		],
-		"commands": [
-			{
-				"command": "lootiscript.runBuild",
-				"title": "LootiScript: Build Project"
-			}
-		]
-	},
-	"activationEvents": [
-		"onLanguage:lootiscript",
-		"onCommand:lootiscript.runBuild"
-	],
-	"scripts": {
-		"build": "tsup",
-		"watch": "tsup --watch",
-		"package": "vsce package"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.75.0",
-		"@types/node": "^20.0.0",
-		"tsup": "^8.0.0",
-		"typescript": "^5.0.0",
-		"vsce": "^2.15.0"
-	},
-	"dependencies": {
-		"vscode-languageclient": "^9.0.1"
-	}
+  "name": "lootiscript-vscode",
+  "displayName": "LootiScript",
+  "description": "Language support for LootiScript",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "lootiscript",
+        "aliases": ["LootiScript", "loot"],
+        "extensions": [".loot"]
+      }
+    ],
+    "commands": [
+      {
+        "command": "lootiscript-vscode.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.106.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.46.3",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
 }
-

@@ -1,32 +1,23 @@
-import * as path from "path";
-import {
-	workspace,
-	ExtensionContext,
-	window,
-	StatusBarAlignment,
-	commands,
-} from "vscode";
-import { exec } from "child_process";
-
+import * as vscode from 'vscode';
+import * as path from 'path';
 import {
 	LanguageClient,
 	LanguageClientOptions,
 	ServerOptions,
-	TransportKind,
-} from "vscode-languageclient/node";
+	TransportKind
+} from 'vscode-languageclient/node';
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext) {
-	const statusBar = window.createStatusBarItem(StatusBarAlignment.Left, 100);
-	statusBar.text = "$(tools) L8B LSP: Starting";
-	statusBar.show();
-	context.subscriptions.push(statusBar);
-
+export function activate(context: vscode.ExtensionContext) {
 	// The server is implemented in node
 	const serverModule = context.asAbsolutePath(
-		path.join("..", "language-server", "dist", "server.js"),
+		path.join('..', 'language-server', 'dist', 'server.js')
 	);
+
+	// The debug options for the server
+	// --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
+	const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
@@ -35,54 +26,32 @@ export function activate(context: ExtensionContext) {
 		debug: {
 			module: serverModule,
 			transport: TransportKind.ipc,
-		},
+			options: debugOptions
+		}
 	};
 
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
-		// Register the server for plain text documents
-		documentSelector: [{ scheme: "file", language: "lootiscript" }],
+		// Register the server for LootiScript documents
+		documentSelector: [{ scheme: 'file', language: 'lootiscript' }],
 		synchronize: {
-			// Notify the server about file changes to '.clientrc files contained in the workspace
-			fileEvents: workspace.createFileSystemWatcher("**/.clientrc"),
-		},
+			// Notify the server about file changes to .loot files contained in the workspace
+			fileEvents: vscode.workspace.createFileSystemWatcher('**/*.loot')
+		}
 	};
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
-		"lootiscriptLanguageServer",
-		"LootiScript Language Server",
+		'lootiscriptLanguageServer',
+		'LootiScript Language Server',
 		serverOptions,
-		clientOptions,
+		clientOptions
 	);
 
 	// Start the client. This will also launch the server
 	client.start();
 
-	client.onReady().then(() => {
-		statusBar.text = "$(check) L8B LSP: Ready";
-	});
-
-	const buildCommand = commands.registerCommand("lootiscript.runBuild", () => {
-		const folder = workspace.workspaceFolders?.[0]?.uri.fsPath;
-		if (!folder) {
-			window.showWarningMessage("No workspace folder open.");
-			return;
-		}
-		statusBar.text = "$(sync~spin) L8B: Building...";
-		exec("l8b build", { cwd: folder }, (error, stdout, stderr) => {
-			if (error) {
-				window.showErrorMessage(`Build failed: ${stderr || error.message}`);
-				statusBar.text = "$(error) L8B: Build Failed";
-				return;
-			}
-			window.showInformationMessage("L8B build completed.");
-			statusBar.text = "$(check) L8B: Build Success";
-			console.log(stdout);
-		});
-	});
-
-	context.subscriptions.push(buildCommand);
+	console.log('LootiScript Language Server extension is now active!');
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -91,4 +60,3 @@ export function deactivate(): Thenable<void> | undefined {
 	}
 	return client.stop();
 }
-

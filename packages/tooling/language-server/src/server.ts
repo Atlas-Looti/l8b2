@@ -6,6 +6,7 @@ import {
 	DidChangeConfigurationNotification,
 	CompletionItem,
 	CompletionItemKind,
+	CompletionList,
 	TextDocumentSyncKind,
 	InitializeResult,
 	Diagnostic,
@@ -30,6 +31,8 @@ import { Parser } from "@l8b/lootiscript/dist/v1/parser";
 import {
 	Range,
 } from "vscode-languageserver-types";
+import { LanguageModes, DocumentRegionsCache } from "./embedded/mode-manager";
+import { getJSONMode, createJSONLanguageService } from "./embedded/json-mode";
 
 // Simple AST node interface
 interface ASTNode {
@@ -107,10 +110,18 @@ const connection = createConnection(ProposedFeatures.all);
 // Create a simple text document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
+// Setup embedded language support
+const documentRegionsCache = new DocumentRegionsCache();
+const languageModes = new LanguageModes(documentRegionsCache);
+
+// Register JSON mode for embedded JSON support
+const jsonLanguageService = createJSONLanguageService();
+languageModes.registerMode(
+	getJSONMode(jsonLanguageService, documentRegionsCache)
+);
+
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
-
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
 
@@ -121,11 +132,6 @@ connection.onInitialize((params: InitializeParams) => {
 	);
 	hasWorkspaceFolderCapability = !!(
 		capabilities.workspace && !!capabilities.workspace.workspaceFolders
-	);
-	hasDiagnosticRelatedInformationCapability = !!(
-		capabilities.textDocument &&
-		capabilities.textDocument.publishDiagnostics &&
-		capabilities.textDocument.publishDiagnostics.relatedInformation
 	);
 
 	const result: InitializeResult = {
@@ -338,6 +344,16 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
 	const diagnostics: Diagnostic[] = [];
 
+	// Validate embedded languages
+	const allModes = languageModes.getAllModes();
+	for (const mode of allModes) {
+		if (mode.doValidation) {
+			const embeddedDiagnostics = mode.doValidation(textDocument);
+			diagnostics.push(...embeddedDiagnostics);
+		}
+	}
+
+	// Validate LootiScript
 	try {
 		const parser = new Parser(text, textDocument.uri);
 		parser.parse();
@@ -378,8 +394,25 @@ connection.onDidChangeWatchedFiles((_change) => {
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
-	(params: any): CompletionItem[] => {
+	async (params: any): Promise<CompletionItem[] | CompletionList | null> => {
 		const uri = params.textDocument.uri;
+		const document = documents.get(uri);
+		if (!document) {
+			return null;
+		}
+
+		const position = params.position;
+
+		// Check if we're in an embedded language region
+		const mode = languageModes.getModeAtPosition(document, position);
+		if (mode && mode.doComplete) {
+			const result = mode.doComplete(document, position);
+			if (result) {
+				return result;
+			}
+		}
+
+		// Default LootiScript completion
 		const state = documentStates.get(uri);
 		const items: CompletionItem[] = [];
 
@@ -434,6 +467,19 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 });
 
 connection.onHover((params): Hover | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) return null;
+
+	// Check if we're in an embedded language region
+	const mode = languageModes.getModeAtPosition(document, params.position);
+	if (mode && mode.doHover) {
+		const result = mode.doHover(document, params.position);
+		if (result) {
+			return result;
+		}
+	}
+
+	// Default LootiScript hover
 	const state = documentStates.get(params.textDocument.uri);
 	if (!state) return null;
 	const word = getWordAtPosition(state.textDocument, params.position);
