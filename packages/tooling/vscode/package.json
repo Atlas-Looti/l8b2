@@ -26,8 +26,24 @@
 				"scopeName": "source.loot",
 				"path": "./syntaxes/lootiscript.tmLanguage.json"
 			}
+		],
+		"snippets": [
+			{
+				"language": "lootiscript",
+				"path": "./snippets/lootiscript.code-snippets"
+			}
+		],
+		"commands": [
+			{
+				"command": "lootiscript.runBuild",
+				"title": "LootiScript: Build Project"
+			}
 		]
 	},
+	"activationEvents": [
+		"onLanguage:lootiscript",
+		"onCommand:lootiscript.runBuild"
+	],
 	"scripts": {
 		"build": "tsup",
 		"watch": "tsup --watch",
