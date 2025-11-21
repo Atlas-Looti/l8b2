@@ -1,90 +1,88 @@
 /**
  * String utilities for LootiScript
- * 
+ *
  * Provides string manipulation and parsing functions.
  */
 
 export const StringLib = {
-    // Splitting and joining
-    split: (str: string, separator: string = ""): string[] =>
-        str.split(separator),
+	// Splitting and joining
+	split: (str: string, separator: string = ""): string[] =>
+		str.split(separator),
 
-    join: (arr: string[], separator: string = ""): string =>
-        arr.join(separator),
+	join: (arr: string[], separator: string = ""): string => arr.join(separator),
 
-    // Trimming
-    trim: (str: string): string => str.trim(),
-    trimStart: (str: string): string => str.trimStart(),
-    trimEnd: (str: string): string => str.trimEnd(),
+	// Trimming
+	trim: (str: string): string => str.trim(),
+	trimStart: (str: string): string => str.trimStart(),
+	trimEnd: (str: string): string => str.trimEnd(),
 
-    // Replacing
-    replace: (str: string, search: string, replacement: string): string =>
-        str.replace(search, replacement),
+	// Replacing
+	replace: (str: string, search: string, replacement: string): string =>
+		str.replace(search, replacement),
 
-    replaceAll: (str: string, search: string, replacement: string): string =>
-        str.split(search).join(replacement),
+	replaceAll: (str: string, search: string, replacement: string): string =>
+		str.split(search).join(replacement),
 
-    // Checking
-    startsWith: (str: string, prefix: string): boolean =>
-        str.startsWith(prefix),
+	// Checking
+	startsWith: (str: string, prefix: string): boolean => str.startsWith(prefix),
 
-    endsWith: (str: string, suffix: string): boolean =>
-        str.endsWith(suffix),
+	endsWith: (str: string, suffix: string): boolean => str.endsWith(suffix),
 
-    contains: (str: string, search: string): boolean =>
-        str.includes(search),
+	contains: (str: string, search: string): boolean => str.includes(search),
 
-    // Case conversion
-    toLowerCase: (str: string): string => str.toLowerCase(),
-    toUpperCase: (str: string): string => str.toUpperCase(),
+	// Case conversion
+	toLowerCase: (str: string): string => str.toLowerCase(),
+	toUpperCase: (str: string): string => str.toUpperCase(),
 
-    // Character access
-    charAt: (str: string, index: number): string => str.charAt(index),
-    charCodeAt: (str: string, index: number): number => str.charCodeAt(index),
-    fromCharCode: (...codes: number[]): string => String.fromCharCode(...codes),
+	// Character access
+	charAt: (str: string, index: number): string => str.charAt(index),
+	charCodeAt: (str: string, index: number): number => str.charCodeAt(index),
+	fromCharCode: (...codes: number[]): string => String.fromCharCode(...codes),
 
-    // Substring
-    substring: (str: string, start: number, end?: number): string =>
-        str.substring(start, end),
+	// Substring
+	substring: (str: string, start: number, end?: number): string =>
+		str.substring(start, end),
 
-    slice: (str: string, start: number, end?: number): string =>
-        str.slice(start, end),
+	slice: (str: string, start: number, end?: number): string =>
+		str.slice(start, end),
 
-    // Searching
-    indexOf: (str: string, search: string, fromIndex?: number): number =>
-        str.indexOf(search, fromIndex),
+	// Searching
+	indexOf: (str: string, search: string, fromIndex?: number): number =>
+		str.indexOf(search, fromIndex),
 
-    lastIndexOf: (str: string, search: string, fromIndex?: number): number =>
-        str.lastIndexOf(search, fromIndex),
+	lastIndexOf: (str: string, search: string, fromIndex?: number): number =>
+		str.lastIndexOf(search, fromIndex),
 
-    // Padding
-    repeat: (str: string, count: number): string => str.repeat(count),
+	// Padding
+	repeat: (str: string, count: number): string => str.repeat(count),
 
-    padStart: (str: string, length: number, pad: string = ' '): string =>
-        str.padStart(length, pad),
+	padStart: (str: string, length: number, pad: string = " "): string =>
+		str.padStart(length, pad),
 
-    padEnd: (str: string, length: number, pad: string = ' '): string =>
-        str.padEnd(length, pad),
+	padEnd: (str: string, length: number, pad: string = " "): string =>
+		str.padEnd(length, pad),
 
-    // Length
-    length: (str: string): number => str.length,
+	// Length
+	length: (str: string): number => str.length,
 
-    // Parsing
-    parseInt: (str: string, radix?: number): number => {
-        const result = Number.parseInt(str, radix);
-        return isNaN(result) ? 0 : result;
-    },
+	// Parsing
+	parseInt: (str: string, radix?: number): number => {
+		const result = Number.parseInt(str, radix);
+		return isNaN(result) ? 0 : result;
+	},
 
-    parseFloat: (str: string): number => {
-        const result = Number.parseFloat(str);
-        return isNaN(result) ? 0 : result;
-    },
+	parseFloat: (str: string): number => {
+		const result = Number.parseFloat(str);
+		return isNaN(result) ? 0 : result;
+	},
 
-    // Formatting
-    format: (template: string, ...args: any[]): string => {
-        return template.replace(/{(\d+)}/g, (match, index) => {
-            const argIndex = Number.parseInt(index);
-            return typeof args[argIndex] !== 'undefined' ? String(args[argIndex]) : match;
-        });
-    },
+	// Formatting
+	format: (template: string, ...args: any[]): string => {
+		return template.replace(/{(\d+)}/g, (match, index) => {
+			const argIndex = Number.parseInt(index);
+			return typeof args[argIndex] !== "undefined"
+				? String(args[argIndex])
+				: match;
+		});
+	},
 };

@@ -87,4 +87,3 @@ declare global {
 		sortList(fn?: (a: T, b: T) => number): T[];
 	}
 }
-

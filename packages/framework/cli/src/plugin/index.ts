@@ -1,2 +1,1 @@
-export * from './vite-plugin-lootiscript';
-
+export * from "./vite-plugin-lootiscript";

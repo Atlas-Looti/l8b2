@@ -2,7 +2,13 @@
  * L8BVM - Virtual Machine wrapper for lootiscript
  */
 
-import { Compiler, Processor, Program, Runner, Routine } from "@l8b/lootiscript";
+import {
+	Compiler,
+	Processor,
+	Program,
+	Runner,
+	Routine,
+} from "@l8b/lootiscript";
 import { StorageService } from "@l8b/io";
 import type { ErrorInfo, GlobalAPI, MetaFunctions, VMContext } from "./types";
 import { createVMContext } from "./context";
@@ -65,9 +71,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -98,9 +104,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -142,9 +148,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -187,6 +193,3 @@ export class L8BVM {
 		return this.runner.toString(value);
 	}
 }
-
-
-

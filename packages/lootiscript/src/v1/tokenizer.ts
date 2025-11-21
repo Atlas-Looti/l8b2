@@ -201,7 +201,6 @@ export class Tokenizer implements ITokenizer {
 		}
 	}
 
-
 	parseDouble(c: string, d?: [number, number]): Token {
 		const c2: string = this.input.charAt(this.index);
 
@@ -212,11 +211,7 @@ export class Tokenizer implements ITokenizer {
 		}
 
 		// Check for shift operators (<<, >>)
-		if (
-			this.shifts[c] != null &&
-			this.index < this.input.length &&
-			c2 === c
-		) {
+		if (this.shifts[c] != null && this.index < this.input.length && c2 === c) {
 			this.nextChar();
 			return new Token(this, this.shifts[c], c + c);
 		}
@@ -230,7 +225,6 @@ export class Tokenizer implements ITokenizer {
 		// Return single character token
 		return new Token(this, d ? d[0] : this.chars[c], c);
 	}
-
 
 	parseEquals(_c: string): Token {
 		if (
@@ -267,7 +261,6 @@ export class Tokenizer implements ITokenizer {
 			return new Token(this, Token.TYPE_LOWER, "<");
 		}
 	}
-
 
 	parseUnequals(_c: string): Token {
 		if (

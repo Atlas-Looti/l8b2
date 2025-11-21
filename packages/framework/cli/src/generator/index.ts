@@ -1,2 +1,1 @@
-export * from './html-generator';
-
+export * from "./html-generator";

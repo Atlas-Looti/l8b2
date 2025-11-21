@@ -36,10 +36,12 @@ export class GameLoop {
 			currentFrame: 0,
 			floatingFrame: 0,
 			dt: 1000 / 60,
-			lastTime: Date.now(),
+			lastTime: performance.now(),
 			fps: 60,
 			updateRate: 60,
 		};
+		// Bind loop once
+		this.loop = this.loop.bind(this);
 	}
 
 	/**
@@ -47,7 +49,7 @@ export class GameLoop {
 	 */
 	start(): void {
 		this.stopped = false;
-		this.state.lastTime = Date.now();
+		this.state.lastTime = performance.now();
 		this.state.currentFrame = 0;
 		this.state.floatingFrame = 0;
 		this.loop();
@@ -70,7 +72,7 @@ export class GameLoop {
 	resume(): void {
 		if (!this.stopped) return;
 		this.stopped = false;
-		this.state.lastTime = Date.now();
+		this.state.lastTime = performance.now();
 		this.loop();
 	}
 
@@ -81,9 +83,9 @@ export class GameLoop {
 		if (this.stopped) return;
 
 		// Schedule next frame
-		this.animationFrameId = requestAnimationFrame(() => this.loop());
+		this.animationFrameId = requestAnimationFrame(this.loop);
 
-		const time = Date.now();
+		const time = performance.now();
 
 		// Recover from long pause (tab switch, etc)
 		if (Math.abs(time - this.state.lastTime) > 160) {

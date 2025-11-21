@@ -96,7 +96,7 @@ class OPCODES_CLASS {
 	readonly EVERY = 111;
 	readonly DO = 112;
 	readonly SLEEP = 113;
-	
+
 	// Fused opcodes
 	readonly LOAD_VAR_CALL = 120;
 	readonly LOAD_PROP_CALL = 121;
@@ -202,7 +202,7 @@ export class Routine {
 	as_function?: Function;
 	object?: any;
 	callback?: Function | null;
-	
+
 	// Inline caches mapped by opcode index
 	ics: Record<number, InlineCache>;
 

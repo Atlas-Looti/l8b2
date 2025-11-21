@@ -51,8 +51,13 @@ export class RuntimeOrchestrator {
 	private gameLoop: GameLoop | null = null;
 	private sourceUpdater: SourceUpdater | null = null;
 	public timeMachine: TimeMachine | null = null;
-	private lastInputDebug?: string;
-	private lastScreenDebug?: string;
+	private lastInputDebug?: any;
+	private lastScreenDebug?: {
+		width: number;
+		height: number;
+		canvasWidth: number;
+		canvasHeight: number;
+	};
 
 	constructor(options: RuntimeOptions = {}) {
 		this.options = options;
@@ -240,7 +245,7 @@ export class RuntimeOrchestrator {
 		// Load pre-compiled routines (production) or source files (development)
 		const compiledRoutines = this.options.compiledRoutines || {};
 		const sources = this.options.sources || {};
-		
+
 		if (Object.keys(compiledRoutines).length > 0) {
 			// Production: Load pre-compiled routines
 			this.logStep("vm: loading compiled routines", {
@@ -353,11 +358,15 @@ export class RuntimeOrchestrator {
 		if (!snapshot) {
 			return;
 		}
-		const serialized = JSON.stringify(snapshot);
-		if (serialized === this.lastInputDebug) {
+
+		// Optimization: Shallow compare instead of JSON.stringify
+		if (
+			this.lastInputDebug &&
+			this.shallowEqual(snapshot, this.lastInputDebug)
+		) {
 			return;
 		}
-		this.lastInputDebug = serialized;
+		this.lastInputDebug = snapshot;
 		console.debug("[@l8b/runtime][input]", snapshot);
 	}
 
@@ -366,20 +375,24 @@ export class RuntimeOrchestrator {
 			return;
 		}
 		const canvas = this.screen.getCanvas();
-		const snapshot = JSON.stringify({
+		const current = {
 			width: this.screen.width,
 			height: this.screen.height,
 			canvasWidth: canvas.width,
 			canvasHeight: canvas.height,
-			clientWidth: canvas.clientWidth,
-			clientHeight: canvas.clientHeight,
-			styleWidth: canvas.style.width,
-			styleHeight: canvas.style.height,
-		});
-		if (snapshot === this.lastScreenDebug) {
+		};
+
+		// Optimization: Shallow compare key metrics
+		if (
+			this.lastScreenDebug &&
+			current.width === this.lastScreenDebug.width &&
+			current.height === this.lastScreenDebug.height &&
+			current.canvasWidth === this.lastScreenDebug.canvasWidth &&
+			current.canvasHeight === this.lastScreenDebug.canvasHeight
+		) {
 			return;
 		}
-		this.lastScreenDebug = snapshot;
+		this.lastScreenDebug = current;
 		console.debug("[@l8b/runtime][screen]", {
 			screen: {
 				width: this.screen.width,
@@ -396,6 +409,26 @@ export class RuntimeOrchestrator {
 				},
 			},
 		});
+	}
+
+	private shallowEqual(obj1: any, obj2: any): boolean {
+		if (obj1 === obj2) return true;
+		if (!obj1 || !obj2 || typeof obj1 !== "object" || typeof obj2 !== "object")
+			return false;
+
+		const keys1 = Object.keys(obj1);
+		const keys2 = Object.keys(obj2);
+		if (keys1.length !== keys2.length) return false;
+
+		for (const key of keys1) {
+			// Special handling for nested input objects (only go 1 level deep)
+			if (typeof obj1[key] === "object" && obj1[key] !== null) {
+				if (!this.shallowEqual(obj1[key], obj2[key])) return false;
+			} else if (obj1[key] !== obj2[key]) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private createInputSnapshot(): {

@@ -97,12 +97,12 @@ export class Processor {
 		this.locals_offset = 0;
 		this.call_super = null;
 		this.call_supername = "";
-		
+
 		this.metrics = {
 			ops: 0,
 			allocations: 0,
 			cacheHits: 0,
-			cacheMisses: 0
+			cacheMisses: 0,
 		};
 		this.profilingEnabled = false;
 	}
@@ -184,14 +184,15 @@ export class Processor {
 	formatStackTrace(): string {
 		const frames = this.generateStackTrace();
 		if (frames.length === 0) {
-			return '';
+			return "";
 		}
 
 		return frames
-			.map(frame =>
-				`  at ${frame.functionName} (${frame.file}:${frame.line}:${frame.column})`
+			.map(
+				(frame) =>
+					`  at ${frame.functionName} (${frame.file}:${frame.line}:${frame.column})`,
 			)
-			.join('\n');
+			.join("\n");
 	}
 
 	resolveParentClass(obj: RuntimeValue, global: RuntimeGlobal): void {
@@ -207,21 +208,21 @@ export class Processor {
 		}
 	}
 
-	applyFunction(_args: any): void { }
+	applyFunction(_args: any): void {}
 
 	/**
 	 * Inline Cache Handler for Property Access
 	 */
 	resolvePropertyIC(obj: any, prop: string, ic: InlineCache): any {
 		if (obj == null) return null;
-		
+
 		// Check cache state
 		if (ic.state === IC_STATE.MONOMORPHIC) {
 			// Fast path: check if object shape matches cached shape
 			// Note: In JS engines, objects don't expose shape IDs easily.
 			// We use constructor/class as a proxy for shape.
 			const shape = obj.class || obj.constructor;
-			
+
 			if (shape === ic.shape) {
 				ic.hits++;
 				// In a real VM we'd use offset, here we just return the access
@@ -252,7 +253,7 @@ export class Processor {
 				ic.state = IC_STATE.MEGAMORPHIC;
 			}
 		}
-		
+
 		// Uninitialized or Megamorphic fallback
 		if (ic.state === IC_STATE.UNINITIALIZED) {
 			ic.state = IC_STATE.MONOMORPHIC;
@@ -260,7 +261,7 @@ export class Processor {
 			ic.property = prop;
 			ic.hits = 1; // Count initialization as a hit for tracking
 		}
-		
+
 		return obj[prop];
 	}
 
@@ -747,7 +748,7 @@ export class Processor {
 		locals_offset = this.locals_offset;
 		op_count = 0;
 		restore_op_index = -1;
-		
+
 		// Local cache of profiling state for performance
 		const profiling = this.profilingEnabled;
 
@@ -937,7 +938,7 @@ export class Processor {
 				case 16: // OPCODE_LOAD_PROPERTY
 					obj = stack[stack_index - 1];
 					name = stack[stack_index];
-					
+
 					// Inline Cache Check
 					let ic = routine.ics[op_index];
 					if (!ic) {
@@ -945,12 +946,12 @@ export class Processor {
 							state: IC_STATE.UNINITIALIZED,
 							hits: 0,
 							misses: 0,
-							property: name
+							property: name,
 						};
 					}
-					
+
 					v = this.resolvePropertyIC(obj, name, ic);
-					
+
 					// Fallback logic if IC didn't fully resolve prototype chain
 					if (v == null && obj.class != null) {
 						let curr = obj;
@@ -959,7 +960,7 @@ export class Processor {
 							v = curr[name];
 						}
 					}
-					
+
 					if (v == null) {
 						v = 0;
 						if (!routine.ref[op_index].nowarning) {
@@ -1477,10 +1478,10 @@ export class Processor {
 						const token = routine.ref[op_index]?.token;
 						if (token) {
 							this.call_stack_frames.push({
-								functionName: (f as any).source || '[anonymous function]',
+								functionName: (f as any).source || "[anonymous function]",
 								file: token.tokenizer.filename,
 								line: token.line,
-								column: token.column
+								column: token.column,
 							});
 						}
 
@@ -1926,7 +1927,7 @@ export class Processor {
 					// { name: string, args: number }
 					name = arg1[op_index].name;
 					args = arg1[op_index].args;
-					
+
 					// Load Variable Logic
 					v = object[name];
 					if (v == null && object.class != null) {
@@ -1939,11 +1940,12 @@ export class Processor {
 					if (v == null) {
 						v = global[name];
 					}
-					
+
 					// Check for warning (using undefined variable)
 					if (v == null && !routine.ref[op_index].nowarning) {
 						token = routine.ref[op_index].token;
-						id = token.tokenizer.filename + "-" + token.line + "-" + token.column;
+						id =
+							token.tokenizer.filename + "-" + token.line + "-" + token.column;
 						if (!context.warnings.using_undefined_variable[id]) {
 							context.warnings.using_undefined_variable[id] = {
 								file: token.tokenizer.filename,
@@ -1957,7 +1959,9 @@ export class Processor {
 
 					// Function Call Logic
 					if (f instanceof Routine) {
-						cs = call_stack[call_stack_index] || (call_stack[call_stack_index] = {});
+						cs =
+							call_stack[call_stack_index] ||
+							(call_stack[call_stack_index] = {});
 						call_stack_index++;
 						cs.routine = routine;
 						cs.object = object;
@@ -1969,10 +1973,10 @@ export class Processor {
 						const token = routine.ref[op_index]?.token;
 						if (token) {
 							this.call_stack_frames.push({
-								functionName: (f as any).source || '[anonymous function]',
+								functionName: (f as any).source || "[anonymous function]",
 								file: token.tokenizer.filename,
 								line: token.line,
-								column: token.column
+								column: token.column,
 							});
 						}
 
@@ -1985,11 +1989,11 @@ export class Processor {
 						object = routine.object != null ? routine.object : global;
 						call_super = global;
 						call_supername = "";
-						
+
 						if (routine.uses_arguments) {
 							argv = stack.slice(stack_index - args + 1, stack_index + 1);
 						}
-						
+
 						if (args < f.num_args) {
 							for (i = m = args + 1, ref5 = f.num_args; m <= ref5; i = m += 1) {
 								stack[++stack_index] = 0;
@@ -1997,7 +2001,7 @@ export class Processor {
 						} else if (args > f.num_args) {
 							stack_index -= args - f.num_args;
 						}
-						
+
 						stack[++stack_index] = args;
 						if (routine.uses_arguments) {
 							stack[++stack_index] = argv;
@@ -2005,12 +2009,21 @@ export class Processor {
 					} else if (typeof f === "function") {
 						switch (args) {
 							case 0:
-								try { v = f(); } catch (e) { console.error(e); v = 0; }
+								try {
+									v = f();
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[++stack_index] = v != null ? v : 0;
 								break;
 							case 1:
-								try { v = f(this.argToNative(stack[stack_index], context)); } 
-								catch (e) { console.error(e); v = 0; }
+								try {
+									v = f(this.argToNative(stack[stack_index], context));
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[stack_index] = v != null ? v : 0;
 								break;
 							default:
@@ -2019,7 +2032,12 @@ export class Processor {
 								for (i = 0; i < args; i++) {
 									argv[i] = this.argToNative(stack[stack_index + i], context);
 								}
-								try { v = f.apply(null, argv); } catch (e) { console.error(e); v = 0; }
+								try {
+									v = f.apply(null, argv);
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[stack_index] = v != null ? v : 0;
 						}
 						op_index++;
@@ -2034,7 +2052,7 @@ export class Processor {
 				case 121: // LOAD_PROP_CALL
 					// args: number
 					args = arg1[op_index];
-					
+
 					// LOAD_PROPERTY logic
 					obj = stack[stack_index - 1];
 					name = stack[stack_index];
@@ -2043,14 +2061,19 @@ export class Processor {
 						obj = obj.class;
 						v = obj[name];
 					}
-					
+
 					if (v == null) {
 						v = 0;
 						if (!routine.ref[op_index].nowarning) {
 							routine.ref[op_index].nowarning = true;
 							if (!Array.isArray(obj)) {
 								token = routine.ref[op_index].token;
-								id = token.tokenizer.filename + "-" + token.line + "-" + token.column;
+								id =
+									token.tokenizer.filename +
+									"-" +
+									token.line +
+									"-" +
+									token.column;
 								context.warnings.using_undefined_variable[id] = {
 									file: token.tokenizer.filename,
 									line: token.line,
@@ -2066,7 +2089,9 @@ export class Processor {
 					// FUNCTION_CALL logic (simplified duplication for fusion)
 					if (f instanceof Routine) {
 						stack_index--; // Pop function
-						cs = call_stack[call_stack_index] || (call_stack[call_stack_index] = {});
+						cs =
+							call_stack[call_stack_index] ||
+							(call_stack[call_stack_index] = {});
 						call_stack_index++;
 						cs.routine = routine;
 						cs.object = object;
@@ -2078,10 +2103,10 @@ export class Processor {
 						const token = routine.ref[op_index]?.token;
 						if (token) {
 							this.call_stack_frames.push({
-								functionName: (f as any).source || '[anonymous function]',
+								functionName: (f as any).source || "[anonymous function]",
 								file: token.tokenizer.filename,
 								line: token.line,
-								column: token.column
+								column: token.column,
 							});
 						}
 
@@ -2094,11 +2119,11 @@ export class Processor {
 						object = routine.object != null ? routine.object : global;
 						call_super = global;
 						call_supername = "";
-						
+
 						if (routine.uses_arguments) {
 							argv = stack.slice(stack_index - args + 1, stack_index + 1);
 						}
-						
+
 						if (args < f.num_args) {
 							for (i = m = args + 1, ref5 = f.num_args; m <= ref5; i = m += 1) {
 								stack[++stack_index] = 0;
@@ -2106,7 +2131,7 @@ export class Processor {
 						} else if (args > f.num_args) {
 							stack_index -= args - f.num_args;
 						}
-						
+
 						stack[++stack_index] = args;
 						if (routine.uses_arguments) {
 							stack[++stack_index] = argv;
@@ -2114,12 +2139,21 @@ export class Processor {
 					} else if (typeof f === "function") {
 						switch (args) {
 							case 0:
-								try { v = f(); } catch (e) { console.error(e); v = 0; }
+								try {
+									v = f();
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[stack_index] = v != null ? v : 0;
 								break;
 							case 1:
-								try { v = f(this.argToNative(stack[stack_index - 1], context)); } 
-								catch (e) { console.error(e); v = 0; }
+								try {
+									v = f(this.argToNative(stack[stack_index - 1], context));
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[stack_index - 1] = v != null ? v : 0;
 								stack_index--;
 								break;
@@ -2129,7 +2163,12 @@ export class Processor {
 								for (i = 0; i < args; i++) {
 									argv[i] = this.argToNative(stack[stack_index + i], context);
 								}
-								try { v = f.apply(null, argv); } catch (e) { console.error(e); v = 0; }
+								try {
+									v = f.apply(null, argv);
+								} catch (e) {
+									console.error(e);
+									v = 0;
+								}
 								stack[stack_index] = v != null ? v : 0;
 						}
 						op_index++;
@@ -2144,7 +2183,7 @@ export class Processor {
 					// arg1[op_index] is the constant value
 					a = arg1[op_index];
 					b = stack[stack_index];
-					
+
 					if (typeof b === "number") {
 						b += a;
 						stack[stack_index] = isFinite(b) ? b : 0;

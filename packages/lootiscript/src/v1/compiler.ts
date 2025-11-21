@@ -89,55 +89,58 @@ export class Compiler {
 		const args = this.routine.arg1;
 		const refs = this.routine.ref;
 		let i = 0;
-		
+
 		while (i < ops.length - 1) {
 			// Fusion: LOAD_VARIABLE + FUNCTION_CALL -> LOAD_VAR_CALL
-			if (ops[i] === OPCODES.LOAD_VARIABLE && 
-				ops[i+1] === OPCODES.FUNCTION_CALL) {
-				
+			if (
+				ops[i] === OPCODES.LOAD_VARIABLE &&
+				ops[i + 1] === OPCODES.FUNCTION_CALL
+			) {
 				const varName = args[i];
-				const numArgs = args[i+1];
-				const ref = refs[i+1];
-				
+				const numArgs = args[i + 1];
+				const ref = refs[i + 1];
+
 				ops[i] = OPCODES.LOAD_VAR_CALL;
 				args[i] = { name: varName, args: numArgs };
 				refs[i] = ref;
-				
+
 				ops.splice(i + 1, 1);
 				args.splice(i + 1, 1);
 				refs.splice(i + 1, 1);
 				continue;
 			}
-			
+
 			// Fusion: LOAD_PROPERTY + FUNCTION_CALL -> LOAD_PROP_CALL
-			if (ops[i] === OPCODES.LOAD_PROPERTY &&
-				ops[i+1] === OPCODES.FUNCTION_CALL) {
-				
-				const numArgs = args[i+1];
-				const ref = refs[i+1];
-				
+			if (
+				ops[i] === OPCODES.LOAD_PROPERTY &&
+				ops[i + 1] === OPCODES.FUNCTION_CALL
+			) {
+				const numArgs = args[i + 1];
+				const ref = refs[i + 1];
+
 				ops[i] = OPCODES.LOAD_PROP_CALL;
 				args[i] = numArgs;
 				refs[i] = ref;
-				
+
 				ops.splice(i + 1, 1);
 				args.splice(i + 1, 1);
 				refs.splice(i + 1, 1);
 				continue;
 			}
-			
+
 			// Fusion: LOAD_VALUE (number) + ADD -> LOAD_CONST_ADD
-			if (ops[i] === OPCODES.LOAD_VALUE && 
-				typeof args[i] === 'number' &&
-				ops[i+1] === OPCODES.ADD) {
-				
+			if (
+				ops[i] === OPCODES.LOAD_VALUE &&
+				typeof args[i] === "number" &&
+				ops[i + 1] === OPCODES.ADD
+			) {
 				const val = args[i];
-				const ref = refs[i+1];
-				
+				const ref = refs[i + 1];
+
 				ops[i] = OPCODES.LOAD_CONST_ADD;
 				args[i] = val;
 				refs[i] = ref;
-				
+
 				ops.splice(i + 1, 1);
 				args.splice(i + 1, 1);
 				refs.splice(i + 1, 1);
@@ -615,19 +618,19 @@ export class Compiler {
 			this.compileFieldParent(call.expression as Field);
 			this.compile(
 				(call.expression as Field).chain[
-				(call.expression as Field).chain.length - 1
+					(call.expression as Field).chain.length - 1
 				],
 			);
 			this.routine.FUNCTION_APPLY_PROPERTY(call.args.length, call);
 		} else if (call.expression instanceof Variable) {
 			if (
 				Compiler.predefined_unary_functions[
-				(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_unary_functions[
-					(call.expression as Variable).identifier
+						(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -637,12 +640,12 @@ export class Compiler {
 				this.routine.UNARY_OP(funk, call);
 			} else if (
 				Compiler.predefined_binary_functions[
-				(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_binary_functions[
-					(call.expression as Variable).identifier
+						(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -1121,12 +1124,12 @@ export class Compiler {
 		string,
 		(a: any, b: any) => number
 	> = {
-			min: Math.min,
-			max: Math.max,
-			pow: Math.pow,
-			atan2: Math.atan2,
-			atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
-		};
+		min: Math.min,
+		max: Math.max,
+		pow: Math.pow,
+		atan2: Math.atan2,
+		atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
+	};
 
 	static predefined_values: Record<string, number> = {
 		PI: Math.PI,

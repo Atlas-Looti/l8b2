@@ -113,11 +113,11 @@ export class BaseScreen {
 		this.context = ctx;
 		this.context.save();
 		this.context.translate(this.canvas.width / 2, this.canvas.height / 2);
-		
+
 		// Calculate ratio: Math.min(canvas.width/200, canvas.height/200)
 		const ratio = Math.min(this.canvas.width / 200, this.canvas.height / 200);
 		this.context.scale(ratio, ratio);
-		
+
 		// Set logical width/height
 		this.width = this.canvas.width / ratio;
 		this.height = this.canvas.height / ratio;

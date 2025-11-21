@@ -1,3 +1,2 @@
-export * from './auto-detect';
-export * from './source-loader';
-
+export * from "./auto-detect";
+export * from "./source-loader";

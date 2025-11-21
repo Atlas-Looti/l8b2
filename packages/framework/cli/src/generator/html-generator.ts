@@ -1,29 +1,29 @@
 /**
  * HTML generator for LootiScript projects
- * 
+ *
  * Generates production and development HTML files with proper
  * script loading and runtime initialization.
  */
 
-import type { LootiConfig } from '../types/config';
-import { getCanvasSize } from '../core/config-loader';
-import { INTERNAL_ENDPOINTS } from '../utils/constants';
-import type { Resources } from '@l8b/runtime';
-import type { CompiledModule } from '../compiler';
+import type { LootiConfig } from "../types/config";
+import { getCanvasSize } from "../core/config-loader";
+import { INTERNAL_ENDPOINTS } from "../utils/constants";
+import type { Resources } from "@l8b/runtime";
+import type { CompiledModule } from "../compiler";
 
 /**
  * Generate variable name from module name (sanitized for JavaScript)
- * 
+ *
  * @param name - Module name (may contain special characters)
  * @returns Sanitized variable name safe for JavaScript identifiers
  */
 function sanitizeVarName(name: string): string {
-    return name.replace(/[^a-zA-Z0-9]/g, '_');
+	return name.replace(/[^a-zA-Z0-9]/g, "_");
 }
 
 /**
  * Generate HTML file for LootiScript project
- * 
+ *
  * @param config - LootiScript configuration
  * @param sources - Map of module names to source file paths (for development)
  * @param resources - Detected resources (images, maps, sounds, music)
@@ -31,95 +31,95 @@ function sanitizeVarName(name: string): string {
  * @returns Complete HTML string
  */
 export function generateHTML(
-    config: LootiConfig,
-    sources: Record<string, string>,
-    resources: Resources,
-    compiledModules?: CompiledModule[]
+	config: LootiConfig,
+	sources: Record<string, string>,
+	resources: Resources,
+	compiledModules?: CompiledModule[],
 ): string {
-    const { width, height } = getCanvasSize(config);
-    
-    const canvasId = config.canvas?.id || 'game';
-    const isFreeAspect = config.aspect === 'free';
-    const baseUrl = config.url || '/';
-    const logging = config.logging || {};
-    const browserLogging = logging.browser || {};
-    const terminalLogging = logging.terminal || {};
-    const showBrowserLifecycleLogs = browserLogging.lifecycle ?? false;
-    const showBrowserCanvasLogs = browserLogging.canvas ?? false;
-    const showTerminalLifecycleLogs = terminalLogging.lifecycle ?? false;
-    const showTerminalCanvasLogs = terminalLogging.canvas ?? false;
-    const mirrorListenerLogs = terminalLogging.listener ?? false;
-    const mirrorListenerErrors = terminalLogging.errors ?? false;
-    const terminalLoggingEnabled = [
-        showTerminalLifecycleLogs,
-        showTerminalCanvasLogs,
-        mirrorListenerLogs,
-        mirrorListenerErrors,
-    ].some(Boolean);
+	const { width, height } = getCanvasSize(config);
 
-    // Determine if we're using pre-compiled routines (production) or sources (development)
-    const isProduction = compiledModules && compiledModules.length > 0;
-    
-    let sourceImports = '';
-    let sourceMap = '';
-    let compiledRoutinesMap = '';
-    
-    if (isProduction && compiledModules) {
-        // Production: Use pre-compiled routines
-        // Import compiled routines as JS modules
-        const compiledImports = compiledModules
-            .map((module) => {
-                const varName = sanitizeVarName(module.name);
-                return `import ${varName} from '/compiled/${module.name}.js';`;
-            })
-            .join('\n      ');
-        
-        sourceImports = compiledImports;
-        
-        // Create map of compiled routines (with Routine.import())
-        // When using default import, the variable is already the default export
-        compiledRoutinesMap = compiledModules
-            .map((module) => {
-                const varName = sanitizeVarName(module.name);
-                return `'${module.name}': new Routine(0).import(${varName}.routine)`;
-            })
-            .join(',\n          ');
-    } else {
-        // Development: Use source files
-        const sourceEntries = Object.entries(sources);
-        sourceImports = sourceEntries
-            .map(([name, filePath]) => {
-                const varName = sanitizeVarName(name);
-                return `import ${varName} from '${filePath}?raw';`;
-            })
-            .join('\n      ');
+	const canvasId = config.canvas?.id || "game";
+	const isFreeAspect = config.aspect === "free";
+	const baseUrl = config.url || "/";
+	const logging = config.logging || {};
+	const browserLogging = logging.browser || {};
+	const terminalLogging = logging.terminal || {};
+	const showBrowserLifecycleLogs = browserLogging.lifecycle ?? false;
+	const showBrowserCanvasLogs = browserLogging.canvas ?? false;
+	const showTerminalLifecycleLogs = terminalLogging.lifecycle ?? false;
+	const showTerminalCanvasLogs = terminalLogging.canvas ?? false;
+	const mirrorListenerLogs = terminalLogging.listener ?? false;
+	const mirrorListenerErrors = terminalLogging.errors ?? false;
+	const terminalLoggingEnabled = [
+		showTerminalLifecycleLogs,
+		showTerminalCanvasLogs,
+		mirrorListenerLogs,
+		mirrorListenerErrors,
+	].some(Boolean);
 
-        sourceMap = sourceEntries
-            .map(([name]) => {
-                const varName = sanitizeVarName(name);
-                return `'${name}': ${varName}`;
-            })
-            .join(',\n          ');
-    }
+	// Determine if we're using pre-compiled routines (production) or sources (development)
+	const isProduction = compiledModules && compiledModules.length > 0;
 
-    // Prepare resources object for Runtime (with null coalescing)
-    const resourcesObj = {
-        images: resources.images ?? [],
-        maps: resources.maps ?? [],
-        sounds: resources.sounds ?? [],
-        music: resources.music ?? [],
-        assets: resources.assets ?? [],
-    };
+	let sourceImports = "";
+	let sourceMap = "";
+	let compiledRoutinesMap = "";
 
-    // Escape config.name for HTML to prevent XSS
-    const escapedName = config.name
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+	if (isProduction && compiledModules) {
+		// Production: Use pre-compiled routines
+		// Import compiled routines as JS modules
+		const compiledImports = compiledModules
+			.map((module) => {
+				const varName = sanitizeVarName(module.name);
+				return `import ${varName} from '/compiled/${module.name}.js';`;
+			})
+			.join("\n      ");
 
-    return `<!DOCTYPE html>
+		sourceImports = compiledImports;
+
+		// Create map of compiled routines (with Routine.import())
+		// When using default import, the variable is already the default export
+		compiledRoutinesMap = compiledModules
+			.map((module) => {
+				const varName = sanitizeVarName(module.name);
+				return `'${module.name}': new Routine(0).import(${varName}.routine)`;
+			})
+			.join(",\n          ");
+	} else {
+		// Development: Use source files
+		const sourceEntries = Object.entries(sources);
+		sourceImports = sourceEntries
+			.map(([name, filePath]) => {
+				const varName = sanitizeVarName(name);
+				return `import ${varName} from '${filePath}?raw';`;
+			})
+			.join("\n      ");
+
+		sourceMap = sourceEntries
+			.map(([name]) => {
+				const varName = sanitizeVarName(name);
+				return `'${name}': ${varName}`;
+			})
+			.join(",\n          ");
+	}
+
+	// Prepare resources object for Runtime (with null coalescing)
+	const resourcesObj = {
+		images: resources.images ?? [],
+		maps: resources.maps ?? [],
+		sounds: resources.sounds ?? [],
+		music: resources.music ?? [],
+		assets: resources.assets ?? [],
+	};
+
+	// Escape config.name for HTML to prevent XSS
+	const escapedName = config.name
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -131,7 +131,7 @@ export function generateHTML(
         src: url("/fonts/BitCell.ttf") format("truetype");
         font-display: swap;
       }
-      ${/* External fonts (like PressStart2P) should be added manually by developers in public/fonts */ ''}
+      ${/* External fonts (like PressStart2P) should be added manually by developers in public/fonts */ ""}
       :root {
         color-scheme: dark;
       }
@@ -163,11 +163,13 @@ export function generateHTML(
   <body>
     <canvas id="${canvasId}"></canvas>
     <script type="module">
-      ${isProduction 
-        ? `// Production: Use bundled runtime
+      ${
+				isProduction
+					? `// Production: Use bundled runtime
 import { Runtime, Routine } from '/runtime.js';`
-        : `// Development: Use Vite-resolved modules
-import { Runtime } from '@l8b/runtime';`}
+					: `// Development: Use Vite-resolved modules
+import { Runtime } from '@l8b/runtime';`
+			}
       
       ${sourceImports}
 
@@ -213,7 +215,9 @@ import { Runtime } from '@l8b/runtime';`}
       const shouldLogCanvasTerminal = ${showTerminalCanvasLogs};
       const mirrorListenerLogs = ${mirrorListenerLogs};
       const mirrorListenerErrors = ${mirrorListenerErrors};
-      const sendTerminalLog = ${terminalLoggingEnabled ? `(entry) => {
+      const sendTerminalLog = ${
+				terminalLoggingEnabled
+					? `(entry) => {
         const payload = JSON.stringify({
           ...entry,
           timestamp: Date.now(),
@@ -232,7 +236,9 @@ import { Runtime } from '@l8b/runtime';`}
             keepalive: true,
           }).catch(() => {});
         }
-      }` : '() => {}'};
+      }`
+					: "() => {}"
+			};
 
       const logLifecycle = (message) => {
         if (!shouldLogLifecycleBrowser && !shouldLogLifecycleTerminal) {
@@ -296,22 +302,26 @@ import { Runtime } from '@l8b/runtime';`}
             }
           },
           postMessage: (msg) => {
-            ${isProduction ? '// Compilation messages are handled during build' : "console.log('[GAME MESSAGE]', msg);"}
+            ${isProduction ? "// Compilation messages are handled during build" : "console.log('[GAME MESSAGE]', msg);"}
           },
         },
       };
 
-      ${isProduction ? `
+      ${
+				isProduction
+					? `
       // Production: Use pre-compiled routines
       runtimeOptions.compiledRoutines = {
         ${compiledRoutinesMap}
       };
-      ` : `
+      `
+					: `
       // Development: Use source files
       runtimeOptions.sources = {
         ${sourceMap}
       };
-      `}
+      `
+			}
 
       const runtime = new Runtime(runtimeOptions);
 

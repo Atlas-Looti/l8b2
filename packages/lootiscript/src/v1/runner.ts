@@ -200,10 +200,10 @@ export class Runner {
 		this.threads = [this.main_thread];
 		this.current_thread = this.main_thread;
 		this.thread_index = 0;
-		
+
 		// Initialize profiler with main thread processor
 		this.profiler = new VMProfiler(this.main_thread.processor);
-		
+
 		// Expose profiler to system
 		this.system.profiler = {
 			start: () => {
@@ -214,7 +214,7 @@ export class Runner {
 				this.main_thread.processor.profilingEnabled = false;
 				return this.profiler.stop();
 			},
-			getMetrics: () => this.profiler.getAverageMetrics()
+			getMetrics: () => this.profiler.getAverageMetrics(),
 		};
 
 		this.l8bvm.context.global.print = this.l8bvm.context.meta.print;
@@ -434,7 +434,7 @@ export class Runner {
 		}
 		time_limit = time + margin; // secondary threads get remaining time
 		time_out = this.system.preemptive ? time_limit : Infinity;
-		
+
 		// Record frame in profiler if active
 		if (this.main_thread.processor.profilingEnabled) {
 			this.profiler.frame();

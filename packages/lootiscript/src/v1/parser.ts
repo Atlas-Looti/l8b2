@@ -37,7 +37,10 @@ import {
 } from "./program";
 import { Token } from "./token";
 import { Tokenizer } from "./tokenizer";
-import { SyntaxError as LootiSyntaxError, formatSourceContext } from "./error-handler";
+import {
+	SyntaxError as LootiSyntaxError,
+	formatSourceContext,
+} from "./error-handler";
 
 /**
  * Parser for LootiScript
@@ -62,7 +65,12 @@ export class Parser {
 		column: number;
 	}>;
 	unexpected_eof?: boolean;
-	error_info?: { error: string; line: number; column: number; context?: string; };
+	error_info?: {
+		error: string;
+		line: number;
+		column: number;
+		context?: string;
+	};
 	last_function_call?: FunctionCall;
 	static multipliers: Record<string, number> = {
 		millisecond: 1,
@@ -99,7 +107,7 @@ export class Parser {
 			start: 0,
 			length: 0,
 			index: 0,
-			is_binary_operator: false
+			is_binary_operator: false,
 		} as Token;
 		this.verbose = false;
 		this.nesting = 0;
@@ -193,7 +201,7 @@ export class Parser {
 					error: err.message,
 					line: err.line,
 					column: err.column,
-					context: err.context
+					context: err.context,
 				}) as any;
 			}
 
@@ -203,17 +211,17 @@ export class Parser {
 					nt.tokenizer.input,
 					nt.line,
 					nt.column,
-					2
+					2,
 				);
 				return (this.error_info = {
 					error: `Unterminated '${nt.value}' ; no matching 'end' found`,
 					line: nt.line,
 					column: nt.column,
-					context: context
+					context: context,
 				}) as any;
 			} else {
 				return (this.error_info = {
-					error: typeof err === 'string' ? err : err.message || String(err),
+					error: typeof err === "string" ? err : err.message || String(err),
 					line: this.current.line,
 					column: this.current.column,
 				}) as { error: string; line: number; column: number };
@@ -800,7 +808,7 @@ export class Parser {
 			token.tokenizer.input,
 			token.line,
 			token.column,
-			2
+			2,
 		);
 
 		throw new LootiSyntaxError(
@@ -808,7 +816,7 @@ export class Parser {
 			token.tokenizer.filename,
 			token.line,
 			token.column,
-			context
+			context,
 		);
 	}
 
@@ -1133,11 +1141,7 @@ export class Parser {
 				// No more interpolation, add remaining string
 				if (current < raw.length) {
 					parts.push(
-						new Value(
-							token,
-							Value.TYPE_STRING,
-							raw.substring(current)
-						)
+						new Value(token, Value.TYPE_STRING, raw.substring(current)),
 					);
 				}
 				break;
@@ -1146,11 +1150,7 @@ export class Parser {
 			// Add string part before ${
 			if (start > current) {
 				parts.push(
-					new Value(
-						token,
-						Value.TYPE_STRING,
-						raw.substring(current, start)
-					)
+					new Value(token, Value.TYPE_STRING, raw.substring(current, start)),
 				);
 			}
 
@@ -1189,7 +1189,10 @@ export class Parser {
 			const exprSource = raw.substring(start + 2, end);
 
 			// Parse expression using a new Parser instance
-			const subParser = new (this.constructor as any)(exprSource, token.tokenizer.filename);
+			const subParser = new (this.constructor as any)(
+				exprSource,
+				token.tokenizer.filename,
+			);
 			const expr = subParser.parseExpression();
 
 			if (expr) {
@@ -1206,12 +1209,7 @@ export class Parser {
 		// Combine parts with +
 		let result = parts[0];
 		for (let i = 1; i < parts.length; i++) {
-			result = new Operation(
-				token,
-				"+",
-				result,
-				parts[i]
-			);
+			result = new Operation(token, "+", result, parts[i]);
 		}
 
 		return result;
