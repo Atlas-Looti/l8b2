@@ -25,6 +25,7 @@ import {
 	Negate,
 	NewCall,
 	Not,
+	Operation,
 	Program,
 	Return,
 	SelfAssignment,
@@ -363,6 +364,8 @@ export class Parser {
 				);
 			case Token.TYPE_STRING:
 				return this.parseStringExpression(token);
+			case Token.TYPE_TEMPLATE:
+				return this.parseTemplate(token);
 			case Token.TYPE_IF:
 				return this.parseIf(token);
 			case Token.TYPE_FOR:
@@ -522,6 +525,7 @@ export class Parser {
 			Token.TYPE_IDENTIFIER,
 			"Expected identifier",
 		);
+		this.parseOptionalType();
 		this.assert(Token.TYPE_EQUALS, "Expected '='");
 		return new Assignment(
 			local,
@@ -531,14 +535,94 @@ export class Parser {
 		);
 	}
 
-	parseBracedExpression(open: Token): Braced {
+	parseBracedExpression(open: Token): Statement {
+		// Check for empty arrow function () => ...
+		if (this.current.type === Token.TYPE_CLOSED_BRACE) {
+			const close = this.nextToken(); // consume )
+			const next = this.nextToken();
+			if (next.type === Token.TYPE_ARROW) {
+				return this.parseArrowFunction(next, []);
+			}
+			this.tokenizer.pushBack(next);
+			this.current = close;
+			return this.error("Unexpected ')'") as Statement;
+		}
+
 		const expression = this.assertExpression();
+		this.parseOptionalType();
 		const token = this.nextToken();
+
+		// Check for single arg arrow function (arg) => ...
 		if (token.type === Token.TYPE_CLOSED_BRACE) {
+			const next = this.nextToken();
+			if (next.type === Token.TYPE_ARROW) {
+				return this.parseArrowFunction(next, [expression]);
+			}
+			this.tokenizer.pushBack(next);
+			this.current = token;
 			return new Braced(open, expression);
+		}
+		// Check for multi arg arrow function (arg1, arg2) => ...
+		else if (token.type === Token.TYPE_COMMA) {
+			const args: Statement[] = [expression];
+			while (true) {
+				args.push(this.assertExpression());
+				this.parseOptionalType();
+				const next = this.nextToken();
+				if (next.type === Token.TYPE_CLOSED_BRACE) {
+					break;
+				} else if (next.type !== Token.TYPE_COMMA) {
+					return this.error("Expected ',' or ')'") as Statement;
+				}
+			}
+			const arrow = this.nextToken();
+			if (arrow.type === Token.TYPE_ARROW) {
+				return this.parseArrowFunction(arrow, args);
+			}
+			return this.error("Expected '=>' after parameter list") as Statement;
 		} else {
 			return this.error("missing closing parenthese") as Braced;
 		}
+	}
+	parseArrowFunction(arrow: Token, args: Statement[]): Function {
+		const funcArgs: FunctionArg[] = [];
+		for (const arg of args) {
+			if (arg instanceof Variable) {
+				// Check for type annotation if the variable was parsed with one?
+				// Actually, parseExpression doesn't parse types.
+				// So (x: int) => ... would fail in parseExpression because : is unexpected.
+				// We need to handle types inside parseBracedExpression or here?
+				// If we use (x: int), parseExpression stops at :?
+				// No, parseExpression expects operators. : is not an operator.
+				// So parseExpression returns 'x', and next token is ':'.
+				// We need to handle that here!
+
+				funcArgs.push({ name: arg.identifier, default: undefined });
+			} else {
+				throw this.error("Invalid argument in arrow function");
+			}
+		}
+
+		const sequence: Statement[] = [];
+		// Parse single statement/expression body
+		const body = this.parseLine();
+		if (body) {
+			// If it's an expression (not a control flow statement), wrap in Return
+			if (
+				body instanceof Value ||
+				body instanceof Variable ||
+				body instanceof Operation ||
+				body instanceof FunctionCall ||
+				body instanceof Assignment ||
+				body instanceof Braced
+			) {
+				sequence.push(new Return(arrow, body));
+			} else {
+				sequence.push(body);
+			}
+		}
+
+		return new Function(arrow, funcArgs, sequence, arrow);
 	}
 
 	parseFunctionCall(brace_token: Token, expression: Statement): FunctionCall {
@@ -617,6 +701,7 @@ export class Parser {
 				args.push({
 					name: token.value as string,
 				});
+				this.parseOptionalType();
 			} else {
 				return this.error("Unexpected token") as FunctionArg[];
 			}
@@ -725,6 +810,33 @@ export class Parser {
 			token.column,
 			context
 		);
+	}
+
+	/**
+	 * Parse optional type annotation (e.g. : string)
+	 * Currently just consumes the tokens without storing type info
+	 */
+	parseOptionalType(): void {
+		let token = this.nextTokenOptional();
+		if (token == null) return;
+
+		if (token.type === Token.TYPE_COLON) {
+			// Consume type identifier
+			this.assert(Token.TYPE_IDENTIFIER, "Expected type identifier");
+
+			// Handle array types: number[] or number[][]
+			while (true) {
+				token = this.nextTokenOptional();
+				if (token && (token as any).type === Token.TYPE_OPEN_BRACKET) {
+					this.assert(Token.TYPE_CLOSED_BRACKET, "Expected ']'");
+				} else {
+					if (token) this.tokenizer.pushBack(token);
+					break;
+				}
+			}
+		} else {
+			this.tokenizer.pushBack(token);
+		}
 	}
 
 	parseFor(fortoken: Token): For | ForIn {
@@ -1009,5 +1121,99 @@ export class Parser {
 		} else {
 			return new Delete(del, v);
 		}
+	}
+	parseTemplate(token: Token): Statement {
+		const raw = token.value as string;
+		let current = 0;
+		const parts: Statement[] = [];
+
+		while (current < raw.length) {
+			const start = raw.indexOf("${", current);
+			if (start === -1) {
+				// No more interpolation, add remaining string
+				if (current < raw.length) {
+					parts.push(
+						new Value(
+							token,
+							Value.TYPE_STRING,
+							raw.substring(current)
+						)
+					);
+				}
+				break;
+			}
+
+			// Add string part before ${
+			if (start > current) {
+				parts.push(
+					new Value(
+						token,
+						Value.TYPE_STRING,
+						raw.substring(current, start)
+					)
+				);
+			}
+
+			// Find matching }
+			let depth = 1;
+			let end = start + 2;
+			let inString = false;
+			let stringChar = "";
+
+			while (end < raw.length && depth > 0) {
+				const char = raw[end];
+
+				if (inString) {
+					if (char === stringChar && raw[end - 1] !== "\\") {
+						inString = false;
+					}
+				} else {
+					if (char === '"' || char === "'" || char === "`") {
+						inString = true;
+						stringChar = char;
+					} else if (char === "{") {
+						depth++;
+					} else if (char === "}") {
+						depth--;
+					}
+				}
+
+				if (depth > 0) end++;
+			}
+
+			if (depth > 0) {
+				throw this.error("Unclosed template interpolation");
+			}
+
+			// Extract expression source
+			const exprSource = raw.substring(start + 2, end);
+
+			// Parse expression using a new Parser instance
+			const subParser = new (this.constructor as any)(exprSource, token.tokenizer.filename);
+			const expr = subParser.parseExpression();
+
+			if (expr) {
+				parts.push(expr);
+			}
+
+			current = end + 1;
+		}
+
+		if (parts.length === 0) {
+			return new Value(token, Value.TYPE_STRING, "");
+		}
+
+		// Combine parts with +
+		let result = parts[0];
+		for (let i = 1; i < parts.length; i++) {
+			result = new Operation(
+				token,
+				"+",
+				result,
+				parts[i]
+			);
+		}
+
+		return result;
 	}
 }

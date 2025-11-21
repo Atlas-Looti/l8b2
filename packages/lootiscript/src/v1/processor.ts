@@ -144,7 +144,7 @@ export class Processor {
 	routineAsFunction(routine: Routine, context: RuntimeContext): Function {
 		var f: Function, proc: Processor;
 		proc = new Processor(this.runner);
-		f = () => {
+		f = function (this: any) {
 			var a, count, i, j, k, ref, ref1;
 			count = Math.min(routine.num_args, arguments.length);
 			proc.load(routine);

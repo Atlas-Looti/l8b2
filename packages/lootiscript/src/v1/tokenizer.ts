@@ -37,6 +37,7 @@ export class Tokenizer implements ITokenizer {
 		this.chars["^"] = Token.TYPE_POWER;
 		this.chars[","] = Token.TYPE_COMMA;
 		this.chars["."] = Token.TYPE_DOT;
+		this.chars[":"] = Token.TYPE_COLON;
 
 		// Initialize double character tokens (single + equals)
 		this.doubles[">"] = [Token.TYPE_GREATER, Token.TYPE_GREATER_OR_EQUALS];
@@ -168,6 +169,8 @@ export class Tokenizer implements ITokenizer {
 			return this.parseString(c, '"');
 		} else if (c === "'") {
 			return this.parseString(c, "'");
+		} else if (c === "`") {
+			return this.parseString(c, "`");
 		} else {
 			return this.error("Syntax Error");
 		}
@@ -198,24 +201,36 @@ export class Tokenizer implements ITokenizer {
 		}
 	}
 
-	parseDouble(c: string, d: [number, number]): Token {
+
+	parseDouble(c: string, d?: [number, number]): Token {
+		const c2: string = this.input.charAt(this.index);
+
+		// Check for arrow function =>
+		if (c === "=" && c2 === ">") {
+			this.nextChar();
+			return new Token(this, Token.TYPE_ARROW, "=>");
+		}
+
+		// Check for shift operators (<<, >>)
 		if (
 			this.shifts[c] != null &&
 			this.index < this.input.length &&
-			this.input.charAt(this.index) === c
+			c2 === c
 		) {
 			this.nextChar();
 			return new Token(this, this.shifts[c], c + c);
-		} else if (
-			this.index < this.input.length &&
-			this.input.charAt(this.index) === "="
-		) {
+		}
+
+		// Check for assignment operators (+=, -=, etc.)
+		if (d && this.index < this.input.length && c2 === "=") {
 			this.nextChar();
 			return new Token(this, d[1], c + "=");
-		} else {
-			return new Token(this, d[0], c);
 		}
+
+		// Return single character token
+		return new Token(this, d ? d[0] : this.chars[c], c);
 	}
+
 
 	parseEquals(_c: string): Token {
 		if (
@@ -252,6 +267,7 @@ export class Tokenizer implements ITokenizer {
 			return new Token(this, Token.TYPE_LOWER, "<");
 		}
 	}
+
 
 	parseUnequals(_c: string): Token {
 		if (
@@ -399,7 +415,7 @@ export class Tokenizer implements ITokenizer {
 					s += c;
 					return new Token(
 						this,
-						Token.TYPE_STRING,
+						close === "`" ? Token.TYPE_TEMPLATE : Token.TYPE_STRING,
 						s.substring(1, s.length - 1),
 					);
 				}

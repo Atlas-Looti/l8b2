@@ -238,6 +238,15 @@ export class Runner {
 				return this.toString();
 			},
 		};
+
+		// Initialize Object with default operators
+		this.l8bvm.context.global.Object = {
+			"+": (a: any, b: any) => (a != null ? a + b : b),
+			"-": (a: any, b: any) => a - b,
+			"*": (a: any, b: any) => a * b,
+			"/": (a: any, b: any) => a / b,
+			"%": (a: any, b: any) => a % b,
+		};
 		this.fps = 60;
 		this.fps_max = 60;
 		this.cpu_load = 0;

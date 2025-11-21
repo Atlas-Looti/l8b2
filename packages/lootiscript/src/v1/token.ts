@@ -82,6 +82,7 @@ export class Token {
 	static readonly TYPE_CLOSED_BRACKET = 25;
 	static readonly TYPE_COMMA = 26;
 	static readonly TYPE_DOT = 27;
+	static readonly TYPE_COLON = 28; // NEW: Colon for types
 	static readonly TYPE_PLUS = 30;
 	static readonly TYPE_MINUS = 31;
 	static readonly TYPE_MULTIPLY = 32;
@@ -99,29 +100,31 @@ export class Token {
 	static readonly TYPE_MODULO_EQUALS = 44;
 	static readonly TYPE_AND_EQUALS = 45;
 	static readonly TYPE_OR_EQUALS = 46;
-	static readonly TYPE_RETURN = 50;
-	static readonly TYPE_BREAK = 51;
-	static readonly TYPE_CONTINUE = 52;
-	static readonly TYPE_FUNCTION = 60;
+	static readonly TYPE_RETURN = 100;
+	static readonly TYPE_BREAK = 101;
+	static readonly TYPE_CONTINUE = 102;
+	static readonly TYPE_FUNCTION = 103;
+	static readonly TYPE_IF = 104;
+	static readonly TYPE_THEN = 105;
+	static readonly TYPE_ELSE = 106;
+	static readonly TYPE_ELSIF = 107;
+	static readonly TYPE_END = 108;
+	static readonly TYPE_FOR = 109;
+	static readonly TYPE_TO = 110;
+	static readonly TYPE_BY = 111;
+	static readonly TYPE_IN = 112;
+	static readonly TYPE_WHILE = 113;
+	static readonly TYPE_OBJECT = 114;
+	static readonly TYPE_CLASS = 115;
+	static readonly TYPE_EXTENDS = 116;
+	static readonly TYPE_NEW = 117;
+	static readonly TYPE_ARROW = 118;
+	static readonly TYPE_TEMPLATE = 119; // NEW: Template string `...`
 	static readonly TYPE_AFTER = 61;
 	static readonly TYPE_EVERY = 62;
 	static readonly TYPE_DO = 63;
 	static readonly TYPE_SLEEP = 64;
 	static readonly TYPE_LOCAL = 70;
-	static readonly TYPE_OBJECT = 80;
-	static readonly TYPE_CLASS = 90;
-	static readonly TYPE_EXTENDS = 91;
-	static readonly TYPE_NEW = 92;
-	static readonly TYPE_FOR = 100;
-	static readonly TYPE_TO = 101;
-	static readonly TYPE_BY = 102;
-	static readonly TYPE_IN = 103;
-	static readonly TYPE_WHILE = 104;
-	static readonly TYPE_IF = 105;
-	static readonly TYPE_THEN = 106;
-	static readonly TYPE_ELSE = 107;
-	static readonly TYPE_ELSIF = 108;
-	static readonly TYPE_END = 120;
 	static readonly TYPE_AND = 200;
 	static readonly TYPE_OR = 201;
 	static readonly TYPE_NOT = 202;
@@ -157,5 +160,7 @@ export class Token {
 		sleep: Token.TYPE_SLEEP,
 		delete: Token.TYPE_DELETE,
 		local: Token.TYPE_LOCAL,
+		var: Token.TYPE_LOCAL, // Alias
+		let: Token.TYPE_LOCAL, // Alias
 	};
 }
