@@ -1,0 +1,47 @@
+{
+	"name": "lootiscript-vscode",
+	"displayName": "LootiScript",
+	"description": "Language support for LootiScript",
+	"version": "0.0.1",
+	"publisher": "l8b",
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "lootiscript",
+				"aliases": ["LootiScript", "loot"],
+				"extensions": [".loot"],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "lootiscript",
+				"scopeName": "source.loot",
+				"path": "./syntaxes/lootiscript.tmLanguage.json"
+			}
+		]
+	},
+	"scripts": {
+		"build": "tsup",
+		"watch": "tsup --watch",
+		"package": "vsce package"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.75.0",
+		"@types/node": "^20.0.0",
+		"tsup": "^8.0.0",
+		"typescript": "^5.0.0",
+		"vsce": "^2.15.0"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^9.0.1"
+	}
+}
+

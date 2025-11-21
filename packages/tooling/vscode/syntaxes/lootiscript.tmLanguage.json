@@ -1,0 +1,68 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "LootiScript",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#numbers"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.lootiscript",
+					"match": "\\b(if|then|else|end|while|for|in|break|continue|return|function|local|global|import)\\b"
+				},
+				{
+					"name": "constant.language.lootiscript",
+					"match": "\\b(true|false|null|this)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.lootiscript",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.lootiscript",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.lootiscript",
+					"match": "//.*$"
+				}
+			]
+		},
+		"functions": {
+			"patterns": [
+				{
+					"name": "entity.name.function.lootiscript",
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+				}
+			]
+		},
+		"numbers": {
+			"name": "constant.numeric.lootiscript",
+			"match": "\\b\\d+(\\.\\d+)?\\b"
+		}
+	},
+	"scopeName": "source.loot"
+}
+
