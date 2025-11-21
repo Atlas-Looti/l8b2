@@ -13,7 +13,7 @@ import type { Token } from "./token";
 export class Expression {
 	nowarning?: boolean;
 	nopop?: boolean;
-	constructor() {}
+	constructor() { }
 }
 
 /**

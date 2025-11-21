@@ -26,24 +26,24 @@ const cli = cac('l8b');
 
 cli
     .command('dev [root]', 'Start development server with hot module replacement')
-    .option('--port <port>', 'Port to use', { 
+    .option('--port <port>', 'Port to use', {
         default: DEFAULT_SERVER.PORT
     })
-    .option('--host [host]', 'Expose to network (use 0.0.0.0 to expose, or specify hostname)', { 
-        default: DEFAULT_SERVER.HOST 
+    .option('--host [host]', 'Expose to network (use 0.0.0.0 to expose, or specify hostname)', {
+        default: DEFAULT_SERVER.HOST
     })
     .action(async (root, options) => {
         try {
             const projectPath = root ? path.resolve(root) : process.cwd();
-            
+
             console.log(pc.cyan(`\n  🎮 L8B CLI v${version}\n`));
             console.log(pc.gray(`  Project: ${projectPath}\n`));
-            
+
             // Parse port as number
-            const port = typeof options.port === 'string' 
-                ? parseInt(options.port, 10) 
+            const port = typeof options.port === 'string'
+                ? parseInt(options.port, 10)
                 : options.port;
-            
+
             await dev(projectPath, {
                 port: port || DEFAULT_SERVER.PORT,
                 host: options.host,
@@ -64,7 +64,7 @@ cli
     .action(async (root) => {
         try {
             const projectPath = root ? path.resolve(root) : process.cwd();
-            
+
             await build(projectPath);
         } catch (error) {
             if (error instanceof BuildError || error instanceof CompilationError) {
@@ -81,21 +81,21 @@ cli
 
 cli
     .command('start [root]', 'Start production server for built project')
-    .option('--port <port>', 'Port to use', { 
+    .option('--port <port>', 'Port to use', {
         default: DEFAULT_SERVER.PORT
     })
-    .option('--host [host]', 'Expose to network (use 0.0.0.0 to expose, or specify hostname)', { 
-        default: DEFAULT_SERVER.HOST 
+    .option('--host [host]', 'Expose to network (use 0.0.0.0 to expose, or specify hostname)', {
+        default: DEFAULT_SERVER.HOST
     })
     .action(async (root, options) => {
         try {
             const projectPath = root ? path.resolve(root) : process.cwd();
-            
+
             // Parse port as number
-            const port = typeof options.port === 'string' 
-                ? parseInt(options.port, 10) 
+            const port = typeof options.port === 'string'
+                ? parseInt(options.port, 10)
                 : options.port;
-            
+
             await start(projectPath, {
                 port: port || DEFAULT_SERVER.PORT,
                 host: options.host,

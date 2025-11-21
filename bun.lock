@@ -61,30 +61,6 @@
         "vite": "^7.2.2",
       },
     },
-    "packages/cli": {
-      "name": "@l8b/cli",
-      "version": "0.0.0",
-      "bin": {
-        "l8b": "./dist/cli.js",
-      },
-      "dependencies": {
-        "@l8b/compiler": "workspace:*",
-        "@l8b/lootiscript": "workspace:*",
-        "@l8b/runtime": "workspace:*",
-        "cac": "^6.7.14",
-        "chokidar": "^3.5.3",
-        "esbuild": "^0.19.0",
-        "fs-extra": "^11.2.0",
-        "picocolors": "^1.0.0",
-        "vite": "^5.0.0",
-      },
-      "devDependencies": {
-        "@types/fs-extra": "^11.0.4",
-        "@types/node": "^20.0.0",
-        "tsup": "^8.0.0",
-        "typescript": "^5.0.0",
-      },
-    },
     "packages/core/assets": {
       "name": "@l8b/assets",
       "version": "0.0.1",
@@ -140,18 +116,6 @@
       "name": "@l8b/time",
       "version": "0.0.1",
     },
-    "packages/enggine/compiler": {
-      "name": "@l8b/compiler",
-      "version": "0.0.1",
-      "dependencies": {
-        "@l8b/lootiscript": "workspace:*",
-      },
-      "devDependencies": {
-        "@types/node": "^20.0.0",
-        "tsup": "^8.0.0",
-        "typescript": "^5.0.0",
-      },
-    },
     "packages/enggine/io": {
       "name": "@l8b/io",
       "version": "0.0.1",
@@ -190,6 +154,54 @@
       "dependencies": {
         "@l8b/io": "workspace:*",
         "@l8b/lootiscript": "workspace:*",
+      },
+    },
+    "packages/framework/cli": {
+      "name": "@l8b/cli",
+      "version": "0.0.0",
+      "bin": {
+        "l8b": "./dist/cli.js",
+      },
+      "dependencies": {
+        "@l8b/compiler": "workspace:*",
+        "@l8b/formatter": "workspace:*",
+        "@l8b/lootiscript": "workspace:*",
+        "@l8b/runtime": "workspace:*",
+        "cac": "^6.7.14",
+        "chokidar": "^3.5.3",
+        "esbuild": "^0.19.0",
+        "fs-extra": "^11.2.0",
+        "picocolors": "^1.0.0",
+        "vite": "^5.0.0",
+      },
+      "devDependencies": {
+        "@types/fs-extra": "^11.0.4",
+        "@types/node": "^20.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/framework/compiler": {
+      "name": "@l8b/compiler",
+      "version": "0.0.1",
+      "dependencies": {
+        "@l8b/lootiscript": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/node": "^20.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/framework/formatter": {
+      "name": "@l8b/formatter",
+      "version": "0.0.1",
+      "dependencies": {
+        "@l8b/lootiscript": "workspace:*",
+      },
+      "devDependencies": {
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
       },
     },
     "packages/lootiscript": {
@@ -301,9 +313,11 @@
 
     "@l8b/audio": ["@l8b/audio@workspace:packages/core/audio"],
 
-    "@l8b/cli": ["@l8b/cli@workspace:packages/cli"],
+    "@l8b/cli": ["@l8b/cli@workspace:packages/framework/cli"],
 
-    "@l8b/compiler": ["@l8b/compiler@workspace:packages/enggine/compiler"],
+    "@l8b/compiler": ["@l8b/compiler@workspace:packages/framework/compiler"],
+
+    "@l8b/formatter": ["@l8b/formatter@workspace:packages/framework/formatter"],
 
     "@l8b/input": ["@l8b/input@workspace:packages/core/input"],
 
@@ -888,6 +902,8 @@
     "@l8b/cli/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "@l8b/compiler/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "@l8b/formatter/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "@l8b/io/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
