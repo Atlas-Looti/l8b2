@@ -1,14 +1,20 @@
 /**
  * RuntimeOrchestrator - Main coordinator for all runtime components
  *
+ * Manages the complete game runtime lifecycle from initialization to shutdown.
+ * Coordinates between all subsystems (screen, audio, input, VM, assets).
+ *
  * Responsibilities:
- * - Initialize all subsystems
- * - Coordinate startup sequence
+ * - Initialize all subsystems in correct order
+ * - Coordinate startup sequence (assets -> VM -> game loop)
  * - Manage lifecycle (start/stop/resume)
- * - Provide unified API
+ * - Provide unified API for runtime operations
+ * - Handle hot reload and debugging features
  *
  * This is the ONLY file that knows about all components.
- * Other files are independent and focused.
+ * Other files are independent and focused on their specific domain.
+ *
+ * @module runtime
  */
 
 import { AudioCore } from "@l8b/audio";
@@ -27,6 +33,21 @@ import type {
 	RuntimeOptions,
 } from "../types";
 
+/**
+ * RuntimeOrchestrator - Main coordinator for all runtime components
+ *
+ * Central hub that connects all engine subsystems (Input, Audio, Screen, VM).
+ * It owns the GameLoop and manages the flow of data between the VM and the systems.
+ *
+ * @example
+ * const runtime = new RuntimeOrchestrator({
+ *   canvas: document.getElementById('game'),
+ *   width: 800,
+ *   height: 600,
+ *   sources: { main: sourceCode }
+ * });
+ * await runtime.start();
+ */
 export class RuntimeOrchestrator {
 	// Configuration
 	private options: RuntimeOptions;
@@ -99,6 +120,14 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Start the runtime
+	 *
+	 * Initiates the startup sequence:
+	 * 1. Load assets (images, sounds, etc.)
+	 * 2. Wait for assets to be fully loaded and decoded
+	 * 3. Initialize the VM and compile/execute source code
+	 * 4. Start the game loop
+	 *
+	 * @returns {Promise<void>} Resolves when startup is complete and loop is running
 	 */
 	async start(): Promise<void> {
 		this.logStep("startup: begin");
@@ -134,6 +163,9 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Step 1: Load all assets
+	 *
+	 * Triggers the AssetLoader to fetch and parse all resources defined in options.
+	 * Populates the runtime's asset collections (sprites, maps, sounds, etc.).
 	 */
 	private async loadAssets(): Promise<void> {
 		const collections = await this.assetLoader.loadAll();
@@ -148,6 +180,11 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Step 2: Wait for assets to be ready (with loading bar)
+	 *
+	 * Polls the AssetLoader status and updates the system loading screen.
+	 * Blocks startup until all critical assets are usable.
+	 *
+	 * @returns {Promise<void>} Resolves when all assets are ready
 	 */
 	private async waitForAssetsReady(): Promise<void> {
 		return new Promise((resolve) => {
@@ -175,6 +212,12 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Step 3: Initialize VM and execute source code
+	 *
+	 * Creates the L8BVM instance, sets up the global API and meta functions,
+	 * and executes the initial source code or pre-compiled routines.
+	 * Also handles hot-reload setup and time machine initialization.
+	 *
+	 * @throws {Error} If VM initialization or script execution fails
 	 */
 	private initializeVM(): void {
 		this.logStep("vm: building meta/global APIs");
@@ -302,6 +345,9 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Step 4: Start game loop
+	 *
+	 * Creates and starts the GameLoop instance.
+	 * Binds update, draw, and tick handlers to the loop.
 	 */
 	private startGameLoop(): void {
 		this.logStep("loop: creating game loop");
@@ -317,6 +363,12 @@ export class RuntimeOrchestrator {
 
 	/**
 	 * Handle update callback from game loop
+	 *
+	 * Executed once per logic frame (fixed timestep).
+	 * 1. Updates input state
+	 * 2. Runs debug checks
+	 * 3. Calls the VM's `update()` function
+	 * 4. Handles any runtime errors
 	 */
 	private handleUpdate(): void {
 		if (!this.vm) return;
@@ -350,6 +402,15 @@ export class RuntimeOrchestrator {
 		}
 	}
 
+	/**
+	 * Debug input state
+	 *
+	 * Logs input state to console if debug options are enabled.
+	 * Uses shallow comparison to avoid spamming console with identical states.
+	 *
+	 * @remarks
+	 * Performance sensitive: only runs if debug.input is true.
+	 */
 	private debugInputs(): void {
 		if (!this.options.debug?.input) {
 			return;
@@ -370,6 +431,12 @@ export class RuntimeOrchestrator {
 		console.debug("[@l8b/runtime][input]", snapshot);
 	}
 
+	/**
+	 * Debug screen metrics
+	 *
+	 * Logs screen and canvas dimensions if debug options are enabled.
+	 * Useful for debugging scaling and resizing issues.
+	 */
 	private debugScreen(): void {
 		if (!this.options.debug?.screen) {
 			return;
@@ -411,6 +478,16 @@ export class RuntimeOrchestrator {
 		});
 	}
 
+	/**
+	 * Shallow comparison of two objects
+	 *
+	 * Used for optimization in debug logging to detect state changes.
+	 * Only compares top-level keys and one level of nested objects.
+	 *
+	 * @param {any} obj1 - First object
+	 * @param {any} obj2 - Second object
+	 * @returns {boolean} True if objects are shallowly equal
+	 */
 	private shallowEqual(obj1: any, obj2: any): boolean {
 		if (obj1 === obj2) return true;
 		if (!obj1 || !obj2 || typeof obj1 !== "object" || typeof obj2 !== "object")
@@ -431,6 +508,14 @@ export class RuntimeOrchestrator {
 		return true;
 	}
 
+	/**
+	 * Create a snapshot of current input state
+	 *
+	 * Extracts relevant input data based on enabled debug channels.
+	 * Used for debug logging and time machine recording.
+	 *
+	 * @returns {object|null} Snapshot object or null if no channels enabled
+	 */
 	private createInputSnapshot(): {
 		keyboard?: any;
 		mouse?: any;

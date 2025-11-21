@@ -1,5 +1,17 @@
 /**
  * L8BVM - Virtual Machine wrapper for lootiscript
+ *
+ * High-level interface for the LootiScript virtual machine.
+ * Wraps the core Compiler, Processor, and Runner into a usable engine component.
+ * Handles context creation, storage persistence, and error formatting.
+ *
+ * Responsibilities:
+ * - Create and manage VM execution context
+ * - Provide clean API for running code and calling functions
+ * - Handle storage persistence
+ * - Format and normalize runtime errors
+ *
+ * @module vm
  */
 
 import {
@@ -54,6 +66,14 @@ export class L8BVM {
 
 	/**
 	 * Run source code
+	 *
+	 * Compiles and executes a string of LootiScript code.
+	 *
+	 * @param {string} source - The source code to execute
+	 * @param {number} [timeout=3000] - Execution time limit in ms
+	 * @param {string} [filename=""] - Filename for error reporting
+	 * @returns {any} The result of the last statement execution
+	 * @throws {ErrorInfo} If compilation or execution fails
 	 */
 	run(source: string, timeout = 3000, filename = ""): any {
 		this.error_info = null;
@@ -71,9 +91,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -90,7 +110,16 @@ export class L8BVM {
 	}
 
 	/**
-	 * Call a function
+	 * Call a global function
+	 *
+	 * Executes a specific function defined in the global scope.
+	 * Useful for game loop hooks (update, draw) or event handlers.
+	 *
+	 * @param {string} name - Name of the function to call
+	 * @param {any[]} [args=[]] - Arguments to pass to the function
+	 * @param {number} [timeout=3000] - Execution time limit in ms
+	 * @returns {any} The return value of the function
+	 * @throws {ErrorInfo} If the function doesn't exist or execution fails
 	 */
 	call(name: string, args: any[] = [], timeout = 3000): any {
 		this.error_info = null;
@@ -104,9 +133,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -124,8 +153,13 @@ export class L8BVM {
 
 	/**
 	 * Load a pre-compiled routine (for production builds)
-	 * @param routineData - Either a Routine instance (already imported) or serialized routine data (from routine.export())
-	 * @param filename - Name of the file for error reporting
+	 *
+	 * Loads bytecode directly into the VM, bypassing the compilation step.
+	 * Used in production to improve startup time and obfuscate source.
+	 *
+	 * @param {any} routineData - Either a Routine instance or serialized JSON
+	 * @param {string} [filename=""] - Name of the file for error reporting
+	 * @throws {ErrorInfo} If loading fails
 	 */
 	loadRoutine(routineData: any, filename: string = ""): void {
 		this.error_info = null;
@@ -148,9 +182,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 

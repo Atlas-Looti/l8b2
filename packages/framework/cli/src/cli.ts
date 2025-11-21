@@ -4,6 +4,13 @@
  *
  * Command-line interface for LootiScript game development.
  * Provides commands for development, building, and serving production builds.
+ *
+ * Commands:
+ * - dev: Start development server with HMR
+ * - build: Compile project for production
+ * - start: Serve production build
+ *
+ * @module framework/cli
  */
 
 import cac from "cac";
@@ -41,6 +48,14 @@ cli
 			default: DEFAULT_SERVER.HOST,
 		},
 	)
+	/**
+	 * Dev Command Handler
+	 *
+	 * Starts the development server with:
+	 * - Hot Module Replacement (HMR)
+	 * - Asset watching
+	 * - Error overlay
+	 */
 	.action(async (root, options) => {
 		try {
 			const projectPath = root ? path.resolve(root) : process.cwd();
@@ -71,6 +86,14 @@ cli
 
 cli
 	.command("build [root]", "Build project for production")
+	/**
+	 * Build Command Handler
+	 *
+	 * Compiles the project for production:
+	 * - Bundles assets
+	 * - Compiles LootiScript to bytecode
+	 * - Optimizes resources
+	 */
 	.action(async (root) => {
 		try {
 			const projectPath = root ? path.resolve(root) : process.cwd();
@@ -101,6 +124,12 @@ cli
 			default: DEFAULT_SERVER.HOST,
 		},
 	)
+	/**
+	 * Start Command Handler
+	 *
+	 * Serves the built production artifacts.
+	 * Simulates the production environment locally.
+	 */
 	.action(async (root, options) => {
 		try {
 			const projectPath = root ? path.resolve(root) : process.cwd();

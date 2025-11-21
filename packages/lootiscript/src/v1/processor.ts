@@ -2,6 +2,17 @@
  * Processor - VM runtime execution engine for LootiScript
  *
  * Executes bytecode instructions in the virtual machine.
+ * Manages the stack, call stack, and local variables.
+ * Implements the core fetch-decode-execute loop.
+ *
+ * Responsibilities:
+ * - Execute bytecode instructions
+ * - Manage execution stack and memory
+ * - Handle function calls and returns
+ * - Implement inline caching for property access
+ * - Generate stack traces for errors
+ *
+ * @module lootiscript/processor
  */
 
 import { Routine } from "./routine";
@@ -44,6 +55,10 @@ export interface RuntimeClass {
 
 /**
  * Processor - Executes LootiScript bytecode
+ *
+ * The heart of the VM. It maintains the state of execution (stack, locals, instruction pointer)
+ * and executes opcodes sequentially. It also handles the complexity of
+ * function calls, including arguments passing and scope management.
  */
 export class Processor {
 	runner: any; // Runner instance
@@ -173,6 +188,11 @@ export class Processor {
 
 	/**
 	 * Generate stack trace from call frames
+	 *
+	 * Reconstructs the call stack for error reporting.
+	 * Converts internal CallFrame objects into a readable list.
+	 *
+	 * @returns {CallFrame[]} Array of stack frames (most recent first)
 	 */
 	generateStackTrace(): CallFrame[] {
 		return [...this.call_stack_frames].reverse();
@@ -208,10 +228,23 @@ export class Processor {
 		}
 	}
 
-	applyFunction(_args: any): void {}
+	applyFunction(_args: any): void { }
 
 	/**
 	 * Inline Cache Handler for Property Access
+	 *
+	 * Optimizes property access by caching the shape/structure of objects.
+	 *
+	 * States:
+	 * - UNINITIALIZED: First access
+	 * - MONOMORPHIC: Optimized for single object shape (fastest)
+	 * - POLYMORPHIC: Optimized for few object shapes (2-4)
+	 * - MEGAMORPHIC: Fallback for many shapes (slowest)
+	 *
+	 * @param {any} obj - The object to access
+	 * @param {string} prop - The property name
+	 * @param {InlineCache} ic - The inline cache slot associated with this instruction
+	 * @returns {any} The property value
 	 */
 	resolvePropertyIC(obj: any, prop: string, ic: InlineCache): any {
 		if (obj == null) return null;
@@ -265,6 +298,16 @@ export class Processor {
 		return obj[prop];
 	}
 
+	/**
+	 * Convert a LootiScript routine to a JavaScript function
+	 *
+	 * Creates a native JS wrapper around a LootiScript routine.
+	 * Allows LootiScript functions to be called from JavaScript (e.g. callbacks).
+	 *
+	 * @param {Routine} routine - The routine to wrap
+	 * @param {RuntimeContext} context - The execution context
+	 * @returns {Function} A JavaScript function that executes the routine
+	 */
 	routineAsFunction(routine: Routine, context: RuntimeContext): Function {
 		var f: Function, proc: Processor;
 		proc = new Processor(this.runner);
@@ -649,6 +692,20 @@ export class Processor {
 		}
 	}
 
+	/**
+	 * Main execution loop
+	 *
+	 * The core fetch-decode-execute loop of the VM.
+	 * Iterates through opcodes and performs corresponding actions.
+	 *
+	 * Performance Note:
+	 * This method is the hottest path in the engine.
+	 * It uses a giant switch statement for opcode dispatch which is generally
+	 * the fastest approach in JavaScript engines.
+	 *
+	 * @param {any} context - The execution context (global scope)
+	 * @returns {any} The result of the last executed statement
+	 */
 	run(context: any): any {
 		var a,
 			arg1,

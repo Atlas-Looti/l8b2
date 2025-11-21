@@ -2,6 +2,15 @@
  * Compiler - Compiles AST to bytecode
  *
  * Transforms parsed AST into executable bytecode for the VM.
+ * Handles optimization, label resolution, and scope management.
+ *
+ * Responsibilities:
+ * - Traverse AST and generate opcodes
+ * - Manage local variable scope and allocation
+ * - Resolve control flow labels (break/continue)
+ * - Perform peephole optimizations (opcode fusion)
+ *
+ * @module lootiscript/compiler
  */
 
 import {
@@ -47,6 +56,13 @@ declare class Processor {
 
 /**
  * Compiler - Compiles LootiScript AST to bytecode
+ *
+ * The compiler works in a single pass for code generation, followed by
+ * optimization passes for label resolution and opcode fusion.
+ *
+ * @example
+ * const compiler = new Compiler(programAst);
+ * const routine = compiler.routine;
  */
 export class Compiler {
 	program: Program;
@@ -84,6 +100,22 @@ export class Compiler {
 		this.routine.locals_size = this.locals.max_index;
 	}
 
+	/**
+	 * Optimize bytecode by fusing common opcode patterns
+	 *
+	 * Performs peephole optimization by combining adjacent opcodes into
+	 * more efficient fused instructions. This reduces opcode dispatch overhead
+	 * and improves execution performance.
+	 *
+	 * Optimization patterns:
+	 * - LOAD_VARIABLE + FUNCTION_CALL -> LOAD_VAR_CALL
+	 * - LOAD_PROPERTY + FUNCTION_CALL -> LOAD_PROP_CALL
+	 * - LOAD_VALUE (number) + ADD -> LOAD_CONST_ADD
+	 *
+	 * @remarks
+	 * This method modifies the routine's opcode array in place.
+	 * Should be called after label resolution.
+	 */
 	optimizeFusedOpcodes(): void {
 		const ops = this.routine.opcodes;
 		const args = this.routine.arg1;
@@ -153,6 +185,12 @@ export class Compiler {
 
 	/**
 	 * Main compile method - dispatches to appropriate compile method based on statement type
+	 *
+	 * Acts as the central dispatcher for the compilation process.
+	 * Recursively calls specific compile methods for each AST node type.
+	 *
+	 * @param {Statement} statement - The AST node to compile
+	 * @throws {string} If the statement type is not implemented
 	 */
 	compile(statement: Statement): void {
 		if (statement instanceof Value) {
@@ -213,6 +251,18 @@ export class Compiler {
 		}
 	}
 
+	/**
+	 * Compile assignment statement
+	 *
+	 * Handles variable assignment, property assignment, and local variable declaration.
+	 * Manages the complexity of assigning to:
+	 * - Local variables (optimized access)
+	 * - Global variables
+	 * - Object properties
+	 * - "this" context
+	 *
+	 * @param {Assignment} statement - The assignment AST node
+	 */
 	compileAssignment(statement: Assignment): void {
 		let arg_index: number,
 			f: Field,
@@ -360,6 +410,14 @@ export class Compiler {
 		}
 	}
 
+	/**
+	 * Compile binary or unary operation
+	 *
+	 * Generates opcodes for mathematical and logical operations.
+	 * Handles short-circuit evaluation for 'and'/'or' operators.
+	 *
+	 * @param {Operation} op - The operation AST node
+	 */
 	compileOperation(op: Operation): void {
 		let jump: string, ref: string, ref1: string;
 		if (
@@ -618,19 +676,19 @@ export class Compiler {
 			this.compileFieldParent(call.expression as Field);
 			this.compile(
 				(call.expression as Field).chain[
-					(call.expression as Field).chain.length - 1
+				(call.expression as Field).chain.length - 1
 				],
 			);
 			this.routine.FUNCTION_APPLY_PROPERTY(call.args.length, call);
 		} else if (call.expression instanceof Variable) {
 			if (
 				Compiler.predefined_unary_functions[
-					(call.expression as Variable).identifier
+				(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_unary_functions[
-						(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -640,12 +698,12 @@ export class Compiler {
 				this.routine.UNARY_OP(funk, call);
 			} else if (
 				Compiler.predefined_binary_functions[
-					(call.expression as Variable).identifier
+				(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_binary_functions[
-						(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -696,6 +754,20 @@ export class Compiler {
 		}
 	}
 
+	/**
+	 * Compile 'for' loop
+	 *
+	 * Generates bytecode for numeric range loops.
+	 * Structure:
+	 * 1. Initialize iterator and bounds
+	 * 2. Loop start label
+	 * 3. Check condition (jump to end if false)
+	 * 4. Execute body
+	 * 5. Increment iterator
+	 * 6. Jump to start
+	 *
+	 * @param {For} forloop - The for loop AST node
+	 */
 	compileFor(forloop: For): void {
 		var for_continue: string,
 			for_end: string,
@@ -774,6 +846,14 @@ export class Compiler {
 		}
 	}
 
+	/**
+	 * Compile 'while' loop
+	 *
+	 * Generates bytecode for condition-based loops.
+	 * Manages break/continue labels for control flow within the loop.
+	 *
+	 * @param {While} whiloop - The while loop AST node
+	 */
 	compileWhile(whiloop: While): void {
 		var end: string,
 			save_break: string | null,
@@ -1124,12 +1204,12 @@ export class Compiler {
 		string,
 		(a: any, b: any) => number
 	> = {
-		min: Math.min,
-		max: Math.max,
-		pow: Math.pow,
-		atan2: Math.atan2,
-		atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
-	};
+			min: Math.min,
+			max: Math.max,
+			pow: Math.pow,
+			atan2: Math.atan2,
+			atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
+		};
 
 	static predefined_values: Record<string, number> = {
 		PI: Math.PI,
