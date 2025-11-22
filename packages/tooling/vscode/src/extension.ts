@@ -6,6 +6,10 @@ import {
 	ServerOptions,
 	TransportKind,
 } from "vscode-languageclient/node";
+import { ActionsProvider } from "./views/actionsProvider";
+import { ApiProvider } from "./views/apiProvider";
+import { ExamplesProvider } from "./views/examplesProvider";
+import { AssetsServerManager } from "./views/assetsEditorProvider";
 
 let client: LanguageClient;
 let statusBarItem: vscode.StatusBarItem;
@@ -23,6 +27,15 @@ export function activate(context: vscode.ExtensionContext) {
 	statusBarItem.command = "workbench.actions.view.problems"; // Open problems on click
 	statusBarItem.show();
 	context.subscriptions.push(statusBarItem);
+
+	// Register tree data providers for sidebar views
+	const actionsProvider = new ActionsProvider();
+	const apiProvider = new ApiProvider();
+	const examplesProvider = new ExamplesProvider();
+
+	vscode.window.registerTreeDataProvider("lootiscript-actions", actionsProvider);
+	vscode.window.registerTreeDataProvider("lootiscript-api", apiProvider);
+	vscode.window.registerTreeDataProvider("lootiscript-examples", examplesProvider);
 
 	// The server is implemented in node
 	const serverModule = context.asAbsolutePath(
@@ -75,8 +88,12 @@ export function activate(context: vscode.ExtensionContext) {
 			console.error("Failed to start LootiScript Language Server:", error);
 		});
 
+	// Initialize Assets Server Manager
+	const assetsManager = new AssetsServerManager(context.extensionUri, context);
+	context.subscriptions.push(vscode.Disposable.from(assetsManager));
+
 	// Register commands
-	registerCommands(context);
+	registerCommands(context, assetsManager);
 
 	// Listen to diagnostics for error count in status bar
 	context.subscriptions.push(
@@ -85,10 +102,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 	);
 
+
+
 	console.log("LootiScript Language Server extension is now active!");
 }
 
-function registerCommands(context: vscode.ExtensionContext) {
+function registerCommands(context: vscode.ExtensionContext, assetsManager: AssetsServerManager) {
 	// Command: Format Document
 	context.subscriptions.push(
 		vscode.commands.registerCommand("lootiscript.formatDocument", async () => {
@@ -154,6 +173,29 @@ function registerCommands(context: vscode.ExtensionContext) {
 				}
 			},
 		),
+	);
+
+	// Command: Insert Example Code
+	context.subscriptions.push(
+		vscode.commands.registerCommand(
+			"lootiscript.insertExample",
+			async (code: string) => {
+				const editor = vscode.window.activeTextEditor;
+				if (editor) {
+					const position = editor.selection.active;
+					await editor.edit((editBuilder) => {
+						editBuilder.insert(position, code);
+					});
+				}
+			},
+		),
+	);
+
+	// Command: Open Assets Editor
+	context.subscriptions.push(
+		vscode.commands.registerCommand("lootiscript.openAssetsEditor", () => {
+			assetsManager.openEditor();
+		})
 	);
 }
 

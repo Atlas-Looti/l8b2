@@ -37,7 +37,11 @@
 				"extensions": [
 					".loot"
 				],
-				"configuration": "./language-configuration.json"
+				"configuration": "./language-configuration.json",
+				"icon": {
+					"light": "./icon.png",
+					"dark": "./icon.png"
+				}
 			}
 		],
 		"snippets": [
@@ -46,6 +50,31 @@
 				"path": "./snippets/lootiscript.code-snippets"
 			}
 		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "lootiscript-explorer",
+					"title": "LootiScript",
+					"icon": "$(game)"
+				}
+			]
+		},
+		"views": {
+			"lootiscript-explorer": [
+				{
+					"id": "lootiscript-actions",
+					"name": "Quick Actions"
+				},
+				{
+					"id": "lootiscript-api",
+					"name": "API Reference"
+				},
+				{
+					"id": "lootiscript-examples",
+					"name": "Code Examples"
+				}
+			]
+		},
 		"grammars": [
 			{
 				"language": "lootiscript",
@@ -100,6 +129,11 @@
 				"command": "lootiscript.restartLanguageServer",
 				"title": "LootiScript: Restart Language Server",
 				"icon": "$(debug-restart)"
+			},
+			{
+				"command": "lootiscript.openAssetsEditor",
+				"title": "LootiScript: Open Assets Editor",
+				"icon": "$(browser)"
 			}
 		]
 	},
@@ -122,6 +156,7 @@
 		"@vscode/test-electron": "^2.5.2"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^9.0.1"
+		"vscode-languageclient": "^9.0.1",
+		"@l8b/tooling-assets": "workspace:*"
 	}
 }
