@@ -25,6 +25,10 @@ import {
 	CodeAction,
 	CodeActionKind,
 	WorkspaceEdit,
+	SignatureHelp,
+	SignatureInformation,
+	ParameterInformation,
+	InsertTextFormat,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Parser } from "@l8b/lootiscript/dist/v1/parser";
@@ -75,6 +79,7 @@ const GLOBAL_API: Record<
 		type: string;
 		description: string;
 		signature?: string;
+		properties?: Record<string, { type: string; description: string; signature?: string }>;
 	}
 > = {
 	print: {
@@ -90,17 +95,143 @@ const GLOBAL_API: Record<
 		type: "module",
 		description: "Math utilities (sin, cos, sqrt, ...)",
 	},
+	// Screen API
 	screen: {
 		type: "object",
-		description: "Reference to screen interface",
+		description: "Screen drawing and display interface",
+		properties: {
+			width: {
+				type: "property",
+				description: "Screen width in pixels",
+			},
+			height: {
+				type: "property",
+				description: "Screen height in pixels",
+			},
+			drawSprite: {
+				type: "method",
+				description: "Draw a sprite at the specified position",
+				signature: "screen.drawSprite(sprite: string, x: number, y: number, width?: number, height?: number)",
+			},
+			fillRect: {
+				type: "method",
+				description: "Fill a rectangle with the current color",
+				signature: "screen.fillRect(x: number, y: number, width: number, height: number, color: string)",
+			},
+			drawRect: {
+				type: "method",
+				description: "Draw a rectangle outline",
+				signature: "screen.drawRect(x: number, y: number, width: number, height: number, color: string)",
+			},
+			drawText: {
+				type: "method",
+				description: "Draw text at the specified position",
+				signature: "screen.drawText(text: string, x: number, y: number, color?: string, size?: number)",
+			},
+			clearScreen: {
+				type: "method",
+				description: "Clear the screen with a color",
+				signature: "screen.clearScreen(color?: string)",
+			},
+			drawCircle: {
+				type: "method",
+				description: "Draw a circle",
+				signature: "screen.drawCircle(x: number, y: number, radius: number, color: string)",
+			},
+			fillCircle: {
+				type: "method",
+				description: "Fill a circle",
+				signature: "screen.fillCircle(x: number, y: number, radius: number, color: string)",
+			},
+			drawLine: {
+				type: "method",
+				description: "Draw a line between two points",
+				signature: "screen.drawLine(x1: number, y1: number, x2: number, y2: number, color: string)",
+			},
+		},
 	},
+	// Audio API
 	audio: {
 		type: "object",
-		description: "Audio interface",
+		description: "Audio playback and sound interface",
+		properties: {
+			beep: {
+				type: "method",
+				description: "Play a beep sound",
+				signature: "audio.beep(frequency?: number, duration?: number)",
+			},
+			playSound: {
+				type: "method",
+				description: "Play a sound file",
+				signature: "audio.playSound(soundName: string, volume?: number, loop?: boolean)",
+			},
+			stopSound: {
+				type: "method",
+				description: "Stop a playing sound",
+				signature: "audio.stopSound(soundName: string)",
+			},
+			setVolume: {
+				type: "method",
+				description: "Set the master volume",
+				signature: "audio.setVolume(volume: number)",
+			},
+			playMusic: {
+				type: "method",
+				description: "Play background music",
+				signature: "audio.playMusic(musicName: string, volume?: number, loop?: boolean)",
+			},
+			stopMusic: {
+				type: "method",
+				description: "Stop background music",
+				signature: "audio.stopMusic()",
+			},
+		},
 	},
+	// Input API
+	input: {
+		type: "object",
+		description: "User input interface (keyboard, mouse, touch, gamepad)",
+		properties: {
+			keyboard: {
+				type: "property",
+				description: "Keyboard input state object",
+			},
+			mouse: {
+				type: "property",
+				description: "Mouse input state object with x, y, and button properties",
+			},
+			touch: {
+				type: "property",
+				description: "Touch input state for mobile devices",
+			},
+			gamepad: {
+				type: "property",
+				description: "Gamepad input state",
+			},
+		},
+	},
+	// System API
 	system: {
 		type: "object",
-		description: "Runtime system API",
+		description: "Runtime system utilities and information",
+		properties: {
+			time: {
+				type: "property",
+				description: "Current system time in milliseconds",
+			},
+			fps: {
+				type: "property",
+				description: "Current frames per second",
+			},
+			deltaTime: {
+				type: "property",
+				description: "Time elapsed since last frame in seconds",
+			},
+			platform: {
+				type: "property",
+				description: "Current platform (web, mobile, etc.)",
+			},
+		},
 	},
 };
 
@@ -140,7 +271,12 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that this server supports code completion.
 			completionProvider: {
 				resolveProvider: true,
+				triggerCharacters: ['.'],
 			},
+			signatureHelpProvider: {
+				triggerCharacters: ['(', ','],
+			},
+			referencesProvider: true,
 		},
 	};
 	if (hasWorkspaceFolderCapability) {
@@ -412,11 +548,22 @@ connection.onCompletion(
 			}
 		}
 
+		// Detect completion context
+		const context = detectCompletionContext(document, position);
+
+		// Property access completion (e.g., screen.drawSprite)
+		if (context.type === 'property' && context.object) {
+			return getPropertyCompletions(context.object);
+		}
+
 		// Default LootiScript completion
 		const state = documentStates.get(uri);
 		const items: CompletionItem[] = [];
 
-		// local symbols
+		// Add code snippets (high priority)
+		items.push(...getSnippetCompletions());
+
+		// local symbols (high priority)
 		state?.symbols.forEach((symbol) => {
 			items.push({
 				label: symbol.name,
@@ -426,10 +573,11 @@ connection.onCompletion(
 						: CompletionItemKind.Variable,
 				detail: symbol.type,
 				data: symbol.name,
+				sortText: `0_${symbol.name}`, // Priority: local symbols
 			});
 		});
 
-		// globals
+		// globals (medium priority)
 		for (const [name, info] of Object.entries(GLOBAL_API)) {
 			items.push({
 				label: name,
@@ -437,16 +585,18 @@ connection.onCompletion(
 				detail: info.description,
 				documentation: info.signature,
 				data: name,
+				sortText: `1_${name}`, // Priority: globals
 			});
 		}
 
-		// keywords
+		// keywords (lower priority)
 		["function", "return", "local", "global", "if", "then", "else", "end", "while", "for"].forEach(
 			(keyword) => {
 				items.push({
 					label: keyword,
 					kind: CompletionItemKind.Keyword,
 					data: keyword,
+					sortText: `2_${keyword}`, // Priority: keywords
 				});
 			},
 		);
@@ -465,6 +615,74 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 	}
 	return item;
 });
+
+// Signature help provides parameter information when typing function calls
+connection.onSignatureHelp((params): SignatureHelp | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) return null;
+
+	const line = document.getText({
+		start: Position.create(params.position.line, 0),
+		end: Position.create(params.position.line, params.position.character),
+	});
+
+	// Extract function name from the line
+	const functionMatch = line.match(/([A-Za-z_][A-Za-z0-9_.]*)\s*\([^)]*$/);
+	if (!functionMatch) return null;
+
+	const functionName = functionMatch[1];
+
+	// Check if it's a method call (e.g., screen.drawSprite)
+	const parts = functionName.split('.');
+	let signature: string | undefined;
+	let description: string | undefined;
+
+	if (parts.length === 2) {
+		// Property method call
+		const [objectName, methodName] = parts;
+		const api = GLOBAL_API[objectName];
+		if (api && api.properties && api.properties[methodName]) {
+			signature = api.properties[methodName].signature;
+			description = api.properties[methodName].description;
+		}
+	} else {
+		// Global function call
+		const api = GLOBAL_API[functionName];
+		if (api) {
+			signature = api.signature;
+			description = api.description;
+		}
+	}
+
+	if (!signature) return null;
+
+	// Parse signature to extract parameters
+	const paramMatch = signature.match(/\(([^)]*)\)/);
+	const paramsStr = paramMatch ? paramMatch[1] : '';
+	const parameters: ParameterInformation[] = paramsStr
+		.split(',')
+		.filter(p => p.trim())
+		.map(param => ({
+			label: param.trim(),
+		}));
+
+	// Count commas to determine active parameter
+	const commaCount = (line.match(/,/g) || []).length;
+	const activeParameter = Math.min(commaCount, parameters.length - 1);
+
+	return {
+		signatures: [
+			SignatureInformation.create(
+				signature,
+				description,
+				...parameters
+			),
+		],
+		activeSignature: 0,
+		activeParameter: activeParameter >= 0 ? activeParameter : 0,
+	};
+});
+
 
 connection.onHover((params): Hover | null => {
 	const document = documents.get(params.textDocument.uri);
@@ -542,6 +760,38 @@ connection.onWorkspaceSymbol(() => {
 	return infos;
 });
 
+// Find all references to a symbol across the workspace
+connection.onReferences((params) => {
+	const state = documentStates.get(params.textDocument.uri);
+	if (!state) return [];
+
+	const word = getWordAtPosition(state.textDocument, params.position);
+	if (!word) return [];
+
+	const references: Location[] = [];
+
+	// Search across all open documents in the workspace
+	for (const [uri, docState] of documentStates) {
+		const text = docState.textDocument.getText();
+		const regex = new RegExp(`\\b${word}\\b`, 'g');
+		let match;
+
+		while ((match = regex.exec(text))) {
+			const start = docState.textDocument.positionAt(match.index);
+			const end = docState.textDocument.positionAt(match.index + word.length);
+			references.push(
+				Location.create(uri, {
+					start,
+					end,
+				})
+			);
+		}
+	}
+
+	return references;
+});
+
+
 connection.onRenameRequest((params: RenameParams): WorkspaceEdit | null => {
 	const state = documentStates.get(params.textDocument.uri);
 	if (!state) return null;
@@ -591,21 +841,86 @@ connection.onDocumentFormatting((params: DocumentFormattingParams) => {
 });
 
 connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
-	return params.context.diagnostics.map((diagnostic) => ({
-		title: "Insert 'end'",
-		kind: CodeActionKind.QuickFix,
-		edit: {
-			changes: {
-				[params.textDocument.uri]: [
-					TextEdit.insert(
-						Position.create(diagnostic.range.end.line + 1, 0),
-						"end\n",
-					),
-				],
-			},
-		},
-		diagnostics: [diagnostic],
-	}));
+	const actions: CodeAction[] = [];
+
+	for (const diagnostic of params.context.diagnostics) {
+		const message = diagnostic.message.toLowerCase();
+
+		// Quick fix: Missing 'end' keyword
+		if (message.includes('end') || message.includes('expected')) {
+			actions.push({
+				title: "Insert 'end'",
+				kind: CodeActionKind.QuickFix,
+				edit: {
+					changes: {
+						[params.textDocument.uri]: [
+							TextEdit.insert(
+								Position.create(diagnostic.range.end.line + 1, 0),
+								"end\n",
+							),
+						],
+					},
+				},
+				diagnostics: [diagnostic],
+			});
+		}
+
+		// Quick fix: Undefined variable - suggest declaration
+		if (message.includes('undefined') || message.includes('not defined')) {
+			const document = documents.get(params.textDocument.uri);
+			if (document) {
+				const word = getWordAtPosition(document, diagnostic.range.start);
+				if (word) {
+					actions.push({
+						title: `Declare variable '${word}'`,
+						kind: CodeActionKind.QuickFix,
+						edit: {
+							changes: {
+								[params.textDocument.uri]: [
+									TextEdit.insert(
+										Position.create(diagnostic.range.start.line, 0),
+										`local ${word} = nil\n`,
+									),
+								],
+							},
+						},
+						diagnostics: [diagnostic],
+					});
+				}
+			}
+		}
+	}
+
+	// Refactor action: Extract to function (if there's a selection)
+	if (params.range &&
+		(params.range.start.line !== params.range.end.line ||
+			params.range.start.character !== params.range.end.character)) {
+		const document = documents.get(params.textDocument.uri);
+		if (document) {
+			const selectedText = document.getText(params.range);
+			if (selectedText.trim()) {
+				actions.push({
+					title: "Extract to function",
+					kind: CodeActionKind.RefactorExtract,
+					edit: {
+						changes: {
+							[params.textDocument.uri]: [
+								// Replace selection with function call
+								TextEdit.replace(params.range, "extracted_function()"),
+								// Insert function definition at end
+								TextEdit.insert(
+									Position.create(document.lineCount, 0),
+									`\n\nextracted_function = function()\n\t${selectedText.replace(/\n/g, '\n\t')}\nend\n`,
+								),
+							],
+						},
+					},
+				});
+			}
+		}
+	}
+
+	return actions;
 });
 
 function getWordAtPosition(document: TextDocument, position: Position): string | null {
@@ -625,10 +940,133 @@ function getWordAtPosition(document: TextDocument, position: Position): string |
 	return null;
 }
 
+/**
+ * Detect completion context (property access, function call, etc.)
+ */
+interface CompletionContext {
+	type: 'property' | 'function_call' | 'default';
+	object?: string;
+	inFunctionCall?: boolean;
+}
+
+function detectCompletionContext(document: TextDocument, position: Position): CompletionContext {
+	const line = document.getText({
+		start: Position.create(position.line, 0),
+		end: Position.create(position.line, position.character),
+	});
+
+	// Check for property access (e.g., "screen.")
+	const propertyMatch = line.match(/([A-Za-z_][A-Za-z0-9_]*)\.\s*$/);
+	if (propertyMatch) {
+		return {
+			type: 'property',
+			object: propertyMatch[1],
+		};
+	}
+
+	// Check if we're in a function call
+	const openParenCount = (line.match(/\(/g) || []).length;
+	const closeParenCount = (line.match(/\)/g) || []).length;
+	if (openParenCount > closeParenCount) {
+		return {
+			type: 'function_call',
+			inFunctionCall: true,
+		};
+	}
+
+	return { type: 'default' };
+}
+
+/**
+ * Get property completions for an object
+ */
+function getPropertyCompletions(objectName: string): CompletionItem[] {
+	const api = GLOBAL_API[objectName];
+	const items: CompletionItem[] = [];
+
+	if (api && api.properties) {
+		for (const [propName, propInfo] of Object.entries(api.properties)) {
+			items.push({
+				label: propName,
+				kind: propInfo.type === 'method' ? CompletionItemKind.Method : CompletionItemKind.Property,
+				detail: propInfo.description,
+				documentation: propInfo.signature,
+				insertText: propInfo.type === 'method' ? `${propName}($0)` : propName,
+				insertTextFormat: propInfo.type === 'method' ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
+			});
+		}
+	}
+
+	return items;
+}
+
+/**
+ * Get code snippet completions
+ */
+function getSnippetCompletions(): CompletionItem[] {
+	return [
+		{
+			label: 'func',
+			kind: CompletionItemKind.Snippet,
+			detail: 'Function definition',
+			insertText: '${1:name} = function(${2:args})\n\t${3:// body}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'Creates a new function',
+		},
+		{
+			label: 'update',
+			kind: CompletionItemKind.Snippet,
+			detail: 'Update loop function',
+			insertText: 'update = function()\n\t${1:// update logic}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'Game update loop function',
+		},
+		{
+			label: 'draw',
+			kind: CompletionItemKind.Snippet,
+			detail: 'Draw loop function',
+			insertText: 'draw = function()\n\t${1:// draw logic}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'Game draw loop function',
+		},
+		{
+			label: 'if',
+			kind: CompletionItemKind.Snippet,
+			detail: 'If statement',
+			insertText: 'if ${1:condition} then\n\t${2:// code}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'If conditional statement',
+		},
+		{
+			label: 'ifelse',
+			kind: CompletionItemKind.Snippet,
+			detail: 'If-else statement',
+			insertText: 'if ${1:condition} then\n\t${2:// true}\nelse\n\t${3:// false}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'If-else conditional statement',
+		},
+		{
+			label: 'for',
+			kind: CompletionItemKind.Snippet,
+			detail: 'For loop',
+			insertText: 'for ${1:i} in ${2:list} do\n\t${3:// code}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'For loop iteration',
+		},
+		{
+			label: 'while',
+			kind: CompletionItemKind.Snippet,
+			detail: 'While loop',
+			insertText: 'while ${1:condition} do\n\t${2:// code}\nend',
+			insertTextFormat: InsertTextFormat.Snippet,
+			documentation: 'While loop',
+		},
+	];
+}
+
 function findSymbolByName(state: DocumentState, name: string): SymbolInfo | undefined {
 	return state.symbols.find((sym) => sym.name === name);
 }
-
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
