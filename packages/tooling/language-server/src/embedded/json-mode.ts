@@ -19,14 +19,17 @@ import { DocumentRegionsCache } from "./mode-manager";
  */
 export function getJSONMode(
 	jsonLanguageService: JSONLanguageService,
-	documentRegionsCache: DocumentRegionsCache
+	documentRegionsCache: DocumentRegionsCache,
 ): LanguageMode {
 	return {
 		getId() {
 			return "json";
 		},
 
-		doComplete(document: TextDocument, position: Position): CompletionList | null {
+		doComplete(
+			document: TextDocument,
+			position: Position,
+		): CompletionList | null {
 			// Get virtual JSON document with all non-JSON content replaced with whitespace
 			const documentRegions = documentRegionsCache.get(document);
 			const embedded = documentRegions.getEmbeddedDocument("json");
@@ -38,7 +41,7 @@ export function getJSONMode(
 			const completions = jsonLanguageService.doComplete(
 				embedded,
 				position,
-				jsonDocument
+				jsonDocument,
 			);
 
 			return completions;
@@ -94,4 +97,3 @@ export function createJSONLanguageService(): JSONLanguageService {
 		},
 	});
 }
-

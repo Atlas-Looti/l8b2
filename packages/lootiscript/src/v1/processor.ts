@@ -228,7 +228,7 @@ export class Processor {
 		}
 	}
 
-	applyFunction(_args: any): void { }
+	applyFunction(_args: any): void {}
 
 	/**
 	 * Inline Cache Handler for Property Access

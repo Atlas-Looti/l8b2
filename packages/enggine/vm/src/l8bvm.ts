@@ -91,9 +91,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -133,9 +133,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -182,9 +182,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-					err !== null &&
-					"error" in err &&
-					typeof err.error === "string"
+				err !== null &&
+				"error" in err &&
+				typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
@@ -227,9 +227,3 @@ export class L8BVM {
 		return this.runner.toString(value);
 	}
 }
-
-
-
-
-
-

@@ -729,19 +729,19 @@ export class Compiler {
 			this.compileFieldParent(call.expression as Field);
 			this.compile(
 				(call.expression as Field).chain[
-				(call.expression as Field).chain.length - 1
+					(call.expression as Field).chain.length - 1
 				],
 			);
 			this.routine.FUNCTION_APPLY_PROPERTY(call.args.length, call);
 		} else if (call.expression instanceof Variable) {
 			if (
 				Compiler.predefined_unary_functions[
-				(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_unary_functions[
-					(call.expression as Variable).identifier
+						(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -751,12 +751,12 @@ export class Compiler {
 				this.routine.UNARY_OP(funk, call);
 			} else if (
 				Compiler.predefined_binary_functions[
-				(call.expression as Variable).identifier
+					(call.expression as Variable).identifier
 				] != null
 			) {
 				funk =
 					Compiler.predefined_binary_functions[
-					(call.expression as Variable).identifier
+						(call.expression as Variable).identifier
 					];
 				if (call.args.length > 0) {
 					this.compile(call.args[0]);
@@ -1315,12 +1315,12 @@ export class Compiler {
 		string,
 		(a: any, b: any) => number
 	> = {
-			min: Math.min,
-			max: Math.max,
-			pow: Math.pow,
-			atan2: Math.atan2,
-			atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
-		};
+		min: Math.min,
+		max: Math.max,
+		pow: Math.pow,
+		atan2: Math.atan2,
+		atan2d: (y: number, x: number) => (Math.atan2(y, x) / Math.PI) * 180,
+	};
 
 	static predefined_values: Record<string, number> = {
 		PI: Math.PI,

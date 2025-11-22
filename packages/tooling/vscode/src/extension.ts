@@ -1,20 +1,23 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
+import * as vscode from "vscode";
+import * as path from "path";
 import {
 	LanguageClient,
 	LanguageClientOptions,
 	ServerOptions,
-	TransportKind
-} from 'vscode-languageclient/node';
+	TransportKind,
+} from "vscode-languageclient/node";
 
 let client: LanguageClient;
 let statusBarItem: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('LootiScript Language Server extension is activating...');
+	console.log("LootiScript Language Server extension is activating...");
 
 	// Create status bar item
-	statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+	statusBarItem = vscode.window.createStatusBarItem(
+		vscode.StatusBarAlignment.Right,
+		100,
+	);
 	statusBarItem.text = "$(pulse) L8B";
 	statusBarItem.tooltip = "LootiScript Language Server";
 	statusBarItem.show();
@@ -22,11 +25,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// The server is implemented in node
 	const serverModule = context.asAbsolutePath(
-		path.join('..', 'language-server', 'dist', 'server.js')
+		path.join("..", "language-server", "dist", "server.js"),
 	);
 
 	// The debug options for the server
-	const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+	const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
@@ -35,38 +38,41 @@ export function activate(context: vscode.ExtensionContext) {
 		debug: {
 			module: serverModule,
 			transport: TransportKind.ipc,
-			options: debugOptions
-		}
+			options: debugOptions,
+		},
 	};
 
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
 		// Register the server for LootiScript documents
-		documentSelector: [{ scheme: 'file', language: 'lootiscript' }],
+		documentSelector: [{ scheme: "file", language: "lootiscript" }],
 		synchronize: {
 			// Notify the server about file changes to .loot files contained in the workspace
-			fileEvents: vscode.workspace.createFileSystemWatcher('**/*.loot')
-		}
+			fileEvents: vscode.workspace.createFileSystemWatcher("**/*.loot"),
+		},
 	};
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
-		'lootiscriptLanguageServer',
-		'LootiScript Language Server',
+		"lootiscriptLanguageServer",
+		"LootiScript Language Server",
 		serverOptions,
-		clientOptions
+		clientOptions,
 	);
 
 	// Start the client. This will also launch the server
-	client.start().then(() => {
-		statusBarItem.text = "$(check) L8B";
-		statusBarItem.tooltip = "LootiScript Language Server: Running";
-		console.log('LootiScript Language Server started successfully');
-	}).catch((error) => {
-		statusBarItem.text = "$(error) L8B";
-		statusBarItem.tooltip = `LootiScript Language Server: Error - ${error}`;
-		console.error('Failed to start LootiScript Language Server:', error);
-	});
+	client
+		.start()
+		.then(() => {
+			statusBarItem.text = "$(check) L8B";
+			statusBarItem.tooltip = "LootiScript Language Server: Running";
+			console.log("LootiScript Language Server started successfully");
+		})
+		.catch((error) => {
+			statusBarItem.text = "$(error) L8B";
+			statusBarItem.tooltip = `LootiScript Language Server: Error - ${error}`;
+			console.error("Failed to start LootiScript Language Server:", error);
+		});
 
 	// Register commands
 	registerCommands(context);
@@ -75,35 +81,37 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics((e) => {
 			updateStatusBarWithDiagnostics();
-		})
+		}),
 	);
 
-	console.log('LootiScript Language Server extension is now active!');
+	console.log("LootiScript Language Server extension is now active!");
 }
 
 function registerCommands(context: vscode.ExtensionContext) {
 	// Command: Format Document
 	context.subscriptions.push(
-		vscode.commands.registerCommand('lootiscript.formatDocument', async () => {
+		vscode.commands.registerCommand("lootiscript.formatDocument", async () => {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'lootiscript') {
-				await vscode.commands.executeCommand('editor.action.formatDocument');
-				vscode.window.showInformationMessage('Document formatted!');
+			if (editor && editor.document.languageId === "lootiscript") {
+				await vscode.commands.executeCommand("editor.action.formatDocument");
+				vscode.window.showInformationMessage("Document formatted!");
 			} else {
-				vscode.window.showWarningMessage('No LootiScript file is currently active');
+				vscode.window.showWarningMessage(
+					"No LootiScript file is currently active",
+				);
 			}
-		})
+		}),
 	);
 
 	// Command: Run Script
 	context.subscriptions.push(
-		vscode.commands.registerCommand('lootiscript.runScript', async () => {
+		vscode.commands.registerCommand("lootiscript.runScript", async () => {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'lootiscript') {
+			if (editor && editor.document.languageId === "lootiscript") {
 				const filePath = editor.document.uri.fsPath;
 
 				// Try to find and run with @l8b/cli if available
-				const terminal = vscode.window.createTerminal('L8B Run');
+				const terminal = vscode.window.createTerminal("L8B Run");
 				terminal.show();
 
 				// Check if we're in a workspace with l8b CLI
@@ -112,44 +120,53 @@ function registerCommands(context: vscode.ExtensionContext) {
 					terminal.sendText(`cd "${workspaceFolder.uri.fsPath}"`);
 					terminal.sendText(`npx @l8b/cli dev`);
 				} else {
-					vscode.window.showWarningMessage('No workspace folder found. Please open a L8B project.');
+					vscode.window.showWarningMessage(
+						"No workspace folder found. Please open a L8B project.",
+					);
 				}
 			} else {
-				vscode.window.showWarningMessage('No LootiScript file is currently active');
+				vscode.window.showWarningMessage(
+					"No LootiScript file is currently active",
+				);
 			}
-		})
+		}),
 	);
 
 	// Command: Show API Documentation
 	context.subscriptions.push(
-		vscode.commands.registerCommand('lootiscript.showDocs', () => {
+		vscode.commands.registerCommand("lootiscript.showDocs", () => {
 			const panel = vscode.window.createWebviewPanel(
-				'lootiscriptDocs',
-				'LootiScript API Documentation',
+				"lootiscriptDocs",
+				"LootiScript API Documentation",
 				vscode.ViewColumn.Two,
-				{}
+				{},
 			);
 
 			panel.webview.html = getDocumentationHTML();
-		})
+		}),
 	);
 
 	// Command: Restart Language Server
 	context.subscriptions.push(
-		vscode.commands.registerCommand('lootiscript.restartLanguageServer', async () => {
-			if (client) {
-				statusBarItem.text = "$(sync~spin) L8B";
-				statusBarItem.tooltip = "LootiScript Language Server: Restarting...";
+		vscode.commands.registerCommand(
+			"lootiscript.restartLanguageServer",
+			async () => {
+				if (client) {
+					statusBarItem.text = "$(sync~spin) L8B";
+					statusBarItem.tooltip = "LootiScript Language Server: Restarting...";
 
-				await client.stop();
-				await client.start();
+					await client.stop();
+					await client.start();
 
-				statusBarItem.text = "$(check) L8B";
-				statusBarItem.tooltip = "LootiScript Language Server: Running";
+					statusBarItem.text = "$(check) L8B";
+					statusBarItem.tooltip = "LootiScript Language Server: Running";
 
-				vscode.window.showInformationMessage('LootiScript Language Server restarted');
-			}
-		})
+					vscode.window.showInformationMessage(
+						"LootiScript Language Server restarted",
+					);
+				}
+			},
+		),
 	);
 }
 
@@ -159,7 +176,7 @@ function updateStatusBarWithDiagnostics() {
 	let warningCount = 0;
 
 	for (const [uri, diags] of diagnostics) {
-		if (uri.fsPath.endsWith('.loot')) {
+		if (uri.fsPath.endsWith(".loot")) {
 			for (const diag of diags) {
 				if (diag.severity === vscode.DiagnosticSeverity.Error) {
 					errorCount++;

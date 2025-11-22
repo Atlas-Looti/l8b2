@@ -1,4 +1,8 @@
-import { TextDocument, Position, Range } from "vscode-languageserver-textdocument";
+import {
+	TextDocument,
+	Position,
+	Range,
+} from "vscode-languageserver-textdocument";
 import {
 	CompletionList,
 	CompletionItem,
@@ -12,7 +16,10 @@ import {
  */
 export interface LanguageMode {
 	getId(): string;
-	doComplete?(document: TextDocument, position: Position): CompletionList | CompletionItem[] | null;
+	doComplete?(
+		document: TextDocument,
+		position: Position,
+	): CompletionList | CompletionItem[] | null;
 	doHover?(document: TextDocument, position: Position): Hover | null;
 	doValidation?(document: TextDocument): Diagnostic[];
 	findDocumentSymbols?(document: TextDocument): DocumentSymbol[];
@@ -90,7 +97,8 @@ export class DocumentRegions {
 		}
 
 		// Scan for JSON.parse("...") patterns
-		const jsonParseRegex = /JSON\.parse\s*\(\s*(["'`])((?:\\.|(?!\1).)*)\1\s*\)/gs;
+		const jsonParseRegex =
+			/JSON\.parse\s*\(\s*(["'`])((?:\\.|(?!\1).)*)\1\s*\)/gs;
 		let match;
 		while ((match = jsonParseRegex.exec(text)) !== null) {
 			const startOffset = match.index + match[0].indexOf(match[2]);
@@ -183,7 +191,7 @@ export class DocumentRegions {
 			this.document.uri + "." + languageId,
 			languageId,
 			this.document.version,
-			result
+			result,
 		);
 	}
 
@@ -194,4 +202,3 @@ export class DocumentRegions {
 		return this.getLanguageAtPosition(position) !== null;
 	}
 }
-

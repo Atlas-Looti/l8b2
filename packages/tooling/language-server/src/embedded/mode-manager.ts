@@ -75,7 +75,7 @@ export class LanguageModes {
 	 */
 	getModeAtPosition(
 		document: TextDocument,
-		position: Position
+		position: Position,
 	): LanguageMode | null {
 		const regions = this.documentRegions.get(document);
 		const languageId = regions.getLanguageAtPosition(position);
@@ -102,4 +102,3 @@ export class LanguageModes {
 		return this.modes.get(languageId) || null;
 	}
 }
-
