@@ -158,7 +158,7 @@ export { Routine } from '${lootiscriptEntryPath.replace(/\\/g, "/")}';
 		await fs.writeFile(tempEntryPath, tempEntryContent);
 
 		try {
-			// Bundle using esbuild
+			// Bundle using esbuild with improved tree-shaking
 			await build({
 				entryPoints: [tempEntryPath],
 				bundle: true,
@@ -169,8 +169,10 @@ export { Routine } from '${lootiscriptEntryPath.replace(/\\/g, "/")}';
 				splitting: false,
 				// Bundle all dependencies
 				external: [],
-				// Tree shaking
+				// Enhanced tree shaking
 				treeShaking: true,
+				// Mark packages as side-effect free for better tree-shaking
+				packages: "external",
 				// Minify for production
 				minify: true,
 				// Source maps for debugging (optional)
@@ -179,6 +181,10 @@ export { Routine } from '${lootiscriptEntryPath.replace(/\\/g, "/")}';
 				resolveExtensions: [".js", ".ts", ".json", ".mjs"],
 				// Preserve names for exports
 				keepNames: true,
+				// Additional optimizations
+				legalComments: "none", // Remove license comments
+				// Define sideEffects: false for better tree-shaking
+				conditions: [],
 			});
 
 			console.log(

@@ -27,6 +27,7 @@ import { SourceUpdater } from "../hot-reload";
 import { InputManager } from "../input";
 import { GameLoop } from "../loop";
 import { System } from "../system";
+import { ObjectPool } from "../utils/object-pool";
 import type {
 	RuntimeDebugOptions,
 	RuntimeListener,
@@ -79,6 +80,10 @@ export class RuntimeOrchestrator {
 		canvasWidth: number;
 		canvasHeight: number;
 	};
+	// Frame counter for batch debug updates
+	private frameCount: number = 0;
+	// Debug update frequency (log every N frames)
+	private readonly DEBUG_UPDATE_FREQUENCY = 10;
 
 	constructor(options: RuntimeOptions = {}) {
 		this.options = options;
@@ -240,7 +245,9 @@ export class RuntimeOrchestrator {
 
 		// Setup global API
 		const inputStates = this.input.getStates();
-		const global: Partial<GlobalAPI> = {
+		const global: Partial<GlobalAPI> & {
+			ObjectPool: typeof ObjectPool;
+		} = {
 			screen: this.screen.getInterface(),
 			audio: this.audio.getInterface(),
 			keyboard: inputStates.keyboard,
@@ -259,6 +266,8 @@ export class RuntimeOrchestrator {
 			Map: Map,
 			Sound: createSoundClass(this.audio),
 			Random: Random,
+			// Object pooling utility
+			ObjectPool: ObjectPool,
 		};
 
 		// Create VM
@@ -373,10 +382,17 @@ export class RuntimeOrchestrator {
 	private handleUpdate(): void {
 		if (!this.vm) return;
 
+		// Increment frame counter
+		this.frameCount++;
+
 		// Update input state
 		this.input.update();
+		
+		// Batch debug updates (only every N frames)
+		if (this.frameCount % this.DEBUG_UPDATE_FREQUENCY === 0) {
 		this.debugInputs();
 		this.debugScreen();
+		}
 
 		// Update system FPS
 		if (this.gameLoop) {
@@ -483,6 +499,7 @@ export class RuntimeOrchestrator {
 	 *
 	 * Used for optimization in debug logging to detect state changes.
 	 * Only compares top-level keys and one level of nested objects.
+	 * Optimized to avoid deep recursion and reduce allocations.
 	 *
 	 * @param {any} obj1 - First object
 	 * @param {any} obj2 - Second object
@@ -497,11 +514,32 @@ export class RuntimeOrchestrator {
 		const keys2 = Object.keys(obj2);
 		if (keys1.length !== keys2.length) return false;
 
+		// Optimized: only check one level deep, avoid recursion for performance
 		for (const key of keys1) {
-			// Special handling for nested input objects (only go 1 level deep)
-			if (typeof obj1[key] === "object" && obj1[key] !== null) {
-				if (!this.shallowEqual(obj1[key], obj2[key])) return false;
-			} else if (obj1[key] !== obj2[key]) {
+			const val1 = obj1[key];
+			const val2 = obj2[key];
+			
+			// Fast path for primitives
+			if (val1 === val2) continue;
+			
+			// Handle null/undefined
+			if (val1 == null || val2 == null) {
+				if (val1 !== val2) return false;
+				continue;
+			}
+			
+			// Only one level of nesting for performance
+			if (typeof val1 === "object" && typeof val2 === "object") {
+				// Quick check: same keys?
+				const keys1Nested = Object.keys(val1);
+				const keys2Nested = Object.keys(val2);
+				if (keys1Nested.length !== keys2Nested.length) return false;
+				
+				// Compare values (only one level deep)
+				for (const nestedKey of keys1Nested) {
+					if (val1[nestedKey] !== val2[nestedKey]) return false;
+				}
+			} else {
 				return false;
 			}
 		}
@@ -712,11 +750,92 @@ export class RuntimeOrchestrator {
 	}
 
 	/**
-	 * Report error to listener
+	 * Format error message dengan enhanced information
+	 */
+	private formatError(error: any): any {
+		// If error already has enhanced info, return as-is
+		if (error.code || error.context || error.suggestions) {
+			return error;
+		}
+
+		// Enhance error dengan formatting
+		const formatted: any = {
+			...error,
+			formatted: this.formatErrorMessage(error),
+		};
+
+		// Add suggestions if available
+		if (error.suggestions) {
+			formatted.suggestions = error.suggestions;
+		}
+
+		// Add related info if available
+		if (error.related) {
+			formatted.related = error.related;
+		}
+
+		return formatted;
+	}
+
+	/**
+	 * Format error message untuk display
+	 */
+	private formatErrorMessage(error: any): string {
+		let message = "";
+
+		if (error.code) {
+			message += `[${error.code}] `;
+		}
+
+		message += `${error.error || error.message || "Unknown error"}\n`;
+
+		// Format stack trace if available
+		if (error.stackTrace && error.stackTrace.length > 0) {
+			message += "\nStack trace:\n";
+			for (const frame of error.stackTrace) {
+				const functionName = frame.functionName || "<anonymous>";
+				const file = frame.file || "<unknown>";
+				const line = frame.line !== undefined ? `:${frame.line}` : "";
+				const column = frame.column !== undefined ? `:${frame.column}` : "";
+				message += `  at ${functionName} (${file}${line}${column})\n`;
+			}
+		} else if (error.file) {
+			// Fallback to simple location if no stack trace
+			message += `  at ${error.file}`;
+			if (error.line !== undefined) {
+				message += `:${error.line}`;
+				if (error.column !== undefined) {
+					message += `:${error.column}`;
+				}
+			}
+			message += "\n";
+		}
+
+		if (error.context) {
+			message += `\n${error.context}\n`;
+		}
+
+		if (error.suggestions && error.suggestions.length > 0) {
+			message += "\nSuggestions:\n";
+			for (const suggestion of error.suggestions) {
+				message += `  • ${suggestion}\n`;
+			}
+		}
+
+		if (error.related) {
+			message += `\nRelated: ${error.related.message} at ${error.related.file}:${error.related.line}:${error.related.column}\n`;
+		}
+
+		return message;
+	}
+
+	/**
+	 * Report error to listener dengan enhanced formatting
 	 */
 	private reportError(error: any): void {
 		if (this.listener.reportError) {
-			this.listener.reportError(error);
+			const formatted = this.formatError(error);
+			this.listener.reportError(formatted);
 		}
 	}
 

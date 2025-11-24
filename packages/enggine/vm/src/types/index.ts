@@ -131,6 +131,16 @@ export interface VMContext {
 }
 
 /**
+ * Call frame for stack trace
+ */
+export interface CallFrame {
+	functionName: string;
+	file: string;
+	line: number;
+	column: number;
+}
+
+/**
  * Error information returned by VM
  */
 export interface ErrorInfo {
@@ -140,4 +150,5 @@ export interface ErrorInfo {
 	column?: number;
 	file?: string;
 	stack?: string;
+	stackTrace?: CallFrame[];
 }

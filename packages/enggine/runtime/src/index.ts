@@ -27,4 +27,5 @@ export * from "./storage";
 export * from "./system";
 // Type exports
 export * from "./types";
+export * from "./utils";
 export * from "./vm";

@@ -97,6 +97,12 @@ export class L8BVM {
 					? err.error
 					: err.message) || String(err);
 
+			// Get stack trace from processor if available
+			let stackTrace = err.stackTrace;
+			if (!stackTrace && this.runner?.main_thread?.processor?.generateStackTrace) {
+				stackTrace = this.runner.main_thread.processor.generateStackTrace();
+			}
+
 			this.error_info = {
 				error: errorMessage,
 				type: err.type || "runtime",
@@ -104,6 +110,7 @@ export class L8BVM {
 				column: err.column,
 				file: err.file || filename,
 				stack: err.stack,
+				stackTrace: stackTrace,
 			};
 			throw err;
 		}
@@ -139,6 +146,12 @@ export class L8BVM {
 					? err.error
 					: err.message) || String(err);
 
+			// Get stack trace from processor if available
+			let stackTrace = err.stackTrace;
+			if (!stackTrace && this.runner?.main_thread?.processor?.generateStackTrace) {
+				stackTrace = this.runner.main_thread.processor.generateStackTrace();
+			}
+
 			this.error_info = {
 				error: errorMessage,
 				type: err.type || "call",
@@ -146,6 +159,7 @@ export class L8BVM {
 				column: err.column,
 				file: err.file || name,
 				stack: err.stack,
+				stackTrace: stackTrace,
 			};
 			throw err;
 		}

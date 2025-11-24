@@ -5,6 +5,53 @@
  */
 
 /**
+ * Error codes for LootiScript errors
+ */
+export enum ErrorCode {
+	// Syntax Errors (E1xxx)
+	E1001 = "E1001", // Unterminated function
+	E1002 = "E1002", // Too many 'end'
+	E1003 = "E1003", // Missing 'end'
+	E1004 = "E1004", // Unexpected token
+	E1005 = "E1005", // Missing token
+	E1006 = "E1006", // Unexpected end of file
+	E1007 = "E1007", // Misuse of reserved keyword
+	E1008 = "E1008", // Unterminated string
+	E1009 = "E1009", // Unterminated object/array
+	
+	// Runtime Errors (E2xxx)
+	E2001 = "E2001", // Undefined variable
+	E2002 = "E2002", // Type mismatch
+	E2003 = "E2003", // Division by zero
+	E2004 = "E2004", // Function not found
+	E2005 = "E2005", // Invalid operation
+	
+	// Compilation Errors (E3xxx)
+	E3001 = "E3001", // Compilation failed
+}
+
+/**
+ * Enhanced error information
+ */
+export interface EnhancedErrorInfo {
+	error: string;
+	code: string;
+	file: string;
+	line: number;
+	column: number;
+	length?: number; // Error span length
+	context?: string; // Source context
+	suggestions?: string[]; // Fix suggestions
+	related?: {
+		file: string;
+		line: number;
+		column: number;
+		message: string;
+	};
+	stackTrace?: CallFrame[];
+}
+
+/**
  * Call frame for stack trace
  */
 export interface CallFrame {
@@ -54,16 +101,42 @@ export class SyntaxError extends LootiScriptError {
 		line: number,
 		column: number,
 		public context?: string,
+		public code?: string,
+		public suggestions?: string[],
+		public related?: {
+			file: string;
+			line: number;
+			column: number;
+			message: string;
+		},
 	) {
 		super(message, file, line, column);
 		this.name = "SyntaxError";
 	}
 
 	toString(): string {
-		let msg = super.toString();
+		let msg = "";
+		
+		if (this.code) {
+			msg += `[${this.code}] `;
+		}
+		
+		msg += `${this.name}: ${this.message}\n`;
+		msg += `  at ${this.file}:${this.line}:${this.column}\n`;
 
 		if (this.context) {
 			msg += `\n${this.context}\n`;
+		}
+
+		if (this.suggestions && this.suggestions.length > 0) {
+			msg += "\nSuggestions:\n";
+			for (const suggestion of this.suggestions) {
+				msg += `  • ${suggestion}\n`;
+			}
+		}
+
+		if (this.related) {
+			msg += `\nRelated: ${this.related.message} at ${this.related.file}:${this.related.line}:${this.related.column}\n`;
 		}
 
 		return msg;
@@ -121,23 +194,28 @@ export function formatSourceContext(
 	source: string,
 	line: number,
 	column: number,
-	contextLines: number = 2,
+	contextLines: number = 3,
+	errorLength: number = 1,
 ): string {
 	const lines = source.split("\n");
 	const startLine = Math.max(0, line - contextLines - 1);
 	const endLine = Math.min(lines.length - 1, line + contextLines - 1);
 
-	let context = "";
+	let context = "\nSource context:\n";
 
 	for (let i = startLine; i <= endLine; i++) {
 		const lineNum = i + 1;
 		const prefix = lineNum === line ? ">" : " ";
 		const lineNumStr = String(lineNum).padStart(4, " ");
+		const lineContent = lines[i] || "";
 
-		context += `${prefix} ${lineNumStr} | ${lines[i]}\n`;
+		context += `${prefix} ${lineNumStr} | ${lineContent}\n`;
 
 		if (lineNum === line) {
-			const pointer = " ".repeat(8 + column) + "^";
+			// Calculate pointer position (account for line number and prefix)
+			const baseOffset = 8; // ">    18 | " = 8 chars
+			const pointer = " ".repeat(baseOffset + Math.max(0, column - 1)) + 
+				"^".repeat(Math.max(1, errorLength));
 			context += `${pointer}\n`;
 		}
 	}

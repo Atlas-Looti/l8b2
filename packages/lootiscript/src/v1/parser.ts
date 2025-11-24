@@ -40,6 +40,7 @@ import { Tokenizer } from "./tokenizer";
 import {
 	SyntaxError as LootiSyntaxError,
 	formatSourceContext,
+	ErrorCode,
 } from "./error-handler";
 
 /**
@@ -57,6 +58,8 @@ export class Parser {
 	nesting: number;
 	object_nesting: number;
 	not_terminated: Token[];
+	// Track function names and their start locations for better error messages
+	function_stack: Array<{ name: string; line: number; column: number; token: Token }>;
 	api_reserved: Record<string, boolean>;
 	warnings: Array<{
 		type: string;
@@ -70,6 +73,14 @@ export class Parser {
 		line: number;
 		column: number;
 		context?: string;
+		code?: string;
+		suggestions?: string[];
+		related?: {
+			file: string;
+			line: number;
+			column: number;
+			message: string;
+		};
 	};
 	last_function_call?: FunctionCall;
 	static multipliers: Record<string, number> = {
@@ -113,6 +124,7 @@ export class Parser {
 		this.nesting = 0;
 		this.object_nesting = 0;
 		this.not_terminated = [];
+		this.function_stack = [];
 		this.api_reserved = {
 			screen: true,
 			audio: true,
@@ -174,7 +186,27 @@ export class Parser {
 					token = this.tokenizer.next();
 					if (token != null && token.reserved_keyword) {
 						if (token.value === "end") {
-							this.error("Too many 'end'");
+							// Enhanced error for too many 'end'
+							const context = formatSourceContext(
+								this.input,
+								token.line,
+								token.column,
+								3,
+								3, // "end" length
+							);
+							const suggestions = [
+								"Remove this extra 'end' statement",
+								"Check if you're missing an opening statement (if, for, while, function)",
+								"Verify all blocks are properly matched",
+							];
+							return (this.error_info = {
+								error: "Too many 'end' statements - no matching opening statement found",
+								line: token.line,
+								column: token.column,
+								context: context,
+								code: ErrorCode.E1002,
+								suggestions: suggestions,
+							}) as any;
 						} else {
 							this.error(`Misuse of reserved keyword: '${token.value}'`);
 						}
@@ -207,24 +239,85 @@ export class Parser {
 
 			if (this.not_terminated.length > 0 && err === "Unexpected end of file") {
 				nt = this.not_terminated[this.not_terminated.length - 1];
+				
+				// Try to get function name if this is a function
+				let functionName: string | null = null;
+				let functionStartLine: number | null = null;
+				let functionStartColumn: number | null = null;
+				
+				if (nt.value === "function") {
+					// Look for function name in function_stack
+					for (let i = this.function_stack.length - 1; i >= 0; i--) {
+						const func = this.function_stack[i];
+						if (func.token === nt) {
+							functionName = func.name;
+							functionStartLine = func.line;
+							functionStartColumn = func.column;
+							break;
+						}
+					}
+				}
+				
+				const errorLength = typeof nt.value === "string" ? nt.value.length : 1;
 				const context = formatSourceContext(
 					nt.tokenizer.input,
 					nt.line,
 					nt.column,
-					2,
+					3,
+					errorLength,
 				);
+				
+				// Build enhanced error message
+				let errorMessage: string;
+				let suggestions: string[] = [];
+				let related: any = undefined;
+				
+				if (nt.value === "function" && functionName) {
+					errorMessage = `Function '${functionName}' started at line ${functionStartLine} is not closed`;
+					suggestions = [
+						`Add 'end' after the last statement to close function '${functionName}'`,
+						`Check if you have an extra 'end' statement somewhere`,
+						`Verify all nested blocks (if, for, while) are properly closed`,
+					];
+					related = {
+						file: this.filename,
+						line: functionStartLine!,
+						column: functionStartColumn!,
+						message: `Function '${functionName}' started here`,
+					};
+				} else {
+					errorMessage = `Unterminated '${nt.value}' ; no matching 'end' found`;
+					suggestions = [
+						`Add 'end' to close the '${nt.value}' statement`,
+						`Check if you have nested blocks that need to be closed first`,
+					];
+				}
+				
 				return (this.error_info = {
-					error: `Unterminated '${nt.value}' ; no matching 'end' found`,
+					error: errorMessage,
 					line: nt.line,
 					column: nt.column,
 					context: context,
+					code: ErrorCode.E1001,
+					suggestions: suggestions,
+					related: related,
 				}) as any;
 			} else {
+				// Enhanced error with context for other errors
+				const context = formatSourceContext(
+					this.input,
+					this.current.line,
+					this.current.column,
+					3,
+					1,
+				);
 				return (this.error_info = {
 					error: typeof err === "string" ? err : err.message || String(err),
 					line: this.current.line,
 					column: this.current.column,
-				}) as { error: string; line: number; column: number };
+					context: context,
+					code: ErrorCode.E1004,
+				}) as any;
 			}
 		}
 	}
@@ -483,12 +576,43 @@ export class Parser {
 				column: token.column,
 			});
 		}
+		
+		// Peek ahead to see if we're assigning a function
+		const peekToken = this.tokenizer.peek();
+		let functionName: string | null = null;
+		
+		if (expression instanceof Variable) {
+			functionName = expression.identifier;
+		}
+		
+		// If next token is 'function', we're assigning a named function
+		// Store the function name so parseFunction can use it
+		if (peekToken && peekToken.type === Token.TYPE_FUNCTION && functionName) {
+			// We'll update function_stack in parseFunction after it's created
+		}
+		
+		const assignedValue = this.assertExpression();
+		
+		// If assigned value is a function and we have a name, update function_stack
+		// Find the most recently added function (should be the one we just parsed)
+		if (assignedValue instanceof Function && functionName && this.function_stack.length > 0) {
+			// Find function that matches the function token
+			const funcToken = (assignedValue as any).token;
+			for (let i = this.function_stack.length - 1; i >= 0; i--) {
+				const func = this.function_stack[i];
+				if (func.token === funcToken && func.name === "anonymous") {
+					func.name = functionName;
+					break;
+				}
+			}
+		}
+		
 		if (expression instanceof Field) {
 			this.object_nesting += 1;
-			res = new Assignment(token, expression, this.assertExpression(), false);
+			res = new Assignment(token, expression, assignedValue, false);
 			this.object_nesting -= 1;
 		} else {
-			res = new Assignment(token, expression, this.assertExpression(), false);
+			res = new Assignment(token, expression, assignedValue, false);
 		}
 		return res;
 	}
@@ -666,22 +790,42 @@ export class Parser {
 		const args = this.parseFunctionArgs();
 		const sequence: Statement[] = [];
 		this.nesting += 1;
+		
+		// Track this function (name will be set later if it's an assignment)
+		const funcInfo = {
+			name: "anonymous",
+			line: funk.line,
+			column: funk.column,
+			token: funk,
+		};
+		this.function_stack.push(funcInfo);
 		this.addTerminable(funk);
-		while (true) {
-			const token = this.nextToken();
-			if (token.type === Token.TYPE_END) {
-				this.nesting -= 1;
-				this.endTerminable();
-				return new Function(funk, args, sequence, token);
-			} else {
-				this.tokenizer.pushBack(token);
-				line = this.parseLine();
-				if (line != null) {
-					sequence.push(line);
+		
+		try {
+			while (true) {
+				const token = this.nextToken();
+				if (token.type === Token.TYPE_END) {
+					this.nesting -= 1;
+					this.endTerminable();
+					this.function_stack.pop();
+					return new Function(funk, args, sequence, token);
 				} else {
-					this.error("Unexpected data while parsing function");
+					this.tokenizer.pushBack(token);
+					line = this.parseLine();
+					if (line != null) {
+						sequence.push(line);
+					} else {
+						this.error("Unexpected data while parsing function");
+					}
 				}
 			}
+		} catch (error) {
+			// Remove from stack on error
+			if (this.function_stack.length > 0 && 
+				this.function_stack[this.function_stack.length - 1].token === funk) {
+				this.function_stack.pop();
+			}
+			throw error;
 		}
 	}
 

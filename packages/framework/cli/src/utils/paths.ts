@@ -43,19 +43,31 @@ export const DEFAULT_FILES = {
  */
 export function getCliPackageRoot(): string {
 	const normalizedPath = __dirname.replace(/\\/g, "/");
+	
+	// Try to find packages/framework/cli or packages/cli
+	const frameworkCliIndex = normalizedPath.indexOf("/packages/framework/cli/");
+	if (frameworkCliIndex !== -1) {
+		const root = normalizedPath.substring(0, frameworkCliIndex + "/packages/framework/cli".length);
+		return path.normalize(root);
+	}
+	
 	const cliIndex = normalizedPath.indexOf("/packages/cli/");
-
 	if (cliIndex !== -1) {
-		// Extract path up to and including 'packages/cli'
 		const root = normalizedPath.substring(0, cliIndex + "/packages/cli".length);
 		return path.normalize(root);
 	}
 
 	// Fallback: use relative paths
-	const isBuilt = normalizedPath.includes("/dist/core");
-	return isBuilt
-		? path.join(__dirname, "..", "..") // dist/core/../.. = packages/cli/
-		: path.join(__dirname, "../.."); // src/core/../.. = packages/cli/
+	const isBuilt = normalizedPath.includes("/dist/");
+	if (isBuilt) {
+		// Find dist/ and go up to package root
+		const distIndex = normalizedPath.indexOf("/dist/");
+		if (distIndex !== -1) {
+			return path.normalize(normalizedPath.substring(0, distIndex));
+		}
+		return path.join(__dirname, "..", ".."); // dist/../.. = package root
+	}
+	return path.join(__dirname, "../.."); // src/../.. = package root
 }
 
 /**

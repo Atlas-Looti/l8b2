@@ -19,7 +19,11 @@ const externalDeps = Array.from(
 );
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/cli.ts"],
+	entry: [
+		"src/index.ts",
+		"src/cli.ts",
+		"src/compiler/compile-worker.ts",
+	],
 	format: ["esm"],
 	dts: true,
 	clean: true,

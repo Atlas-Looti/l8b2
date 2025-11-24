@@ -61,6 +61,20 @@ export class Tokenizer implements ITokenizer {
 		return token;
 	}
 
+	/**
+	 * Peek at next token without consuming it
+	 */
+	peek(): Token | null {
+		if (this.buffer.length > 0) {
+			return this.buffer[0];
+		}
+		const token = this.next();
+		if (token) {
+			this.pushBack(token);
+		}
+		return token;
+	}
+
 	finished(): boolean {
 		return this.index >= this.input.length && this.buffer.length === 0;
 	}

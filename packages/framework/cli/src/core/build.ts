@@ -95,15 +95,43 @@ export async function build(
 	await bundleRuntime(distDir, projectPath);
 	console.log(pc.green("  ✓ Bundled runtime"));
 
-	// Copy public directory to dist
+	// Copy and optimize public directory assets
 	const publicDir = path.join(projectPath, DEFAULT_DIRS.PUBLIC);
 	if (await fs.pathExists(publicDir)) {
-		console.log(pc.gray("  Copying public assets..."));
+		console.log(pc.gray("  Copying and optimizing public assets..."));
+		
+		// Try to optimize images
+		const { optimizeImages, isSharpAvailable } = await import(
+			"../bundler/asset-optimizer"
+		);
+		
+		const sharpAvailable = await isSharpAvailable();
+		if (sharpAvailable) {
+			const spritesDir = path.join(publicDir, "sprites");
+			const distSpritesDir = path.join(distDir, "sprites");
+			
+			if (await fs.pathExists(spritesDir)) {
+				const stats = await optimizeImages(spritesDir, distSpritesDir);
+				if (stats.optimized > 0) {
+					console.log(
+						pc.green(
+							`  ✓ Optimized ${stats.optimized} images (${stats.skipped} skipped)`,
+						),
+					);
+				}
+			}
+		}
+		
+		// Copy remaining assets (non-images or if optimization skipped)
 		await fs.copy(publicDir, distDir, {
 			overwrite: true,
 			filter: (src) => {
 				// Skip node_modules and other unnecessary files
 				const relative = path.relative(publicDir, src);
+				// Skip sprites if we already optimized them
+				if (relative.startsWith("sprites/") && sharpAvailable) {
+					return false;
+				}
 				return (
 					!relative.includes("node_modules") &&
 					!relative.startsWith(".") &&

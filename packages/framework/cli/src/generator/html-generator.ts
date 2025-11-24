@@ -291,13 +291,42 @@ import { Runtime } from '@l8b/runtime';`
             }
           },
           reportError: (error) => {
-            console.error('[GAME ERROR]', error);
+            // Format error dengan enhanced information
+            let errorMessage = '';
+            if (error.code) {
+              errorMessage += '[' + error.code + '] ';
+            }
+            errorMessage += error?.error || error?.message || error?.formatted || 'Runtime error';
+            
+            if (error.file) {
+              errorMessage += '\\n  at ' + error.file;
+              if (error.line !== undefined) {
+                errorMessage += ':' + error.line;
+                if (error.column !== undefined) {
+                  errorMessage += ':' + error.column;
+                }
+              }
+            }
+            
+            console.error('[GAME ERROR]', errorMessage);
+            
+            if (error.context) {
+              console.error(error.context);
+            }
+            
+            if (error.suggestions && error.suggestions.length > 0) {
+              console.error('\\nSuggestions:');
+              for (let i = 0; i < error.suggestions.length; i++) {
+                console.error('  • ' + error.suggestions[i]);
+              }
+            }
+            
             if (mirrorListenerErrors) {
               sendTerminalLog({
                 level: 'error',
                 scope: 'game',
-                message: error?.error || error?.message || 'Runtime error',
-                details: error,
+                message: errorMessage,
+                details: Object.assign({}, error, { formatted: errorMessage }),
               });
             }
           },

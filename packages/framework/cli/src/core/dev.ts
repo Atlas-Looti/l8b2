@@ -22,18 +22,17 @@ import {
 	DEFAULT_DIRS,
 	DEFAULT_FILES,
 } from "../utils/paths";
-import { DEFAULT_SERVER, CACHE, FONT } from "../utils/constants";
+import { DEFAULT_SERVER, FONT } from "../utils/constants";
 import { handleRuntimeLogRequest } from "../utils/runtime-logs";
 import { ServerError } from "../utils/errors";
+import {
+	computeHash,
+	getCached,
+	setCached,
+	clearCache,
+	type CacheOptions,
+} from "../utils/cache";
 import type { Resources } from "@l8b/runtime";
-
-/**
- * Cache entry interface
- */
-interface CacheEntry<T> {
-	data: T;
-	timestamp: number;
-}
 
 /**
  * Development server options
@@ -44,10 +43,6 @@ export interface DevOptions {
 	/** Host to bind to (false = localhost, true = 0.0.0.0, string = specific host) */
 	host?: string | boolean;
 }
-
-// Module-level cache for resources and sources
-let cachedResources: CacheEntry<Resources> | null = null;
-let cachedSources: CacheEntry<Record<string, string>> | null = null;
 
 const cliPackageRoot = getCliPackageRoot();
 
@@ -87,39 +82,78 @@ export async function dev(
 			ignoreInitial: true,
 		});
 
-		// Clear cache on file changes
-		const clearCache = () => {
-			cachedResources = null;
-			cachedSources = null;
+		// Setup persistent cache directory
+		const cacheDir = path.join(projectPath, DEFAULT_DIRS.BUILD_OUTPUT, "cache");
+		const resourcesCacheOptions: CacheOptions = {
+			cacheDir,
+			key: "resources",
+		};
+		const sourcesCacheOptions: CacheOptions = {
+			cacheDir,
+			key: "sources",
 		};
 
-		watcher.on("change", clearCache);
-		watcher.on("add", clearCache);
-		watcher.on("unlink", clearCache);
+		// Clear cache on file changes
+		const clearCacheOnChange = async () => {
+			await Promise.all([
+				clearCache(resourcesCacheOptions),
+				clearCache(sourcesCacheOptions),
+			]);
+		};
+
+		watcher.on("change", clearCacheOnChange);
+		watcher.on("add", clearCacheOnChange);
+		watcher.on("unlink", clearCacheOnChange);
 
 		/**
-		 * Get or cache resources
+		 * Get or cache resources with hash-based invalidation
 		 */
 		const getResources = async (): Promise<Resources> => {
-			const now = Date.now();
-			if (cachedResources && now - cachedResources.timestamp < CACHE.TTL_MS) {
-				return cachedResources.data;
+			// Compute hash for resources (public directory and config)
+			const hashPaths = [
+				DEFAULT_DIRS.PUBLIC,
+				DEFAULT_FILES.CONFIG,
+			];
+			const currentHash = await computeHash(projectPath, hashPaths);
+
+			// Try to get from cache
+			const cached = await getCached<Resources>(
+				resourcesCacheOptions,
+				currentHash,
+			);
+			if (cached !== null) {
+				return cached;
 			}
+
+			// Cache miss, detect resources
 			const resources = await detectResources(projectPath);
-			cachedResources = { data: resources, timestamp: now };
+			await setCached(resourcesCacheOptions, resources, currentHash);
 			return resources;
 		};
 
 		/**
-		 * Get or cache sources
+		 * Get or cache sources with hash-based invalidation
 		 */
 		const getSources = async (): Promise<Record<string, string>> => {
-			const now = Date.now();
-			if (cachedSources && now - cachedSources.timestamp < CACHE.TTL_MS) {
-				return cachedSources.data;
+			// Compute hash for sources (scripts directories)
+			const hashPaths = [
+				DEFAULT_DIRS.SCRIPTS,
+				DEFAULT_DIRS.SRC_L8B_LS,
+			];
+			const currentHash = await computeHash(projectPath, hashPaths);
+
+			// Try to get from cache
+			const cached = await getCached<Record<string, string>>(
+				sourcesCacheOptions,
+				currentHash,
+			);
+			if (cached !== null) {
+				return cached;
 			}
+
+			// Cache miss, load sources
 			const sources = await loadSources(projectPath);
-			cachedSources = { data: sources, timestamp: now };
+			await setCached(sourcesCacheOptions, sources, currentHash);
 			return sources;
 		};
 
@@ -222,7 +256,17 @@ export async function dev(
 			],
 			// Optimize dependencies for faster startup
 			optimizeDeps: {
-				include: ["@l8b/runtime"],
+				include: [
+					"@l8b/runtime",
+					"@l8b/vm",
+					"@l8b/screen",
+					"@l8b/audio",
+					"@l8b/input",
+					"@l8b/time",
+					"@l8b/sprites",
+					"@l8b/map",
+					"@l8b/io",
+				],
 				esbuildOptions: {
 					target: "es2022",
 				},
