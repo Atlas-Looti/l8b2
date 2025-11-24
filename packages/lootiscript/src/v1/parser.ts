@@ -152,6 +152,7 @@ export class Parser {
 			Object: true,
 			String: true,
 			Number: true,
+			scenes: true,
 		};
 		this.warnings = [];
 	}
@@ -239,12 +240,12 @@ export class Parser {
 
 			if (this.not_terminated.length > 0 && err === "Unexpected end of file") {
 				nt = this.not_terminated[this.not_terminated.length - 1];
-				
+
 				// Try to get function name if this is a function
 				let functionName: string | null = null;
 				let functionStartLine: number | null = null;
 				let functionStartColumn: number | null = null;
-				
+
 				if (nt.value === "function") {
 					// Look for function name in function_stack
 					for (let i = this.function_stack.length - 1; i >= 0; i--) {
@@ -257,7 +258,7 @@ export class Parser {
 						}
 					}
 				}
-				
+
 				const errorLength = typeof nt.value === "string" ? nt.value.length : 1;
 				const context = formatSourceContext(
 					nt.tokenizer.input,
@@ -266,12 +267,12 @@ export class Parser {
 					3,
 					errorLength,
 				);
-				
+
 				// Build enhanced error message
 				let errorMessage: string;
 				let suggestions: string[] = [];
 				let related: any = undefined;
-				
+
 				if (nt.value === "function" && functionName) {
 					errorMessage = `Function '${functionName}' started at line ${functionStartLine} is not closed`;
 					suggestions = [
@@ -292,7 +293,7 @@ export class Parser {
 						`Check if you have nested blocks that need to be closed first`,
 					];
 				}
-				
+
 				return (this.error_info = {
 					error: errorMessage,
 					line: nt.line,
@@ -576,23 +577,23 @@ export class Parser {
 				column: token.column,
 			});
 		}
-		
+
 		// Peek ahead to see if we're assigning a function
 		const peekToken = this.tokenizer.peek();
 		let functionName: string | null = null;
-		
+
 		if (expression instanceof Variable) {
 			functionName = expression.identifier;
 		}
-		
+
 		// If next token is 'function', we're assigning a named function
 		// Store the function name so parseFunction can use it
 		if (peekToken && peekToken.type === Token.TYPE_FUNCTION && functionName) {
 			// We'll update function_stack in parseFunction after it's created
 		}
-		
+
 		const assignedValue = this.assertExpression();
-		
+
 		// If assigned value is a function and we have a name, update function_stack
 		// Find the most recently added function (should be the one we just parsed)
 		if (assignedValue instanceof Function && functionName && this.function_stack.length > 0) {
@@ -606,7 +607,7 @@ export class Parser {
 				}
 			}
 		}
-		
+
 		if (expression instanceof Field) {
 			this.object_nesting += 1;
 			res = new Assignment(token, expression, assignedValue, false);
@@ -790,7 +791,7 @@ export class Parser {
 		const args = this.parseFunctionArgs();
 		const sequence: Statement[] = [];
 		this.nesting += 1;
-		
+
 		// Track this function (name will be set later if it's an assignment)
 		const funcInfo = {
 			name: "anonymous",
@@ -800,7 +801,7 @@ export class Parser {
 		};
 		this.function_stack.push(funcInfo);
 		this.addTerminable(funk);
-		
+
 		try {
 			while (true) {
 				const token = this.nextToken();
@@ -821,7 +822,7 @@ export class Parser {
 			}
 		} catch (error) {
 			// Remove from stack on error
-			if (this.function_stack.length > 0 && 
+			if (this.function_stack.length > 0 &&
 				this.function_stack[this.function_stack.length - 1].token === funk) {
 				this.function_stack.pop();
 			}

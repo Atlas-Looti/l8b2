@@ -1,0 +1,15 @@
+{
+    "name": "scenes-demo",
+    "orientation": "any",
+    "aspect": "free",
+    "logging": {
+        "browser": {
+            "lifecycle": true,
+            "canvas": true
+        },
+        "terminal": {
+            "listener": true,
+            "errors": true
+        }
+    }
+}
