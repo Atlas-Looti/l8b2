@@ -1,12 +1,19 @@
 import type { RouteManager } from "./route-manager";
 import type { SceneManager } from "./scene-manager";
 import type { RouterState } from "./types";
+import {
+	DEFAULT_PATH,
+	ERROR_MESSAGES,
+	LOG_PREFIXES,
+	WARNING_MESSAGES,
+} from "./constants";
+import { isBrowser, normalizePath } from "./utils";
 
 export class Router {
 	private routeManager: RouteManager;
 	private sceneManager: SceneManager;
 	private state: RouterState = {
-		path: "/",
+		path: DEFAULT_PATH,
 		params: {},
 		sceneName: null,
 	};
@@ -14,9 +21,14 @@ export class Router {
 	constructor(routeManager: RouteManager, sceneManager: SceneManager) {
 		this.routeManager = routeManager;
 		this.sceneManager = sceneManager;
+		this.setupPopStateListener();
+	}
 
-		// Listen for browser back/forward
-		if (typeof window !== "undefined") {
+	/**
+	 * Setup browser history listener
+	 */
+	private setupPopStateListener(): void {
+		if (isBrowser()) {
 			window.addEventListener("popstate", () => {
 				this.handlePathChange(window.location.pathname);
 			});
@@ -28,18 +40,16 @@ export class Router {
 	 * @param path Path to navigate to (e.g., "/player/42")
 	 */
 	push(path: string): void {
-		if (!path || typeof path !== "string") {
-			console.error(`[Router] Invalid path: ${path}`);
+		if (!this.validatePath(path)) {
 			return;
 		}
-		const normalizedPath = this.normalizePath(path);
+
+		const normalizedPath = normalizePath(path);
 		if (normalizedPath === this.state.path) {
-			// Already at this path, no need to navigate
 			return;
 		}
-		if (typeof window !== "undefined") {
-			window.history.pushState({}, "", normalizedPath);
-		}
+
+		this.updateBrowserHistory(normalizedPath, "push");
 		this.handlePathChange(normalizedPath);
 	}
 
@@ -48,41 +58,55 @@ export class Router {
 	 * @param path Path to navigate to (e.g., "/player/42")
 	 */
 	replace(path: string): void {
-		if (!path || typeof path !== "string") {
-			console.error(`[Router] Invalid path: ${path}`);
+		if (!this.validatePath(path)) {
 			return;
 		}
-		const normalizedPath = this.normalizePath(path);
-		if (typeof window !== "undefined") {
-			window.history.replaceState({}, "", normalizedPath);
-		}
+
+		const normalizedPath = normalizePath(path);
+		this.updateBrowserHistory(normalizedPath, "replace");
 		this.handlePathChange(normalizedPath);
 	}
 
 	/**
-	 * Go back
+	 * Go back in browser history
 	 */
 	back(): void {
-		if (typeof window !== "undefined") {
+		if (isBrowser()) {
 			window.history.back();
 		}
 	}
 
 	/**
-	 * Get current state
+	 * Get current state (returns a copy to prevent mutation)
 	 */
 	getState(): RouterState {
 		return { ...this.state };
 	}
 
 	/**
-	 * Normalize path (remove query string, hash, ensure leading slash)
+	 * Validate path input
 	 */
-	private normalizePath(path: string): string {
-		// Remove query string and hash
-		const cleanPath = path.split("?")[0].split("#")[0];
-		// Ensure leading slash
-		return cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+	private validatePath(path: unknown): path is string {
+		if (!path || typeof path !== "string") {
+			console.error(`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.INVALID_PATH(path)}`);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Update browser history
+	 */
+	private updateBrowserHistory(path: string, method: "push" | "replace"): void {
+		if (!isBrowser()) {
+			return;
+		}
+
+		if (method === "push") {
+			window.history.pushState({}, "", path);
+		} else {
+			window.history.replaceState({}, "", path);
+		}
 	}
 
 	/**
@@ -90,39 +114,67 @@ export class Router {
 	 * @param path Path to match against routes
 	 */
 	private handlePathChange(path: string): void {
-		const normalizedPath = this.normalizePath(path);
+		const normalizedPath = normalizePath(path);
 		const match = this.routeManager.match(normalizedPath);
 
 		if (match) {
-			this.state = {
-				path: normalizedPath,
-				params: match.params,
-				sceneName: match.sceneName,
-			};
-			this.sceneManager.setActiveScene(match.sceneName, match.params);
-		} else {
-			console.warn(`[Router] No route matched for path: ${normalizedPath}`);
-			// If no route matches and no scene is active, try to activate first available scene
-			if (!this.sceneManager.hasActiveScene()) {
-				const availableScenes = this.sceneManager.registry.getNames();
-				if (availableScenes.length > 0) {
-					console.warn(
-						`[Router] Activating first available scene: ${availableScenes[0]}`,
-					);
-					this.state = {
-						path: normalizedPath,
-						params: {},
-						sceneName: availableScenes[0],
-					};
-					this.sceneManager.setActiveScene(availableScenes[0], {});
-				} else {
-					console.warn(
-						`[Router] No scenes registered. Game may show blank screen.`,
-					);
-				}
-			}
-			// Keep current state if scene is already active
+			this.updateStateWithMatch(normalizedPath, match);
+			return;
 		}
+
+		this.handleNoRouteMatch(normalizedPath);
+	}
+
+	/**
+	 * Update state when route matches
+	 */
+	private updateStateWithMatch(
+		path: string,
+		match: { sceneName: string; params: Record<string, string> },
+	): void {
+		this.state = {
+			path,
+			params: match.params,
+			sceneName: match.sceneName,
+		};
+		this.sceneManager.setActiveScene(match.sceneName, match.params);
+	}
+
+	/**
+	 * Handle case when no route matches
+	 */
+	private handleNoRouteMatch(path: string): void {
+		console.warn(`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.NO_ROUTE_MATCHED(path)}`);
+
+		if (!this.sceneManager.hasActiveScene()) {
+			this.activateFirstAvailableScene(path);
+		}
+	}
+
+	/**
+	 * Activate first available scene as fallback
+	 */
+	private activateFirstAvailableScene(path: string): void {
+		const availableScenes = this.sceneManager.registry.getNames();
+
+		if (availableScenes.length === 0) {
+			console.warn(
+				`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.NO_SCENES_REGISTERED}`,
+			);
+			return;
+		}
+
+		const firstScene = availableScenes[0];
+		console.warn(
+			`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.ACTIVATING_FIRST_SCENE(firstScene)}`,
+		);
+
+		this.state = {
+			path,
+			params: {},
+			sceneName: firstScene,
+		};
+		this.sceneManager.setActiveScene(firstScene, {});
 	}
 
 	/**
@@ -130,34 +182,42 @@ export class Router {
 	 * Should be called after routes are registered but before game loop starts
 	 */
 	init(): void {
-		if (typeof window !== "undefined") {
-			const initialPath = window.location.pathname;
-			this.handlePathChange(initialPath);
-		} else {
-			// Non-browser environment, default to root
-			this.handlePathChange("/");
+		const initialPath = isBrowser()
+			? window.location.pathname
+			: DEFAULT_PATH;
+
+		this.handlePathChange(initialPath);
+		this.ensureActiveScene();
+	}
+
+	/**
+	 * Ensure at least one scene is active after initialization
+	 */
+	private ensureActiveScene(): void {
+		if (this.sceneManager.hasActiveScene()) {
+			return;
 		}
 
-		// Ensure at least one scene is active after initialization
-		// This prevents blank screen if no route matches
-		if (!this.sceneManager.hasActiveScene()) {
-			const availableScenes = this.sceneManager.registry.getNames();
-			if (availableScenes.length > 0) {
-				console.warn(
-					`[Router] No route matched initial path, activating first scene: ${availableScenes[0]}`,
-				);
-				this.state = {
-					path: this.state.path,
-					params: {},
-					sceneName: availableScenes[0],
-				};
-				this.sceneManager.setActiveScene(availableScenes[0], {});
-			} else {
-				console.warn(
-					`[Router] No scenes registered. Make sure to call scene() before router.init().`,
-				);
-			}
+		const availableScenes = this.sceneManager.registry.getNames();
+
+		if (availableScenes.length === 0) {
+			console.warn(
+				`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.NO_SCENES_BEFORE_INIT}`,
+			);
+			return;
 		}
+
+		const firstScene = availableScenes[0];
+		console.warn(
+			`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.NO_ROUTE_MATCHED_INITIAL(firstScene)}`,
+		);
+
+		this.state = {
+			path: this.state.path,
+			params: {},
+			sceneName: firstScene,
+		};
+		this.sceneManager.setActiveScene(firstScene, {});
 	}
 
 	/**

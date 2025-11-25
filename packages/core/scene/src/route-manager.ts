@@ -1,4 +1,6 @@
 import type { RouteDefinition } from "./types";
+import { isValidString } from "./utils";
+import { PARAM_PATTERN, PARAM_REPLACEMENT } from "./constants";
 
 export class RouteManager {
 	private routes: RouteDefinition[] = [];
@@ -9,6 +11,10 @@ export class RouteManager {
 	 * @param sceneName Name of the scene to map to
 	 */
 	register(path: string, sceneName: string): void {
+		if (!this.validateRouteInputs(path, sceneName)) {
+			return;
+		}
+
 		const { regex, keys } = this.parsePath(path);
 		this.routes.push({
 			path,
@@ -19,33 +25,90 @@ export class RouteManager {
 	}
 
 	/**
+	 * Validate route registration inputs
+	 */
+	private validateRouteInputs(
+		path: unknown,
+		sceneName: unknown,
+	): path is string {
+		if (!isValidString(path)) {
+			console.error(`[RouteManager] Invalid path: ${path}`);
+			return false;
+		}
+
+		if (!isValidString(sceneName)) {
+			console.error(`[RouteManager] Invalid scene name: ${sceneName}`);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Match a path to a route
+	 * @param path Path to match against registered routes
+	 * @returns Route match with scene name and params, or null if no match
 	 */
 	match(
 		path: string,
 	): { sceneName: string; params: Record<string, string> } | null {
+		if (!isValidString(path)) {
+			return null;
+		}
+
 		for (const route of this.routes) {
-			const match = route.regex.exec(path);
+			const match = this.tryMatchRoute(route, path);
 			if (match) {
-				const params: Record<string, string> = {};
-				route.keys.forEach((key, index) => {
-					params[key] = match[index + 1];
-				});
-				return { sceneName: route.sceneName, params };
+				return match;
 			}
 		}
+
 		return null;
 	}
 
 	/**
+	 * Try to match a single route against a path
+	 */
+	private tryMatchRoute(
+		route: RouteDefinition,
+		path: string,
+	): { sceneName: string; params: Record<string, string> } | null {
+		const regexMatch = route.regex.exec(path);
+		if (!regexMatch) {
+			return null;
+		}
+
+		const params = this.extractParams(route.keys, regexMatch);
+		return {
+			sceneName: route.sceneName,
+			params,
+		};
+	}
+
+	/**
+	 * Extract route parameters from regex match
+	 */
+	private extractParams(
+		keys: string[],
+		match: RegExpExecArray,
+	): Record<string, string> {
+		const params: Record<string, string> = {};
+		keys.forEach((key, index) => {
+			params[key] = match[index + 1];
+		});
+		return params;
+	}
+
+	/**
 	 * Parse path pattern to regex
+	 * Converts route patterns like "/player/:id" to regex
 	 */
 	private parsePath(path: string): { regex: RegExp; keys: string[] } {
 		const keys: string[] = [];
 		const pattern = path
-			.replace(/:(\w+)/g, (_, key) => {
+			.replace(PARAM_PATTERN, (_, key) => {
 				keys.push(key);
-				return "([^/]+)";
+				return PARAM_REPLACEMENT;
 			})
 			.replace(/\//g, "\\/");
 

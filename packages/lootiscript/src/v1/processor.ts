@@ -15,9 +15,9 @@
  * @module lootiscript/processor
  */
 
-import { Routine } from "./routine";
 import type { CallFrame } from "./error-handler";
 import { IC_STATE, InlineCache } from "./inline-cache";
+import { Routine } from "./routine";
 
 /**
  * Runtime context for script execution
@@ -247,7 +247,7 @@ export class Processor {
 	 * @returns {any} The property value
 	 */
 	resolvePropertyIC(obj: any, prop: string, ic: InlineCache): any {
-		if (obj == null) return null;
+		if (obj == null) {return null;}
 
 		// Check cache state
 		if (ic.state === IC_STATE.MONOMORPHIC) {
@@ -309,10 +309,10 @@ export class Processor {
 	 * @returns {Function} A JavaScript function that executes the routine
 	 */
 	routineAsFunction(routine: Routine, context: RuntimeContext): Function {
-		var f: Function, proc: Processor;
+		let f: Function, proc: Processor;
 		proc = new Processor(this.runner);
 		f = function (this: any) {
-			var a, count, i, j, k, ref, ref1;
+			let a, count, i, j, k, ref, ref1;
 			count = Math.min(routine.num_args, arguments.length);
 			proc.load(routine);
 			for (i = j = 0, ref = count - 1; j <= ref; i = j += 1) {
@@ -338,10 +338,10 @@ export class Processor {
 		routine: Routine,
 		context: RuntimeContext,
 	): Function {
-		var f: Function, proc: Processor;
+		let f: Function, proc: Processor;
 		proc = new Processor(this.runner);
 		f = function (this: any) {
-			var a: any[],
+			let a: any[],
 				count: number,
 				i: number,
 				j: number,
@@ -383,7 +383,7 @@ export class Processor {
 	}
 
 	modulo(context: RuntimeContext, a: any, b: any): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -420,7 +420,7 @@ export class Processor {
 	}
 
 	add(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -452,7 +452,7 @@ export class Processor {
 	}
 
 	sub(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -493,7 +493,7 @@ export class Processor {
 	}
 
 	negate(context: RuntimeContext, a: any): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -529,7 +529,7 @@ export class Processor {
 	}
 
 	mul(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -570,7 +570,7 @@ export class Processor {
 	}
 
 	div(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -611,7 +611,7 @@ export class Processor {
 	}
 
 	band(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -652,7 +652,7 @@ export class Processor {
 	}
 
 	bor(context: RuntimeContext, a: any, b: any, self: number): any {
-		var f: any, obj: any;
+		let f: any, obj: any;
 		if (Array.isArray(a)) {
 			obj = context.global.List;
 		} else if (typeof a === "string") {
@@ -707,7 +707,7 @@ export class Processor {
 	 * @returns {any} The result of the last executed statement
 	 */
 	run(context: any): any {
-		var a,
+		let a,
 			arg1,
 			args,
 			argv,
@@ -1062,19 +1062,19 @@ export class Processor {
 					op_index++;
 					break;
 				case 18: // OPCODE_CREATE_OBJECT
-					if (profiling) this.metrics.allocations++;
+					if (profiling) {this.metrics.allocations++;}
 					stack[++stack_index] = this.getObject();
 					op_index++;
 					break;
 				case 19: // OPCODE_MAKE_OBJECT
 					if (typeof stack[stack_index] !== "object") {
-						if (profiling) this.metrics.allocations++;
+						if (profiling) {this.metrics.allocations++;}
 						stack[stack_index] = this.getObject();
 					}
 					op_index++;
 					break;
 				case 20: // OPCODE_CREATE_ARRAY
-					if (profiling) this.metrics.allocations++;
+					if (profiling) {this.metrics.allocations++;}
 					stack[++stack_index] = this.getArray();
 					op_index++;
 					break;

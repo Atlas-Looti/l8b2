@@ -7,6 +7,7 @@
 
 export * from "./config";
 export * from "./commands";
+export * from "./build";
 export * from "./loader";
 export * from "./plugin";
 export * from "./generator";

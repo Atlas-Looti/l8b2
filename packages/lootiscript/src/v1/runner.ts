@@ -4,13 +4,15 @@
  * Handles multiple threads, scheduling, and global environment setup.
  */
 
+import { MathLib, StringLib, ListLib, JSONLib } from "@l8b/stdlib";
+
 import { Random } from "../random";
+
 import { Parser } from "./parser";
-import { Program } from "./program";
-import { Routine } from "./routine";
 import { Processor } from "./processor";
 import { VMProfiler } from "./profiler";
-import { MathLib, StringLib, ListLib, JSONLib } from "@l8b/stdlib";
+import { Program } from "./program";
+import { Routine } from "./routine";
 
 // Forward declarations for circular dependencies
 declare class Compiler {

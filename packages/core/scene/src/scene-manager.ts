@@ -2,14 +2,17 @@ import { SceneRegistry } from "./scene-registry";
 import { RouteManager } from "./route-manager";
 import { Router } from "./router";
 import type { SceneDefinition } from "./types";
+import { ERROR_MESSAGES, LOG_PREFIXES } from "./constants";
+import { isValidString, isValidObject, safeExecute } from "./utils";
 
 export class SceneManager {
-	public registry: SceneRegistry;
-	public routeManager: RouteManager;
-	public router: Router;
+	public readonly registry: SceneRegistry;
+	public readonly routeManager: RouteManager;
+	public readonly router: Router;
 
 	private activeSceneName: string | null = null;
 	private activeScene: SceneDefinition | null = null;
+
 	constructor() {
 		this.registry = new SceneRegistry();
 		this.routeManager = new RouteManager();
@@ -23,15 +26,34 @@ export class SceneManager {
 	 * @param definition Scene definition object with lifecycle methods
 	 */
 	registerScene(name: string, definition: SceneDefinition): void {
-		if (!name || typeof name !== "string") {
-			console.error(`[SceneManager] Invalid scene name: ${name}`);
-			return;
-		}
-		if (!definition || typeof definition !== "object") {
-			console.error(`[SceneManager] Invalid scene definition for '${name}'`);
+		if (!this.validateSceneRegistration(name, definition)) {
 			return;
 		}
 		this.registry.register(name, definition);
+	}
+
+	/**
+	 * Validate scene registration inputs
+	 */
+	private validateSceneRegistration(
+		name: unknown,
+		definition: unknown,
+	): definition is SceneDefinition {
+		if (!isValidString(name)) {
+			console.error(
+				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.INVALID_SCENE_NAME(name)}`,
+			);
+			return false;
+		}
+
+		if (!isValidObject(definition)) {
+			console.error(
+				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.INVALID_SCENE_DEFINITION(name)}`,
+			);
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -50,99 +72,196 @@ export class SceneManager {
 		const newScene = this.registry.get(name);
 
 		if (!newScene) {
-			console.error(`[SceneManager] Scene not found: ${name}`);
-			console.error(
-				`[SceneManager] Available scenes: ${this.registry.getNames().join(", ")}`,
+			this.handleSceneNotFound(name);
+			return;
+		}
+
+		if (this.isSameScene(name, newScene)) {
+			this.handleSameSceneActivation(newScene, name, params);
+			return;
+		}
+
+		this.transitionToScene(name, newScene, params);
+	}
+
+	/**
+	 * Handle scene not found error
+	 */
+	private handleSceneNotFound(name: string): void {
+		const availableScenes = this.registry.getNames();
+		console.error(
+			`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.SCENE_NOT_FOUND(name)}`,
+		);
+		console.error(
+			`${LOG_PREFIXES.SCENE_MANAGER} Available scenes: ${availableScenes.join(", ")}`,
+		);
+	}
+
+	/**
+	 * Check if scene is already active
+	 */
+	private isSameScene(
+		name: string,
+		scene: SceneDefinition,
+	): boolean {
+		return this.activeSceneName === name && this.activeScene === scene;
+	}
+
+	/**
+	 * Handle activation of already active scene
+	 */
+	private handleSameSceneActivation(
+		scene: SceneDefinition,
+		name: string,
+		params: Record<string, string>,
+	): void {
+		if (scene.onEnter) {
+			safeExecute(
+				() => scene.onEnter?.(params),
+				(error) => {
+					console.error(
+						`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' onEnter:`,
+						error,
+					);
+				},
 			);
-			return;
-		}
-
-		// Don't switch if it's already the active scene (unless params changed)
-		if (this.activeSceneName === name && this.activeScene === newScene) {
-			// Still call onEnter with new params in case params changed
-			if (newScene.onEnter) {
-				try {
-					newScene.onEnter(params);
-				} catch (e) {
-					console.error(`[SceneManager] Error in scene '${name}' onEnter:`, e);
-				}
-			}
-			return;
-		}
-
-		// Leave current scene
-		if (this.activeScene?.onLeave) {
-			try {
-				this.activeScene.onLeave();
-			} catch (e) {
-				console.error(
-					`[SceneManager] Error in scene '${this.activeSceneName}' onLeave:`,
-					e,
-				);
-			}
-		}
-
-		// Switch scene
-		this.activeSceneName = name;
-		this.activeScene = newScene;
-
-		// Initialize if needed (and not already initialized)
-		// init() is called once per scene registration
-		// For per-activation initialization, use onEnter()
-		if (this.activeScene.init && !this.activeScene._initialized) {
-			try {
-				this.activeScene.init();
-				this.activeScene._initialized = true;
-			} catch (e) {
-				console.error(`[SceneManager] Error in scene '${name}' init:`, e);
-			}
-		}
-
-		// Enter new scene (called every time scene becomes active)
-		if (this.activeScene.onEnter) {
-			try {
-				this.activeScene.onEnter(params);
-			} catch (e) {
-				console.error(`[SceneManager] Error in scene '${name}' onEnter:`, e);
-			}
 		}
 	}
 
 	/**
-	 * Update active scene
+	 * Transition from current scene to new scene
+	 */
+	private transitionToScene(
+		name: string,
+		newScene: SceneDefinition,
+		params: Record<string, string>,
+	): void {
+		this.leaveCurrentScene();
+		this.activateNewScene(name, newScene, params);
+	}
+
+	/**
+	 * Leave current scene
+	 */
+	private leaveCurrentScene(): void {
+		if (!this.activeScene?.onLeave) {
+			return;
+		}
+
+		safeExecute(
+			() => this.activeScene?.onLeave?.(),
+			(error) => {
+				console.error(
+					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' onLeave:`,
+					error,
+				);
+			},
+		);
+	}
+
+	/**
+	 * Activate new scene
+	 */
+	private activateNewScene(
+		name: string,
+		scene: SceneDefinition,
+		params: Record<string, string>,
+	): void {
+		this.activeSceneName = name;
+		this.activeScene = scene;
+
+		this.initializeSceneIfNeeded(name, scene);
+		this.enterScene(name, scene, params);
+	}
+
+	/**
+	 * Initialize scene if not already initialized
+	 */
+	private initializeSceneIfNeeded(name: string, scene: SceneDefinition): void {
+		if (!scene.init || scene._initialized) {
+			return;
+		}
+
+		safeExecute(
+			() => {
+				scene.init?.();
+				scene._initialized = true;
+			},
+			(error) => {
+				console.error(
+					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' init:`,
+					error,
+				);
+			},
+		);
+	}
+
+	/**
+	 * Enter scene (call onEnter lifecycle method)
+	 */
+	private enterScene(
+		name: string,
+		scene: SceneDefinition,
+		params: Record<string, string>,
+	): void {
+		if (!scene.onEnter) {
+			return;
+		}
+
+		safeExecute(
+			() => scene.onEnter?.(params),
+			(error) => {
+				console.error(
+					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' onEnter:`,
+					error,
+				);
+			},
+		);
+	}
+
+	/**
+	 * Update active scene (called every frame)
 	 */
 	update(): void {
-		if (this.activeScene?.update) {
-			try {
-				this.activeScene.update();
-			} catch (e) {
-				console.error(
-					`[SceneManager] Error in scene '${this.activeSceneName}' update:`,
-					e,
-				);
-			}
+		if (!this.activeScene?.update) {
+			return;
 		}
+
+		safeExecute(
+			() => this.activeScene?.update?.(),
+			(error) => {
+				console.error(
+					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' update:`,
+					error,
+				);
+			},
+		);
 	}
 
 	/**
-	 * Draw active scene
+	 * Draw active scene (called every frame)
 	 */
 	draw(): void {
-		if (this.activeScene?.draw) {
-			try {
-				this.activeScene.draw();
-			} catch (e) {
-				console.error(
-					`[SceneManager] Error in scene '${this.activeSceneName}' draw:`,
-					e,
-				);
-			}
-		} else if (this.activeScene) {
-			// Scene exists but has no draw function - this will cause blank screen
-			console.warn(
-				`[SceneManager] Scene '${this.activeSceneName}' has no draw() function`,
-			);
+		if (!this.activeScene) {
+			return;
 		}
+
+		if (!this.activeScene.draw) {
+			console.warn(
+				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.SCENE_NO_DRAW(this.activeSceneName!)}`,
+			);
+			return;
+		}
+
+		safeExecute(
+			() => this.activeScene?.draw?.(),
+			(error) => {
+				console.error(
+					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' draw:`,
+					error,
+				);
+			},
+		);
 	}
 
 	/**

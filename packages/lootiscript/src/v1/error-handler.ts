@@ -251,8 +251,8 @@ export function findSimilarNames(
  * Calculate Levenshtein distance between two strings
  */
 function levenshteinDistance(a: string, b: string): number {
-	if (a.length === 0) return b.length;
-	if (b.length === 0) return a.length;
+	if (a.length === 0) {return b.length;}
+	if (b.length === 0) {return a.length;}
 
 	const matrix: number[][] = [];
 

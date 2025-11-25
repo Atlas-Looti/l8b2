@@ -2,6 +2,10 @@
  * Type definitions for Scene Management System
  */
 
+// ============================================================================
+// Route Types
+// ============================================================================
+
 /**
  * Route definition for matching paths to scenes
  */
@@ -15,6 +19,10 @@ export interface RouteDefinition {
 	/** Parameter keys extracted from path */
 	keys: string[];
 }
+
+// ============================================================================
+// Scene Types
+// ============================================================================
 
 /**
  * Scene definition with lifecycle methods
@@ -35,6 +43,27 @@ export interface SceneDefinition {
 }
 
 /**
+ * Scene status enumeration
+ */
+export type SceneStatus = "idle" | "active" | "transitioning";
+
+/**
+ * Scene data container
+ */
+export interface SceneData {
+	/** Scene name */
+	name: string;
+	/** Scene definition */
+	definition: SceneDefinition;
+	/** Route parameters */
+	params?: Record<string, string>;
+}
+
+// ============================================================================
+// Router Types
+// ============================================================================
+
+/**
  * Router state
  */
 export interface RouterState {
@@ -45,6 +74,10 @@ export interface RouterState {
 	/** Current scene name */
 	sceneName: string | null;
 }
+
+// ============================================================================
+// Configuration Types
+// ============================================================================
 
 /**
  * Scene manager options
@@ -57,11 +90,6 @@ export interface SceneManagerOptions {
 }
 
 /**
- * Scene status
- */
-export type SceneStatus = "idle" | "active" | "transitioning";
-
-/**
  * Scene transition options
  */
 export interface SceneTransitionOptions {
@@ -69,38 +97,6 @@ export interface SceneTransitionOptions {
 	duration?: number;
 	/** Transition type */
 	type?: "fade" | "slide" | "none";
-}
-
-/**
- * Scene interface for VM
- */
-export interface SceneInterface {
-	register: (name: string, def: SceneDefinition) => void;
-	route: (path: string, sceneName: string) => void;
-	goto: (name: string, params?: Record<string, string>) => void;
-	current: () => string | null;
-}
-
-/**
- * Scene data
- */
-export interface SceneData {
-	/** Scene name */
-	name: string;
-	/** Scene definition */
-	definition: SceneDefinition;
-	/** Route parameters */
-	params?: Record<string, string>;
-}
-
-/**
- * Scene events
- */
-export interface SceneEvents {
-	/** Event emitted when scene is activated */
-	onActivate?: (name: string, params?: Record<string, string>) => void;
-	/** Event emitted when scene is deactivated */
-	onDeactivate?: (name: string) => void;
 }
 
 /**
@@ -113,4 +109,33 @@ export interface SceneConfig {
 	enableHistory?: boolean;
 	/** Scene transition options */
 	transition?: SceneTransitionOptions;
+}
+
+// ============================================================================
+// Event Types
+// ============================================================================
+
+/**
+ * Scene events
+ */
+export interface SceneEvents {
+	/** Event emitted when scene is activated */
+	onActivate?: (name: string, params?: Record<string, string>) => void;
+	/** Event emitted when scene is deactivated */
+	onDeactivate?: (name: string) => void;
+}
+
+// ============================================================================
+// VM Interface Types
+// ============================================================================
+
+/**
+ * Scene interface for VM (Virtual Machine)
+ * This is what gets exposed to lootiscript as `scene`
+ */
+export interface SceneInterface {
+	register: (name: string, def: SceneDefinition) => void;
+	route: (path: string, sceneName: string) => void;
+	goto: (name: string, params?: Record<string, string>) => void;
+	current: () => string | null;
 }

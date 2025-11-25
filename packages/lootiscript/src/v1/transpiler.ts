@@ -168,7 +168,7 @@ export class Transpiler {
 		s += "return stack_index ;\n}";
 		console.info(s);
 		try {
-			// eslint-disable-next-line no-eval
+			 
 			eval(s);
 		} catch (error) {
 			err = error;
