@@ -47,6 +47,9 @@ export interface GlobalAPI {
 	music: Record<string, any>;
 	assets: Record<string, any>;
 	storage: any;
+	scene: any;
+	route: any;
+	router: any;
 	system: SystemAPI;
 	fonts?: any;
 	Sound?: any;

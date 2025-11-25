@@ -17,7 +17,8 @@
 	"types": "./dist/index.d.ts",
 	"dependencies": {
 		"@l8b/lootiscript": "workspace:*",
-		"@l8b/io": "workspace:*"
+		"@l8b/io": "workspace:*",
+		"@l8b/scene": "workspace:*"
 	},
 	"keywords": [
 		"vm",

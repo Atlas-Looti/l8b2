@@ -28,6 +28,7 @@ import { InputManager } from "../input";
 import { GameLoop } from "../loop";
 import { System } from "../system";
 import { ObjectPool } from "../utils/object-pool";
+import { SceneManager } from "@l8b/scene";
 import type {
 	RuntimeDebugOptions,
 	RuntimeListener,
@@ -59,6 +60,7 @@ export class RuntimeOrchestrator {
 	public audio: AudioCore;
 	public input: InputManager;
 	public system: System;
+	public sceneManager: SceneManager;
 	public vm: L8BVM | null = null;
 
 	// Asset collections (populated by AssetLoader)
@@ -105,6 +107,9 @@ export class RuntimeOrchestrator {
 
 		// Initialize system
 		this.system = new System(this.listener);
+
+		// Initialize scene manager
+		this.sceneManager = new SceneManager();
 
 		// Initialize asset loader
 		this.assetLoader = new AssetLoader(
@@ -260,6 +265,9 @@ export class RuntimeOrchestrator {
 			music: this.music,
 			assets: this.assets,
 			system: this.system.getAPI(),
+			scene: (name: string, def: any) => this.sceneManager.registerScene(name, def),
+			route: (path: string, sceneName: string) => this.sceneManager.registerRoute(path, sceneName),
+			router: this.sceneManager.router.getInterface(),
 			// Dynamic asset constructors
 			Image: Image,
 			Sprite: Sprite,
@@ -332,6 +340,7 @@ export class RuntimeOrchestrator {
 		}
 
 		// Call init() if it exists
+		// This allows user code to do setup, but routes should already be registered
 		try {
 			this.vm.call("init");
 			this.logStep("vm: init() executed");
@@ -345,6 +354,25 @@ export class RuntimeOrchestrator {
 				message: err?.message || String(err),
 			});
 		}
+
+		// Initialize router to handle initial URL
+		// This must be called after routes are registered (from source execution)
+		// but before the game loop starts, so the correct scene is active from the start
+		const registeredScenes = this.sceneManager.registry.getNames();
+		this.logStep("router: initializing", {
+			registeredScenes: registeredScenes.length,
+			sceneNames: registeredScenes,
+		});
+		this.sceneManager.router.init();
+		const activeScene = this.sceneManager.hasActiveScene() 
+			? (this.sceneManager as any).getCurrentSceneName?.() || "unknown"
+			: null;
+		const routerState = this.sceneManager.router.getState();
+		this.logStep("router: initialized", {
+			activeScene: activeScene || "none",
+			path: routerState.path,
+			hasActiveScene: this.sceneManager.hasActiveScene(),
+		});
 
 		// Notify listener
 		if (this.listener.postMessage) {
@@ -387,11 +415,11 @@ export class RuntimeOrchestrator {
 
 		// Update input state
 		this.input.update();
-		
+
 		// Batch debug updates (only every N frames)
 		if (this.frameCount % this.DEBUG_UPDATE_FREQUENCY === 0) {
-		this.debugInputs();
-		this.debugScreen();
+			this.debugInputs();
+			this.debugScreen();
 		}
 
 		// Update system FPS
@@ -400,8 +428,13 @@ export class RuntimeOrchestrator {
 		}
 
 		try {
-			// Call user's update() function
-			this.vm.call("update");
+			// Update scene manager (priority)
+			if (this.sceneManager.hasActiveScene()) {
+				this.sceneManager.update();
+			} else {
+				// Fallback: Call user's update() function
+				this.vm.call("update");
+			}
 
 			// Check for errors
 			if (this.vm.error_info) {
@@ -518,23 +551,23 @@ export class RuntimeOrchestrator {
 		for (const key of keys1) {
 			const val1 = obj1[key];
 			const val2 = obj2[key];
-			
+
 			// Fast path for primitives
 			if (val1 === val2) continue;
-			
+
 			// Handle null/undefined
 			if (val1 == null || val2 == null) {
 				if (val1 !== val2) return false;
 				continue;
 			}
-			
+
 			// Only one level of nesting for performance
 			if (typeof val1 === "object" && typeof val2 === "object") {
 				// Quick check: same keys?
 				const keys1Nested = Object.keys(val1);
 				const keys2Nested = Object.keys(val2);
 				if (keys1Nested.length !== keys2Nested.length) return false;
-				
+
 				// Compare values (only one level deep)
 				for (const nestedKey of keys1Nested) {
 					if (val1[nestedKey] !== val2[nestedKey]) return false;
@@ -645,8 +678,13 @@ export class RuntimeOrchestrator {
 		if (!this.vm) return;
 
 		try {
-			// Call user's draw() function
-			this.vm.call("draw");
+			// Draw scene manager (priority)
+			if (this.sceneManager.hasActiveScene()) {
+				this.sceneManager.draw();
+			} else {
+				// Fallback: Call user's draw() function
+				this.vm.call("draw");
+			}
 
 			// Check for errors
 			if (this.vm.error_info) {

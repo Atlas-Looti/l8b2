@@ -1,25 +1,19 @@
 {
 	"name": "@l8b/scene",
-	"version": "0.0.1",
-	"sideEffects": false,
-	"files": [
-		"dist/**/*",
-		"README.md",
-		"package.json"
-	],
-	"scripts": {
-		"build": "tsup",
-		"clean": "rm -rf dist",
-		"test": "vitest run --passWithNoTests"
-	},
+	"version": "0.0.0",
+	"description": "Scene management and routing system for L8B",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"clean": "rm -rf dist .turbo node_modules",
+		"test": "bun test"
+	},
 	"dependencies": {},
-	"keywords": [
-		"scene",
-		"scene-management",
-		"game-scene"
-	]
+	"devDependencies": {
+		"tsup": "^8.0.0",
+		"typescript": "^5.0.0"
+	}
 }
-

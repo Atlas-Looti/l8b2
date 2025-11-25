@@ -1,17 +1,13 @@
 {
-    "name": "scenes-demo",
-    "private": true,
+    "name": "example-scenes",
     "version": "0.0.0",
-    "type": "module",
+    "private": true,
     "scripts": {
         "dev": "l8b dev",
         "build": "l8b build",
         "start": "l8b start"
     },
     "dependencies": {
-        "@l8b/runtime": "workspace:*"
-    },
-    "devDependencies": {
-        "@l8b/cli": "workspace:*"
+        "l8b": "workspace:*"
     }
 }
