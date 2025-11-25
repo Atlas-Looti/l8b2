@@ -10,7 +10,9 @@
 		"clean": "rm -rf dist .turbo node_modules",
 		"test": "bun test"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@l8b/diagnostics": "workspace:*"
+	},
 	"devDependencies": {
 		"tsup": "^8.0.0",
 		"typescript": "^5.0.0"

@@ -11,7 +11,6 @@ import {
 	InitializeResult,
 	Diagnostic,
 	DiagnosticSeverity,
-	DiagnosticRelatedInformation,
 	Position,
 	Location,
 	DocumentSymbolParams,
@@ -36,6 +35,7 @@ import { Parser } from "@l8b/lootiscript/dist/v1/parser";
 import { Range } from "vscode-languageserver-types";
 import { LanguageModes, DocumentRegionsCache } from "./embedded/mode-manager";
 import { getJSONMode, createJSONLanguageService } from "./embedded/json-mode";
+import { formatForLSP, createDiagnostic } from "@l8b/diagnostics";
 
 // Simple AST node interface
 interface ASTNode {
@@ -1265,86 +1265,30 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		if ((parser as any).error_info) {
 			const err = (parser as any).error_info;
 
-			// Calculate better range - try to include the full error span
-			const errorLength =
-				err.length || (typeof err.error === "string" ? err.error.length : 10);
-			const line = err.line - 1; // Convert to 0-based
-			const column = Math.max(0, err.column - 1); // Convert to 0-based
-			const lineText = textDocument.getText({
-				start: { line, character: 0 },
-				end: { line, character: Number.MAX_SAFE_INTEGER },
-			});
-			const endColumn = Math.min(lineText.length, column + errorLength);
-
-			// Build enhanced error message
-			let errorMessage = err.error || "Syntax Error";
-			if (err.code) {
-				errorMessage = `[${err.code}] ${errorMessage}`;
-			}
-
-			// Add context to message if available
-			if (err.context) {
-				// Extract just the error line from context for the message
-				const contextLines = err.context.split("\n");
-				const errorLineInContext = contextLines.find((l: string) =>
-					l.startsWith(">"),
-				);
-				if (errorLineInContext) {
-					errorMessage += `\n\n${errorLineInContext.trim()}`;
-				}
-			}
-
-			// Build related information
-			const relatedInformation: DiagnosticRelatedInformation[] = [];
-
-			// Add related location if available (e.g., where function started)
-			if (err.related) {
-				relatedInformation.push({
-					location: {
-						uri: textDocument.uri,
-						range: {
-							start: {
-								line: err.related.line - 1,
-								character: err.related.column - 1,
-							},
-							end: {
-								line: err.related.line - 1,
-								character: err.related.column + 10,
-							},
-						},
-					},
-					message: err.related.message || "Related location",
-				});
-			}
-
-			// Add suggestions as related information
-			if (err.suggestions && err.suggestions.length > 0) {
-				// Add first suggestion as related info
-				relatedInformation.push({
-					location: {
-						uri: textDocument.uri,
-						range: {
-							start: { line, character: column },
-							end: { line, character: endColumn },
-						},
-					},
-					message: `💡 ${err.suggestions[0]}`,
-				});
-			}
-
-			const diagnostic: Diagnostic = {
-				severity: DiagnosticSeverity.Error,
-				range: {
-					start: { line, character: column },
-					end: { line, character: endColumn },
+			// Use diagnostics package to create and format diagnostic
+			const diagnosticData = createDiagnostic(err.code || "E1004", {
+				file: textDocument.uri,
+				line: err.line,
+				column: err.column,
+				length: err.length,
+				context: err.context,
+				suggestions: err.suggestions,
+				related: err.related
+					? {
+							file: textDocument.uri,
+							line: err.related.line,
+							column: err.related.column,
+							message: err.related.message || "Related location",
+						}
+					: undefined,
+				data: {
+					error: err.error,
 				},
-				message: errorMessage,
-				source: "lootiscript",
-				code: err.code || undefined,
-				relatedInformation:
-					relatedInformation.length > 0 ? relatedInformation : undefined,
-			};
-			diagnostics.push(diagnostic);
+			});
+
+			// Format for LSP using diagnostics formatter
+			const lspDiagnostic = formatForLSP(diagnosticData);
+			diagnostics.push(lspDiagnostic as Diagnostic);
 		}
 	} catch (e: any) {
 		const diagnostic: Diagnostic = {

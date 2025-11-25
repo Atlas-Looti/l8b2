@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"@l8b/lootiscript": "workspace:*",
+		"@l8b/diagnostics": "workspace:*",
 		"vscode-json-languageservice": "^5.6.3",
 		"vscode-languageserver": "^9.0.1",
 		"vscode-languageserver-textdocument": "^1.0.11"

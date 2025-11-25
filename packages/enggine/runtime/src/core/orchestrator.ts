@@ -34,6 +34,7 @@ import type {
 	RuntimeListener,
 	RuntimeOptions,
 } from "../types";
+import { formatForBrowser, createDiagnostic } from "@l8b/diagnostics";
 
 /**
  * RuntimeOrchestrator - Main coordinator for all runtime components
@@ -846,75 +847,32 @@ export class RuntimeOrchestrator {
 			return error;
 		}
 
+		// Use diagnostics package to format error
+		const code = error.code || "E2005"; // Default to invalid operation
+		const diagnostic = createDiagnostic(code, {
+			file: error.file,
+			line: error.line,
+			column: error.column,
+			context: error.context,
+			suggestions: error.suggestions,
+			related: error.related,
+			stackTrace: error.stackTrace,
+			data: {
+				error: error.error || error.message,
+			},
+		});
+
+		// Format for browser using diagnostics formatter
+		const formattedMessage = formatForBrowser(diagnostic);
+
 		// Enhance error dengan formatting
 		const formatted: any = {
 			...error,
-			formatted: this.formatErrorMessage(error),
+			...diagnostic,
+			formatted: formattedMessage,
 		};
 
-		// Add suggestions if available
-		if (error.suggestions) {
-			formatted.suggestions = error.suggestions;
-		}
-
-		// Add related info if available
-		if (error.related) {
-			formatted.related = error.related;
-		}
-
 		return formatted;
-	}
-
-	/**
-	 * Format error message untuk display
-	 */
-	private formatErrorMessage(error: any): string {
-		let message = "";
-
-		if (error.code) {
-			message += `[${error.code}] `;
-		}
-
-		message += `${error.error || error.message || "Unknown error"}\n`;
-
-		// Format stack trace if available
-		if (error.stackTrace && error.stackTrace.length > 0) {
-			message += "\nStack trace:\n";
-			for (const frame of error.stackTrace) {
-				const functionName = frame.functionName || "<anonymous>";
-				const file = frame.file || "<unknown>";
-				const line = frame.line !== undefined ? `:${frame.line}` : "";
-				const column = frame.column !== undefined ? `:${frame.column}` : "";
-				message += `  at ${functionName} (${file}${line}${column})\n`;
-			}
-		} else if (error.file) {
-			// Fallback to simple location if no stack trace
-			message += `  at ${error.file}`;
-			if (error.line !== undefined) {
-				message += `:${error.line}`;
-				if (error.column !== undefined) {
-					message += `:${error.column}`;
-				}
-			}
-			message += "\n";
-		}
-
-		if (error.context) {
-			message += `\n${error.context}\n`;
-		}
-
-		if (error.suggestions && error.suggestions.length > 0) {
-			message += "\nSuggestions:\n";
-			for (const suggestion of error.suggestions) {
-				message += `  • ${suggestion}\n`;
-			}
-		}
-
-		if (error.related) {
-			message += `\nRelated: ${error.related.message} at ${error.related.file}:${error.related.line}:${error.related.column}\n`;
-		}
-
-		return message;
 	}
 
 	/**

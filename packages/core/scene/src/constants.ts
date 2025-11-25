@@ -2,30 +2,46 @@
  * Constants for Scene Management System
  */
 
+import {
+	SceneErrorCode,
+	WarningCode,
+	formatMessage,
+} from "@l8b/diagnostics";
+
 export const DEFAULT_PATH = "/";
 export const PATH_SEPARATOR = "/";
 export const PARAM_PATTERN = /:(\w+)/g;
 export const PARAM_REPLACEMENT = "([^/]+)";
 
+/**
+ * @deprecated Use formatMessage from @l8b/diagnostics with SceneErrorCode instead
+ */
 export const ERROR_MESSAGES = {
-	INVALID_PATH: (path: unknown) => `Invalid path: ${path}`,
-	INVALID_SCENE_NAME: (name: unknown) => `Invalid scene name: ${name}`,
+	INVALID_PATH: (path: unknown) =>
+		formatMessage(SceneErrorCode.E5001, { path: String(path) }),
+	INVALID_SCENE_NAME: (name: unknown) =>
+		formatMessage(SceneErrorCode.E5002, { name: String(name) }),
 	INVALID_SCENE_DEFINITION: (name: string) =>
-		`Invalid scene definition for '${name}'`,
-	SCENE_NOT_FOUND: (name: string) => `Scene not found: ${name}`,
-	NO_ROUTE_MATCHED: (path: string) => `No route matched for path: ${path}`,
-	NO_SCENES_REGISTERED: "No scenes registered",
-	SCENE_NO_DRAW: (name: string) => `Scene '${name}' has no draw() function`,
+		formatMessage(SceneErrorCode.E5003, { name }),
+	SCENE_NOT_FOUND: (name: string) =>
+		formatMessage(SceneErrorCode.E5004, { name }),
+	NO_ROUTE_MATCHED: (path: string) =>
+		formatMessage(SceneErrorCode.E5005, { path }),
+	NO_SCENES_REGISTERED: formatMessage(SceneErrorCode.E5006),
+	SCENE_NO_DRAW: (name: string) =>
+		formatMessage(SceneErrorCode.E5007, { name }),
 } as const;
 
+/**
+ * @deprecated Use formatMessage from @l8b/diagnostics with WarningCode instead
+ */
 export const WARNING_MESSAGES = {
 	ACTIVATING_FIRST_SCENE: (sceneName: string) =>
-		`Activating first available scene: ${sceneName}`,
+		formatMessage(WarningCode.W5001, { sceneName }),
 	NO_ROUTE_MATCHED_INITIAL: (sceneName: string) =>
-		`No route matched initial path, activating first scene: ${sceneName}`,
-	NO_SCENES_REGISTERED_WARNING: "No scenes registered. Game may show blank screen.",
-	NO_SCENES_BEFORE_INIT:
-		"No scenes registered. Make sure to call scene() before router.init().",
+		formatMessage(WarningCode.W5002, { sceneName }),
+	NO_SCENES_REGISTERED_WARNING: formatMessage(WarningCode.W5003),
+	NO_SCENES_BEFORE_INIT: formatMessage(WarningCode.W5004),
 } as const;
 
 export const LOG_PREFIXES = {

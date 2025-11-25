@@ -120,6 +120,9 @@
     "packages/core/scene": {
       "name": "@l8b/scene",
       "version": "0.0.0",
+      "dependencies": {
+        "@l8b/diagnostics": "workspace:*",
+      },
       "devDependencies": {
         "tsup": "^8.0.0",
         "typescript": "^5.0.0",
@@ -162,6 +165,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@l8b/audio": "workspace:*",
+        "@l8b/diagnostics": "workspace:*",
         "@l8b/input": "workspace:*",
         "@l8b/io": "workspace:*",
         "@l8b/lootiscript": "workspace:*",
@@ -231,9 +235,19 @@
       "name": "@l8b/lootiscript",
       "version": "0.0.1",
       "dependencies": {
+        "@l8b/diagnostics": "workspace:*",
         "@l8b/stdlib": "workspace:*",
       },
       "devDependencies": {
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/tooling/diagnostics": {
+      "name": "@l8b/diagnostics",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@types/node": "^20.0.0",
         "tsup": "^8.0.0",
         "typescript": "^5.0.0",
       },
@@ -245,6 +259,7 @@
         "l8b-language-server": "./dist/server.js",
       },
       "dependencies": {
+        "@l8b/diagnostics": "workspace:*",
         "@l8b/lootiscript": "workspace:*",
         "vscode-json-languageservice": "^5.6.3",
         "vscode-languageserver": "^9.0.1",
@@ -448,6 +463,8 @@
     "@l8b/cli": ["@l8b/cli@workspace:packages/framework/cli"],
 
     "@l8b/compiler": ["@l8b/compiler@workspace:packages/framework/compiler"],
+
+    "@l8b/diagnostics": ["@l8b/diagnostics@workspace:packages/tooling/diagnostics"],
 
     "@l8b/input": ["@l8b/input@workspace:packages/core/input"],
 
@@ -1500,6 +1517,8 @@
     "@l8b/cli/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "@l8b/compiler/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+
+    "@l8b/diagnostics/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "@l8b/io/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 

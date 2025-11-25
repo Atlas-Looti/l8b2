@@ -21,7 +21,8 @@
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
-		"@l8b/stdlib": "workspace:*"
+		"@l8b/stdlib": "workspace:*",
+		"@l8b/diagnostics": "workspace:*"
 	},
 	"keywords": [
 		"lootiscript"

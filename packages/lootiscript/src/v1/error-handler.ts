@@ -2,36 +2,56 @@
  * Error handling utilities for LootiScript
  *
  * Provides enhanced error messages with stack traces and source context.
+ *
+ * @deprecated Use @l8b/diagnostics instead. This file is kept for backward compatibility.
  */
 
+// Import from diagnostics package
+import type { CallFrame, RelatedLocation, Diagnostic } from "@l8b/diagnostics";
+import {
+	SyntaxErrorCode,
+	RuntimeErrorCode,
+	CompilationErrorCode,
+} from "@l8b/diagnostics";
+
+// Re-export error codes from diagnostics package
+export {
+	SyntaxErrorCode,
+	RuntimeErrorCode,
+	CompilationErrorCode,
+};
+
+// Re-export types from diagnostics package
+export type { CallFrame, RelatedLocation, Diagnostic };
+
 /**
- * Error codes for LootiScript errors
+ * @deprecated Use SyntaxErrorCode, RuntimeErrorCode, or CompilationErrorCode from @l8b/diagnostics
  */
-export enum ErrorCode {
+export const ErrorCode = {
 	// Syntax Errors (E1xxx)
-	E1001 = "E1001", // Unterminated function
-	E1002 = "E1002", // Too many 'end'
-	E1003 = "E1003", // Missing 'end'
-	E1004 = "E1004", // Unexpected token
-	E1005 = "E1005", // Missing token
-	E1006 = "E1006", // Unexpected end of file
-	E1007 = "E1007", // Misuse of reserved keyword
-	E1008 = "E1008", // Unterminated string
-	E1009 = "E1009", // Unterminated object/array
+	E1001: SyntaxErrorCode.E1001,
+	E1002: SyntaxErrorCode.E1002,
+	E1003: SyntaxErrorCode.E1003,
+	E1004: SyntaxErrorCode.E1004,
+	E1005: SyntaxErrorCode.E1005,
+	E1006: SyntaxErrorCode.E1006,
+	E1007: SyntaxErrorCode.E1007,
+	E1008: SyntaxErrorCode.E1008,
+	E1009: SyntaxErrorCode.E1009,
 
 	// Runtime Errors (E2xxx)
-	E2001 = "E2001", // Undefined variable
-	E2002 = "E2002", // Type mismatch
-	E2003 = "E2003", // Division by zero
-	E2004 = "E2004", // Function not found
-	E2005 = "E2005", // Invalid operation
+	E2001: RuntimeErrorCode.E2001,
+	E2002: RuntimeErrorCode.E2002,
+	E2003: RuntimeErrorCode.E2003,
+	E2004: RuntimeErrorCode.E2004,
+	E2005: RuntimeErrorCode.E2005,
 
 	// Compilation Errors (E3xxx)
-	E3001 = "E3001", // Compilation failed
-}
+	E3001: CompilationErrorCode.E3001,
+} as const;
 
 /**
- * Enhanced error information
+ * @deprecated Use Diagnostic from @l8b/diagnostics
  */
 export interface EnhancedErrorInfo {
 	error: string;
@@ -49,16 +69,6 @@ export interface EnhancedErrorInfo {
 		message: string;
 	};
 	stackTrace?: CallFrame[];
-}
-
-/**
- * Call frame for stack trace
- */
-export interface CallFrame {
-	functionName: string;
-	file: string;
-	line: number;
-	column: number;
 }
 
 /**
