@@ -30,7 +30,7 @@
 		"@l8b/sprites": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/node": "^20.0.0",
+		"@types/node": "^24.10.1",
 		"@vitest/coverage-v8": "^4.0.7",
 		"jsdom": "^24.0.0",
 		"vitest": "^4.0.7"
