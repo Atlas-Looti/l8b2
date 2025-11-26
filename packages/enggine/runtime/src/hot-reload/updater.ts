@@ -12,21 +12,23 @@ export class SourceUpdater {
 	constructor(
 		private vm: L8BVM,
 		private listener: RuntimeListener,
-	) {}
+	) { }
 
 	/**
 	 * Update source code (hot reload)
 	 */
 	updateSource(file: string, src: string, reinit = false): boolean {
-		if (src === this.updateMemory[file]) return false; // No change
+		// Skip update if source code hasn't changed (optimization)
+		if (src === this.updateMemory[file]) return false;
 
 		this.updateMemory[file] = src;
 
 		try {
-			// Compile and execute
+			// Compile and execute updated source code
+			// Timeout of 3000ms prevents infinite loops during hot reload
 			this.vm.run(src, 3000, file);
 
-			// Notify listener
+			// Notify parent process of successful compilation
 			if (this.listener.postMessage) {
 				this.listener.postMessage({
 					name: "compile_success",
@@ -34,7 +36,7 @@ export class SourceUpdater {
 				});
 			}
 
-			// Check for errors
+			// Check for compilation or runtime errors from VM
 			if (this.vm.error_info) {
 				const err: any = Object.assign({}, this.vm.error_info);
 				err.type = "init";
@@ -43,7 +45,8 @@ export class SourceUpdater {
 				return false;
 			}
 
-			// Re-run init() if changed
+			// Re-run init() function if it was modified during hot reload
+			// This allows reinitialization without full page refresh
 			if (reinit && (this.vm.runner as any).getFunctionSource) {
 				const init = (this.vm.runner as any).getFunctionSource("init");
 				if (init && init !== this.previousInit) {
@@ -59,7 +62,8 @@ export class SourceUpdater {
 
 			return true;
 		} catch (err: any) {
-			// Handle error object properly
+			// Handle exceptions during compilation or execution
+			// Error object structure varies, so we normalize it
 			console.error("Parse/Runtime error:", err);
 
 			const vmError = this.vm.error_info ? { ...this.vm.error_info } : null;
@@ -92,7 +96,8 @@ export class SourceUpdater {
 				stack: err?.stack,
 			};
 
-			// Ensure filename is set
+			// Ensure filename is always set for error reporting
+			// Helps with debugging in multi-file projects
 			if (!errorPayload.file) {
 				errorPayload.file = file;
 			}

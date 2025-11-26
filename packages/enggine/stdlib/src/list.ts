@@ -5,7 +5,7 @@
  */
 
 export const ListLib = {
-	// Functional programming
+	// Functional programming methods (map, filter, reduce, etc.)
 	map: (arr: any[], fn: (item: any, index: number) => any): any[] =>
 		arr.map(fn),
 
@@ -30,7 +30,7 @@ export const ListLib = {
 	every: (arr: any[], fn: (item: any, index: number) => boolean): boolean =>
 		arr.every(fn),
 
-	// Array manipulation (non-mutating by default)
+	// Array manipulation methods (non-mutating, returns new arrays)
 	reverse: (arr: any[]): any[] => [...arr].reverse(),
 
 	sort: (arr: any[], fn?: (a: any, b: any) => number): any[] =>
@@ -46,7 +46,7 @@ export const ListLib = {
 	flatMap: (arr: any[], fn: (item: any, index: number) => any): any[] =>
 		arr.flatMap(fn),
 
-	// Searching
+	// Search and lookup methods
 	indexOf: (arr: any[], item: any, fromIndex?: number): number =>
 		arr.indexOf(item, fromIndex),
 
@@ -56,21 +56,21 @@ export const ListLib = {
 	includes: (arr: any[], item: any, fromIndex?: number): boolean =>
 		arr.includes(item, fromIndex),
 
-	// Length
+	// Array length accessor
 	length: (arr: any[]): number => arr.length,
 
-	// Accessing
+	// Element access methods (first, last, at)
 	first: (arr: any[]): any => arr[0] ?? null,
 
 	last: (arr: any[]): any => arr[arr.length - 1] ?? null,
 
 	at: (arr: any[], index: number): any => {
-		// Support negative indices
+		// Support negative indices (Python-style)
 		const normalized = index < 0 ? arr.length + index : index;
 		return arr[normalized] ?? null;
 	},
 
-	// Array operations (mutating - returns modified array)
+	// Array mutation methods (modifies original array and returns it)
 	push: (arr: any[], ...items: any[]): any[] => {
 		arr.push(...items);
 		return arr;
@@ -92,7 +92,7 @@ export const ListLib = {
 		...items: any[]
 	): any[] => arr.splice(start, deleteCount ?? arr.length - start, ...items),
 
-	// Utility
+	// Utility methods for common array operations
 	fill: (arr: any[], value: any, start?: number, end?: number): any[] =>
 		[...arr].fill(value, start, end),
 

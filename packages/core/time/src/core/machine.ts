@@ -36,10 +36,10 @@ export class TimeMachine {
 
 	constructor(runtime: TimeMachineRuntime) {
 		this.runtime = runtime;
-		this.recorder = new StateRecorder(60 * 30); // 30 seconds
-		this.player = new StatePlayer(60 * 4); // 4 seconds loop
+		this.recorder = new StateRecorder(60 * 30); // Buffer: 30 seconds at 60fps
+		this.player = new StatePlayer(60 * 4); // Loop buffer: 4 seconds at 60fps
 
-		// Setup exclusion list
+		// Configure which objects should be excluded from state recording
 		this.setupExclusions();
 	}
 
@@ -52,7 +52,7 @@ export class TimeMachine {
 		if (this.runtime.vm?.context?.global) {
 			const global = this.runtime.vm.context.global;
 
-			// Exclude system APIs and non-serializable objects
+			// Exclude system APIs and non-serializable objects from recording
 			if (global.random) excluded.push(global.random);
 			if (global.screen) excluded.push(global.screen);
 			if (global.audio) excluded.push(global.audio);
@@ -76,7 +76,7 @@ export class TimeMachine {
 		}
 
 		try {
-			// Handle replay position changes
+			// Apply replay position changes and update loop if active
 			if (this.replayPosition !== 0) {
 				this.recorder.trimTo(this.replayPosition);
 				if (this.player.isLooping()) {
@@ -87,7 +87,7 @@ export class TimeMachine {
 				this.replayPosition = 0;
 			}
 
-			// Record current state
+			// Capture current global state snapshot for time travel
 			if (this.runtime.vm?.context?.global) {
 				this.recorder.record(this.runtime.vm.context.global);
 			}
@@ -223,7 +223,7 @@ export class TimeMachine {
 	 * Set replay position
 	 */
 	private setReplayPosition(position: number): void {
-		// Validate time value
+		// Validate time value is finite and non-negative
 		if (!isFinite(position) || position < 0) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7081, {
 				data: { value: String(position) },

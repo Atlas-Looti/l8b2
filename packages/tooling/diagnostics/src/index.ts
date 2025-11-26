@@ -5,7 +5,7 @@
  * error and warning messages across all L8B tools.
  */
 
-// Export codes
+// Export error and warning code enums
 export {
 	SyntaxErrorCode,
 	RuntimeErrorCode,
@@ -18,7 +18,7 @@ export {
 	type DiagnosticCode,
 } from "./core/codes";
 
-// Export types
+// Export diagnostic type definitions and enums
 export {
 	DiagnosticSeverity,
 	DiagnosticCategory,
@@ -29,7 +29,7 @@ export {
 	type MessageArgs,
 } from "./core/types";
 
-// Export messages
+// Export message template system and utilities
 export {
 	MESSAGES,
 	getMessageTemplate,
@@ -37,7 +37,7 @@ export {
 	getSuggestions,
 } from "./core/messages";
 
-// Export formatters
+// Export diagnostic formatting functions for different output targets
 export {
 	formatForCLI,
 	formatForLSP,

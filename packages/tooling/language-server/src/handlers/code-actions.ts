@@ -20,15 +20,14 @@ export function setupCodeActionsHandler(
 			const message = diagnostic.message.toLowerCase();
 			const errorCode = diagnostic.code as string | undefined;
 
-			// Enhanced quick fixes based on error codes
+			// Quick fix for unterminated blocks (E1001, E1003)
+			// Automatically inserts missing 'end' statement at appropriate location
 			if (errorCode === "E1001" || errorCode === "E1003") {
-				// Unterminated function or missing 'end'
-				// Try to find where to insert 'end' - after the error line
 				const document = documents.get(params.textDocument.uri);
 				if (document) {
 					const errorLine = diagnostic.range.end.line;
 
-					// Find the end of the line or next non-empty line
+					// Find appropriate insertion point - skip empty lines and existing 'end' statements
 					let insertLine = errorLine + 1;
 					while (insertLine < document.lineCount) {
 						const nextLine = document.getText({
@@ -56,7 +55,8 @@ export function setupCodeActionsHandler(
 				}
 			}
 
-			// Quick fix: Too many 'end' (E1002)
+			// Quick fix for extra 'end' statements (E1002)
+			// Simply removes the redundant 'end' keyword
 			if (errorCode === "E1002" || message.includes("too many 'end'")) {
 				actions.push({
 					title: "Remove extra 'end' statement",
@@ -72,7 +72,8 @@ export function setupCodeActionsHandler(
 				});
 			}
 
-			// Quick fix: Missing 'end' keyword (generic)
+			// Generic quick fix for unterminated blocks without specific error code
+			// Fallback for parsers that don't provide detailed error codes
 			if (
 				(message.includes("unterminated") ||
 					message.includes("missing 'end'")) &&
@@ -95,7 +96,8 @@ export function setupCodeActionsHandler(
 				});
 			}
 
-			// Quick fix: Undefined variable - suggest declaration
+			// Quick fix for undefined variables
+			// Suggests declaring the variable with 'local' keyword
 			if (message.includes("undefined") || message.includes("not defined")) {
 				const document = documents.get(params.textDocument.uri);
 				if (document) {

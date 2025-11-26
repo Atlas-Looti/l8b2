@@ -64,7 +64,8 @@ export function setupCompletionHandlers(
 			// Add code snippets (high priority)
 			items.push(...getSnippetCompletions());
 
-			// local symbols (high priority)
+			// Local symbols get highest priority (sortText: "0")
+			// These are user-defined variables and functions in current scope
 			state?.symbols.forEach((symbol) => {
 				items.push({
 					label: symbol.name,
@@ -78,7 +79,8 @@ export function setupCompletionHandlers(
 				});
 			});
 
-			// globals (medium priority)
+			// Global APIs get medium priority (sortText: "1")
+			// Includes screen, audio, keyboard, etc.
 			for (const [name, info] of Object.entries(GLOBAL_API)) {
 				items.push({
 					label: name,
@@ -93,7 +95,8 @@ export function setupCompletionHandlers(
 				});
 			}
 
-			// keywords (lower priority)
+			// Keywords get lower priority (sortText: "2")
+			// Prevents keywords from overshadowing user symbols
 			[
 				"function",
 				"return",

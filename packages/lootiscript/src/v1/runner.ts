@@ -184,14 +184,15 @@ export class Runner {
 		this.fps_max = 60;
 		this.cpu_load = 0;
 		this.triggers_controls_update = false;
-		// main_thread will be initialized in init()
-		// Profiler initialized with placeholder processor until init
+		// Main thread and profiler are initialized lazily in init()
+		// to ensure proper dependency setup with L8BVM context
 		this.profiler = new VMProfiler(null as any);
 	}
 
 	init(): boolean {
 		this.initialized = true;
-		// Initialize system object if it doesn't exist
+		// Initialize system object if not provided by runtime
+		// This object exposes VM state and controls to LootiScript code
 		if (!this.l8bvm.context.global.system) {
 			this.l8bvm.context.global.system = {};
 		}
@@ -203,10 +204,10 @@ export class Runner {
 		this.current_thread = this.main_thread;
 		this.thread_index = 0;
 
-		// Initialize profiler with main thread processor
+		// Initialize profiler with main thread processor for performance monitoring
 		this.profiler = new VMProfiler(this.main_thread.processor);
 
-		// Expose profiler to system
+		// Expose profiler API to system object for LootiScript code access
 		this.system.profiler = {
 			start: () => {
 				this.main_thread.processor.profilingEnabled = true;
@@ -233,7 +234,8 @@ export class Runner {
 				}
 			},
 		} as any;
-		// Inject standard library
+		// Inject standard library into global scope for LootiScript code
+		// Provides Math, JSON, List, and String utility functions
 		this.l8bvm.context.global.Math = MathLib;
 		this.l8bvm.context.global.JSON = JSONLib;
 		this.l8bvm.context.global.List = ListLib;
@@ -243,10 +245,10 @@ export class Runner {
 				return args[0].bind.apply(args[0], args.slice(1));
 			},
 		} as any;
-		// Extend String with stdlib utilities
+		// Extend String with stdlib utilities for LootiScript
 		this.l8bvm.context.global.String = {
 			...StringLib,
-			// Override fromCharCode to use proper calling convention
+			// Override fromCharCode to use proper calling convention with variable arguments
 			fromCharCode: function () {
 				return String.fromCharCode.apply(null, arguments as any);
 			},
@@ -262,7 +264,8 @@ export class Runner {
 			},
 		};
 
-		// Initialize Object with default operators
+		// Initialize Object with default operator overloads for LootiScript
+		// Enables operator syntax like obj1 + obj2, obj1 - obj2, etc.
 		this.l8bvm.context.global.Object = {
 			"+": (a: any, b: any) => (a != null ? a + b : b),
 			"-": (a: any, b: any) => a - b,
@@ -414,7 +417,9 @@ export class Runner {
 			margin = Math.floor((1000 / this.fps) * 0.8);
 		}
 		time = Date.now();
-		time_limit = time + 100; // allow more time to prevent interrupting main_thread in the middle of a draw()
+		// Allocate 100ms time budget for main thread to prevent interrupting draw() mid-frame
+		// This ensures smooth rendering even under heavy computational load
+		time_limit = time + 100;
 		time_out = this.system.preemptive ? time_limit : Infinity;
 		processor = this.main_thread.processor;
 		if (!processor.done) {
@@ -434,10 +439,12 @@ export class Runner {
 		) {
 			this.process(this.main_thread, time_out);
 		}
-		time_limit = time + margin; // secondary threads get remaining time
+		// Secondary threads receive remaining time budget after main thread completes
+		// This prevents background tasks from impacting frame rate and ensures main thread priority
+		time_limit = time + margin;
 		time_out = this.system.preemptive ? time_limit : Infinity;
 
-		// Record frame in profiler if active
+		// Record frame metrics in profiler for performance analysis
 		if (this.main_thread.processor.profilingEnabled) {
 			this.profiler.frame();
 		}
@@ -503,7 +510,8 @@ export class Runner {
 				}
 			}
 		}
-		t = this.threads[0]; // reuse variable
+		// Reuse variable for main thread reference to avoid allocation
+		t = this.threads[0];
 		dt = Date.now() - time;
 		const dt_limit = time_limit - time;
 		load = (dt / dt_limit) * 100;

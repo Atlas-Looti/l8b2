@@ -27,12 +27,13 @@ export async function validateTextDocument(
 	const text = textDocument.getText();
 	const diagnostics: Diagnostic[] = [];
 
-	// Validate embedded languages (only if they exist in document)
+	// Validate embedded languages (JSON, etc.) only where they actually exist
+	// Skips validation for modes with no embedded content to improve performance
 	const documentRegions = documentRegionsCache.get(textDocument);
 	const allModes = languageModes.getAllModes();
 	for (const mode of allModes) {
 		if (mode.doValidation) {
-			// Check if this mode's language actually exists in the document
+			// Verify this language mode has actual content in the document
 			const embeddedDoc = documentRegions.getEmbeddedDocument(mode.getId());
 			const hasEmbeddedContent = embeddedDoc.getText().trim().length > 0;
 
@@ -43,7 +44,8 @@ export async function validateTextDocument(
 		}
 	}
 
-	// Validate LootiScript
+	// Validate LootiScript syntax and API usage using the parser
+	// This is the primary validation layer for .loot files
 	try {
 		const parser = new Parser(text, textDocument.uri);
 		parser.parse();
@@ -51,7 +53,7 @@ export async function validateTextDocument(
 		if ((parser as any).error_info) {
 			const err = (parser as any).error_info;
 
-			// Use diagnostics package to create and format diagnostic
+			// Convert parser error to diagnostic using centralized diagnostics package
 			const diagnosticData = createDiagnostic(err.code || "E1004", {
 				file: textDocument.uri,
 				line: err.line,
@@ -61,18 +63,18 @@ export async function validateTextDocument(
 				suggestions: err.suggestions,
 				related: err.related
 					? {
-							file: textDocument.uri,
-							line: err.related.line,
-							column: err.related.column,
-							message: err.related.message || "Related location",
-						}
+						file: textDocument.uri,
+						line: err.related.line,
+						column: err.related.column,
+						message: err.related.message || "Related location",
+					}
 					: undefined,
 				data: {
 					error: err.error,
 				},
 			});
 
-			// Format for LSP using diagnostics formatter
+			// Convert diagnostic to LSP format for editor integration
 			const lspDiagnostic = formatForLSP(diagnosticData);
 			diagnostics.push(lspDiagnostic as Diagnostic);
 		}
@@ -114,12 +116,12 @@ function validateApiUsage(
 		const fullPath = match[1]; // e.g., "screen", "sprites.player", "map.level1"
 		const propertyName = match[2]; // e.g., "drawSprite", "invalidProperty"
 
-		// Extract root object name (first part before first dot)
+		// Extract root object name from property path (e.g., "sprites" from "sprites.player")
 		const rootObjectName = fullPath.split(".")[0];
 		const isNested = fullPath.includes(".");
 
-		// Known runtime objects that support nested properties
-		// These are not in GLOBAL_API but exist at runtime
+		// Runtime collections that are populated dynamically (sprites, maps, etc.)
+		// Cannot validate instance properties statically since they're loaded at runtime
 		const knownRuntimeObjects = new Set([
 			"sprites",
 			"map",
@@ -128,12 +130,12 @@ function validateApiUsage(
 			"assets",
 		]);
 
-		// For nested properties (e.g., sprites.player.x), we validate
-		// by checking if the root object is known
+		// For nested property access (e.g., sprites.player.x), validate
+		// that the root object exists in the API
 		if (isNested) {
 			const api = GLOBAL_API[rootObjectName];
 			if (!api && !knownRuntimeObjects.has(rootObjectName)) {
-				// Root object doesn't exist, report error
+				// Root object not found in API definitions
 				const propertyStart = matchIndex + fullPath.length + 1;
 				const startPos = textDocument.positionAt(propertyStart);
 
@@ -154,10 +156,8 @@ function validateApiUsage(
 				continue;
 			}
 
-			// For known runtime objects (sprites, map, etc.), we always report
-			// errors for nested property access since we can't validate
-			// instance properties at compile time. This helps catch typos.
-			// Note: This may produce false positives for valid instance properties.
+			// Report errors for runtime collection property access
+			// This helps catch typos but may produce false positives for valid runtime properties
 			if (knownRuntimeObjects.has(rootObjectName)) {
 				const propertyStart = matchIndex + fullPath.length + 1;
 				const startPos = textDocument.positionAt(propertyStart);
@@ -180,7 +180,8 @@ function validateApiUsage(
 			continue;
 		}
 
-		// For single-level properties (e.g., screen.drawSprite), validate normally
+		// For single-level API access (e.g., screen.drawSprite),
+		// validate property exists in the API definition
 		const api = GLOBAL_API[fullPath];
 		if (!api || !api.properties) {
 			continue;
@@ -202,10 +203,9 @@ function validateApiUsage(
 			Object.keys(api.properties),
 		);
 
-		// Calculate line and column from position
 		const startPos = textDocument.positionAt(propertyStart);
 
-		// Use diagnostics package to create and format diagnostic
+		// Create diagnostic with error code, location, and suggested fix
 		const diagnosticData = createDiagnostic("E7100", {
 			file: textDocument.uri,
 			line: startPos.line + 1, // 1-based
@@ -218,7 +218,7 @@ function validateApiUsage(
 			},
 		});
 
-		// Format for LSP using diagnostics formatter
+		// Convert diagnostic to LSP format for editor integration
 		const lspDiagnostic = formatForLSP(diagnosticData);
 		diagnostics.push(lspDiagnostic as Diagnostic);
 	}

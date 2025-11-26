@@ -26,7 +26,8 @@ import type { ErrorInfo, GlobalAPI, MetaFunctions, VMContext } from "./types";
 import { createVMContext } from "./context";
 import { setupArrayExtensions } from "./extensions";
 
-// Expose Processor, Program, and Compiler to globalThis for Runner
+// Expose core LootiScript classes to globalThis for Runner access
+// Required for dynamic compilation and execution
 if (typeof globalThis !== "undefined") {
 	(globalThis as any).Processor = Processor;
 	(globalThis as any).Program = Program;
@@ -45,22 +46,22 @@ export class L8BVM {
 		namespace = "/l8b",
 		preserve_ls = false,
 	) {
-		// Setup context
+		// Initialize VM execution context with meta functions and global API
 		this.context = createVMContext(meta, global);
 
-		// Create storage service
+		// Initialize storage service for persistent data (localStorage/sessionStorage)
 		this.storage_service = new StorageService(namespace, preserve_ls);
 
-		// Add storage to global
+		// Inject storage API into global scope for LootiScript access
 		this.context.global.storage = this.storage_service.getInterface();
 
-		// Create runner with l8bvm reference
+		// Create Runner instance with reference to this VM for bidirectional communication
 		this.runner = new Runner(this as any);
 
-		// Initialize runner (creates main_thread)
+		// Initialize Runner and create main execution thread
 		this.runner.init();
 
-		// Setup array extensions
+		// Add custom array methods to Array.prototype for LootiScript
 		setupArrayExtensions();
 	}
 
@@ -91,13 +92,13 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
-			// Get stack trace from processor if available
+			// Extract stack trace from processor for better error debugging
 			let stackTrace = err.stackTrace;
 			if (
 				!stackTrace &&
@@ -143,13 +144,13 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 
-			// Get stack trace from processor if available
+			// Extract stack trace from processor for better error debugging
 			let stackTrace = err.stackTrace;
 			if (
 				!stackTrace &&
@@ -187,12 +188,12 @@ export class L8BVM {
 		try {
 			let routine: Routine;
 
-			// If routineData is already a Routine instance, use it directly
-			// Otherwise, import it from serialized data
+			// Handle both Routine instances and serialized routine data
+			// Serialized data needs to be imported first
 			if (routineData instanceof Routine) {
 				routine = routineData;
 			} else {
-				// Import from serialized data
+				// Deserialize routine from JSON format
 				routine = new Routine(0).import(routineData);
 			}
 
@@ -202,9 +203,9 @@ export class L8BVM {
 		} catch (err: any) {
 			const errorMessage =
 				(typeof err === "object" &&
-				err !== null &&
-				"error" in err &&
-				typeof err.error === "string"
+					err !== null &&
+					"error" in err &&
+					typeof err.error === "string"
 					? err.error
 					: err.message) || String(err);
 

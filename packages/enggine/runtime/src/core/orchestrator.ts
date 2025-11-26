@@ -92,7 +92,8 @@ export class RuntimeOrchestrator {
 		this.options = options;
 		this.listener = options.listener || {};
 
-		// Initialize screen
+		// Initialize core subsystems in dependency order
+		// Screen must be first as other systems may need canvas context
 		this.screen = new Screen({
 			runtime: this,
 			canvas: options.canvas,
@@ -100,19 +101,19 @@ export class RuntimeOrchestrator {
 			height: options.height || 400,
 		});
 
-		// Initialize audio
+		// Audio system for sound and music playback
 		this.audio = new AudioCore(this);
 
-		// Initialize input
+		// Input manager for keyboard, mouse, touch, and gamepad
 		this.input = new InputManager(this.screen.getCanvas());
 
-		// Initialize system
+		// System API for exposing runtime state to game code
 		this.system = new System(this.listener);
 
-		// Initialize scene manager
+		// Scene manager for routing and scene lifecycle
 		this.sceneManager = new SceneManager();
 
-		// Initialize asset loader
+		// Asset loader for sprites, maps, sounds, and other resources
 		this.assetLoader = new AssetLoader(
 			options.url || "",
 			options.resources || {},
@@ -181,7 +182,7 @@ export class RuntimeOrchestrator {
 	private async loadAssets(): Promise<void> {
 		const collections = await this.assetLoader.loadAll();
 
-		// Assign to runtime
+		// Populate runtime asset collections from loader results
 		this.sprites = collections.sprites;
 		this.maps = collections.maps;
 		this.sounds = collections.sounds;
@@ -206,14 +207,12 @@ export class RuntimeOrchestrator {
 					return;
 				}
 
-				// Update loading progress
+				// Update loading progress and display loading bar
 				const progress = this.assetLoader.getProgress();
 				this.system.setLoading(Math.floor(progress * 100));
-
-				// Show loading bar
 				this.assetLoader.showLoadingBar(this.screen.getInterface());
 
-				// Check again next frame
+				// Poll asset readiness on next animation frame
 				requestAnimationFrame(checkReady);
 			};
 
@@ -235,7 +234,8 @@ export class RuntimeOrchestrator {
 			return def;
 		}
 
-		// Check if VM is ready
+		// Verify VM is fully initialized before converting scene definitions
+		// Scene conversion requires the processor to convert Routine objects to functions
 		if (!this.vm?.runner?.main_thread?.processor) {
 			console.warn(
 				`[RuntimeOrchestrator] VM not ready for scene conversion. Scene functions may not work correctly.`,
@@ -276,7 +276,7 @@ export class RuntimeOrchestrator {
 	 */
 	private initializeVM(): void {
 		this.logStep("vm: building meta/global APIs");
-		// Setup meta functions
+		// Setup meta functions - built-in functions available to LootiScript code
 		const meta: Partial<MetaFunctions> = {
 			print: (text: any) => {
 				if (
@@ -293,7 +293,8 @@ export class RuntimeOrchestrator {
 			},
 		};
 
-		// Setup global API
+		// Setup global API - these objects/functions are available to all LootiScript code
+		// This is the bridge between the runtime and the game code
 		const inputStates = this.input.getStates();
 		const global: Partial<GlobalAPI> & {
 			ObjectPool: typeof ObjectPool;
@@ -319,17 +320,18 @@ export class RuntimeOrchestrator {
 			route: (path: string, sceneName: string) =>
 				this.sceneManager.registerRoute(path, sceneName),
 			router: this.sceneManager.router.getInterface(),
-			// Dynamic asset constructors
+			// Dynamic asset constructors - allow creating assets at runtime
+			// These wrap the core package constructors for use in LootiScript
 			Image: Image,
 			Sprite: Sprite,
 			Map: Map,
 			Sound: createSoundClass(this.audio),
 			Random: Random,
-			// Object pooling utility
 			ObjectPool: ObjectPool,
 		};
 
-		// Create VM
+		// Initialize VM with meta functions and global API
+		// The VM executes compiled LootiScript bytecode
 		this.vm = new L8BVM(
 			meta,
 			global,
@@ -425,7 +427,7 @@ export class RuntimeOrchestrator {
 			hasActiveScene: this.sceneManager.hasActiveScene(),
 		});
 
-		// Notify listener
+		// Notify listener that runtime startup is complete
 		if (this.listener.postMessage) {
 			this.listener.postMessage({ name: "started" });
 		}
@@ -461,33 +463,32 @@ export class RuntimeOrchestrator {
 	private handleUpdate(): void {
 		if (!this.vm) return;
 
-		// Increment frame counter
 		this.frameCount++;
 
-		// Update input state
+		// Poll input devices and update their state
 		this.input.update();
 
-		// Batch debug updates (only every N frames)
+		// Batch debug updates to reduce console spam (only log every N frames)
 		if (this.frameCount % this.DEBUG_UPDATE_FREQUENCY === 0) {
 			this.debugInputs();
 			this.debugScreen();
 		}
 
-		// Update system FPS
+		// Update system FPS metric for game code access
 		if (this.gameLoop) {
 			this.system.setFPS(this.gameLoop.getFPS());
 		}
 
 		try {
-			// Update scene manager (priority)
+			// Update scene manager (priority) - scenes handle their own update logic
 			if (this.sceneManager.hasActiveScene()) {
 				this.sceneManager.update();
 			} else {
-				// Fallback: Call user's update() function
+				// Fallback: Call user's update() function when no scene is active
 				this.vm.call("update");
 			}
 
-			// Check for errors
+			// Report any errors that occurred during update
 			if (this.vm.error_info) {
 				const err: any = Object.assign({}, this.vm.error_info);
 				err.type = "update";
@@ -729,15 +730,15 @@ export class RuntimeOrchestrator {
 		if (!this.vm) return;
 
 		try {
-			// Draw scene manager (priority)
+			// Draw scene manager (priority) - scenes handle their own rendering
 			if (this.sceneManager.hasActiveScene()) {
 				this.sceneManager.draw();
 			} else {
-				// Fallback: Call user's draw() function
+				// Fallback: Call user's draw() function when no scene is active
 				this.vm.call("draw");
 			}
 
-			// Check for errors
+			// Report any errors that occurred during draw
 			if (this.vm.error_info) {
 				const err: any = Object.assign({}, this.vm.error_info);
 				err.type = "draw";
@@ -751,7 +752,7 @@ export class RuntimeOrchestrator {
 			});
 		}
 
-		// Time machine step (after draw)
+		// Time machine step after draw completes (captures frame state for debugging)
 		if (this.timeMachine) {
 			this.timeMachine.step();
 		}
@@ -839,7 +840,10 @@ export class RuntimeOrchestrator {
 	}
 
 	/**
-	 * Format error message dengan enhanced information
+	 * Format error message with enhanced information
+	 *
+	 * Enhances error objects with diagnostic information including error codes,
+	 * context, suggestions, and formatted messages for better error reporting.
 	 */
 	private formatError(error: any): any {
 		// If error already has enhanced info, return as-is
@@ -865,7 +869,7 @@ export class RuntimeOrchestrator {
 		// Format for browser using diagnostics formatter
 		const formattedMessage = formatForBrowser(diagnostic);
 
-		// Enhance error dengan formatting
+		// Enhance error with formatted diagnostic information
 		const formatted: any = {
 			...error,
 			...diagnostic,
@@ -876,7 +880,7 @@ export class RuntimeOrchestrator {
 	}
 
 	/**
-	 * Report error to listener dengan enhanced formatting
+	 * Report error to listener with enhanced formatting
 	 */
 	private reportError(error: any): void {
 		if (this.listener.reportError) {

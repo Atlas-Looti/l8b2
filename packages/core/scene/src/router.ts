@@ -207,14 +207,14 @@ export class Router {
 			push: (path: string) => this.push(path),
 			replace: (path: string) => this.replace(path),
 			back: () => this.back(),
-			// Functions for reliable access (VM compatible)
+			// Provide function accessors for VM compatibility (getters may not work in VM)
 			getPath: () => self.state.path,
 			getParams: () => self.state.params,
 			getSceneName: () => self.state.sceneName,
 		};
 
-		// Define properties that always return current state
-		// This works better in VM than getters
+		// Define dynamic properties that always return current state
+		// Using Object.defineProperty for better VM compatibility than class getters
 		Object.defineProperty(routerInterface, "path", {
 			get: () => self.state.path,
 			enumerable: true,

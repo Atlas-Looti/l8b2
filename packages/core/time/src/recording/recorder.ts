@@ -17,7 +17,7 @@ export class StateRecorder {
 	private excluded: any[] = [];
 
 	constructor(maxLength = 60 * 30) {
-		// Default: 30 seconds at 60fps
+		// Default buffer size: 30 seconds at 60fps (1800 frames)
 		this.maxLength = maxLength;
 	}
 
@@ -107,12 +107,12 @@ export class StateRecorder {
 			return value;
 		}
 
-		// Check if excluded
+		// Skip excluded objects to avoid serializing non-game state
 		if (this.excluded.includes(value)) {
 			return null;
 		}
 
-		// Handle primitives
+		// Primitives can be stored directly without deep copying
 		if (
 			typeof value === "string" ||
 			typeof value === "number" ||
@@ -121,7 +121,7 @@ export class StateRecorder {
 			return value;
 		}
 
-		// Handle arrays
+		// Recursively deep copy array elements
 		if (Array.isArray(value)) {
 			const result: any[] = [];
 			for (let i = 0; i < value.length; i++) {
@@ -130,7 +130,7 @@ export class StateRecorder {
 			return result;
 		}
 
-		// Handle objects
+		// Recursively deep copy object properties
 		if (typeof value === "object") {
 			const result: any = {};
 			for (const key in value) {
@@ -141,7 +141,7 @@ export class StateRecorder {
 			return result;
 		}
 
-		// Functions and other types
+		// Functions and other non-serializable types are excluded
 		return null;
 	}
 }

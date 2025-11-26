@@ -34,17 +34,17 @@ import {
 	sanitizeSettings,
 } from "./settings";
 
-// Create a connection for the server
+// Create LSP connection with all proposed protocol features enabled
 const connection = createConnection(ProposedFeatures.all);
 
-// Create a simple text document manager
+// Document manager tracks all open text documents and their state
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-// Setup embedded language support
+// Initialize embedded language support system for JSON, etc.
 const documentRegionsCache = new DocumentRegionsCache();
 const languageModes = new LanguageModes(documentRegionsCache);
 
-// Register JSON mode for embedded JSON support
+// Register JSON language mode for embedded JSON validation and completion
 const jsonLanguageService = createJSONLanguageService();
 languageModes.registerMode(
 	getJSONMode(jsonLanguageService, documentRegionsCache),
@@ -59,8 +59,8 @@ let hasWorkspaceFolderCapability = false;
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
 
-	// Does the client support the `workspace/configuration` request?
-	// If not, we fall back using global settings.
+	// Check if client supports workspace/configuration requests
+	// If not supported, fall back to global settings
 	hasConfigurationCapability = !!(
 		capabilities.workspace && !!capabilities.workspace.configuration
 	);
@@ -71,7 +71,7 @@ connection.onInitialize((params: InitializeParams) => {
 	const result: InitializeResult = {
 		capabilities: {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
-			// Tell the client that this server supports code completion.
+			// Declare all LSP features this server implements
 			completionProvider: {
 				resolveProvider: true,
 				triggerCharacters: ["."],
@@ -112,7 +112,7 @@ connection.onInitialize((params: InitializeParams) => {
 
 connection.onInitialized(() => {
 	if (hasConfigurationCapability) {
-		// Register for all configuration changes.
+		// Subscribe to configuration change notifications from the client
 		connection.client.register(
 			DidChangeConfigurationNotification.type,
 			undefined,
@@ -143,8 +143,7 @@ connection.onDidChangeConfiguration(async (change) => {
 	}
 });
 
-// The content of a text document has changed. This event is emitted
-// when the text document first opened or when its content has changed.
+// Triggered when document content changes (typing, paste, etc.)
 documents.onDidChangeContent((change) => {
 	updateDocumentState(change.document, connection);
 	validateTextDocument(
@@ -173,11 +172,12 @@ documents.onDidClose((change) => {
 });
 
 connection.onDidChangeWatchedFiles((_change) => {
-	// Monitored files have change in VSCode
+	// React to file system changes for watched files (e.g., .loot files)
 	connection.console.log("We received an file change event");
 });
 
-// Setup all handlers
+// Register all LSP feature handlers
+// Provides IDE features: autocomplete, hover tooltips, go-to-definition, etc.
 setupCompletionHandlers(
 	connection,
 	documents,
@@ -194,9 +194,9 @@ setupReferencesHandler(connection, documents);
 setupRenameHandler(connection, documents);
 setupSemanticTokensHandler(connection, documents);
 
-// Make the text document manager listen on the connection
-// for open, change and close text document events
+// Connect document manager to LSP connection
+// Handles document lifecycle events (open, change, close)
 documents.listen(connection);
 
-// Listen on the connection
+// Start the LSP server and begin processing client requests
 connection.listen();

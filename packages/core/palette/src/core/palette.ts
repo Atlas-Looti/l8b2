@@ -24,7 +24,7 @@ export class Palette {
 		this.runtime = runtime;
 
 		if ("colors" in options && Array.isArray(options.colors)) {
-			// Validate palette format
+			// Validate palette format to ensure all colors are valid hex strings
 			if (!this.validatePaletteFormat(options.colors)) {
 				const diagnostic = createDiagnostic(APIErrorCode.E7072, {
 					data: { format: "invalid color array" },
@@ -41,7 +41,7 @@ export class Palette {
 				this.name = options.name || "Custom";
 			}
 		} else {
-			// Default: empty palette
+			// Initialize with empty palette when no valid colors provided
 			this.colors = [];
 			this.name = "Empty";
 		}
@@ -63,7 +63,7 @@ export class Palette {
 	 * Get color by index
 	 */
 	get(index: number): ColorHex {
-		// Validate color index
+		// Validate color index is a finite, non-negative number
 		if (!isFinite(index) || index < 0) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7073, {
 				data: { index, maxIndex: this.colors.length - 1 },
@@ -122,7 +122,7 @@ export class Palette {
 	 * Set color at index (expands palette if needed)
 	 */
 	set(index: number, color: ColorHex): void {
-		// Validate color index
+		// Validate color index is a finite, non-negative number
 		if (!isFinite(index) || index < 0) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7073, {
 				data: { index, maxIndex: this.colors.length - 1 },
@@ -135,7 +135,7 @@ export class Palette {
 			return;
 		}
 
-		// Validate color format
+		// Validate color format matches hex pattern (#RRGGBB)
 		if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7072, {
 				data: { format: color },
@@ -148,7 +148,7 @@ export class Palette {
 			return;
 		}
 
-		// Expand palette if needed
+		// Expand palette with black (#000000) if index exceeds current size
 		while (this.colors.length <= index) {
 			this.colors.push("#000000");
 		}
@@ -178,7 +178,7 @@ export class Palette {
 	 * Replace entire palette
 	 */
 	setPalette(colors: ColorHex[]): void {
-		// Validate palette format
+		// Validate palette format to ensure all colors are valid hex strings
 		if (!this.validatePaletteFormat(colors)) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7072, {
 				data: { format: "invalid color array" },
@@ -213,10 +213,10 @@ export class Palette {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		return result
 			? {
-					r: Number.parseInt(result[1], 16),
-					g: Number.parseInt(result[2], 16),
-					b: Number.parseInt(result[3], 16),
-				}
+				r: Number.parseInt(result[1], 16),
+				g: Number.parseInt(result[2], 16),
+				b: Number.parseInt(result[3], 16),
+			}
 			: { r: 0, g: 0, b: 0 };
 	}
 

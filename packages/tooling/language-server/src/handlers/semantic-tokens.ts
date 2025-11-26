@@ -78,7 +78,7 @@ export function setupSemanticTokensHandler(
 			const lines = text.split("\n");
 
 			lines.forEach((line, lineIndex) => {
-				// Highlight API objects
+				// Highlight API objects (screen, audio, etc.) as namespaces with defaultLibrary modifier
 				API_OBJECTS.forEach((api) => {
 					const regex = new RegExp(`\\b${api}\\b`, "g");
 					let match;
@@ -87,13 +87,13 @@ export function setupSemanticTokensHandler(
 							lineIndex,
 							match.index,
 							api.length,
-							0, // namespace
+							0, // namespace token type
 							1 << 6, // defaultLibrary modifier
 						);
 					}
 				});
 
-				// Highlight constructors
+				// Highlight constructors (Random, ObjectPool, etc.) as classes with defaultLibrary modifier
 				CONSTRUCTORS.forEach((constructor) => {
 					const regex = new RegExp(`\\b${constructor}\\b`, "g");
 					let match;
@@ -102,17 +102,18 @@ export function setupSemanticTokensHandler(
 							lineIndex,
 							match.index,
 							constructor.length,
-							1, // class
+							1, // class token type
 							1 << 6, // defaultLibrary modifier
 						);
 					}
 				});
 
-				// Highlight function calls (word followed by ()
+				// Highlight function calls (identifier followed by parentheses)
 				const functionRegex = /\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
 				let match;
 				while ((match = functionRegex.exec(line)) !== null) {
 					const funcName = match[1];
+					// Skip if already categorized as API object or constructor
 					if (
 						!API_OBJECTS.includes(funcName) &&
 						!CONSTRUCTORS.includes(funcName)
@@ -121,27 +122,27 @@ export function setupSemanticTokensHandler(
 							lineIndex,
 							match.index,
 							funcName.length,
-							2, // function
+							2, // function token type
 							0,
 						);
 					}
 				}
 
-				// Highlight numbers
+				// Highlight numeric literals
 				const numberRegex = /\b\d+(\.\d+)?\b/g;
 				while ((match = numberRegex.exec(line)) !== null) {
-					builder.push(lineIndex, match.index, match[0].length, 7, 0); // number
+					builder.push(lineIndex, match.index, match[0].length, 7, 0);
 				}
 
-				// Highlight strings
+				// Highlight string literals (single, double, or template quotes)
 				const stringRegex = /"([^"\\]|\\.)*"|'([^'\\]|\\.)*'|`([^`\\]|\\.)*`/g;
 				while ((match = stringRegex.exec(line)) !== null) {
-					builder.push(lineIndex, match.index, match[0].length, 8, 0); // string
+					builder.push(lineIndex, match.index, match[0].length, 8, 0);
 				}
 
-				// Highlight comments
+				// Highlight single-line comments
 				if (line.trim().startsWith("//")) {
-					builder.push(lineIndex, line.indexOf("//"), line.length, 9, 0); // comment
+					builder.push(lineIndex, line.indexOf("//"), line.length, 9, 0);
 				}
 			});
 

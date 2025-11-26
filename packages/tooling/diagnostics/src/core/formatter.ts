@@ -16,11 +16,11 @@ export function formatForCLI(diagnostic: Diagnostic): string {
 	const severity = diagnostic.severity || DiagnosticSeverity.Error;
 	const message = diagnostic.message || "Unknown error";
 
-	// Severity indicator
+	// Add severity indicator (✗ for errors, ⚠ for warnings)
 	const indicator = severity === DiagnosticSeverity.Error ? "✗" : "⚠";
 	lines.push(`${indicator} [${code}] ${message}`);
 
-	// Location
+	// Add file location with line and column numbers
 	if (diagnostic.file) {
 		let location = `  at ${diagnostic.file}`;
 		if (diagnostic.line !== undefined) {
@@ -32,13 +32,13 @@ export function formatForCLI(diagnostic: Diagnostic): string {
 		lines.push(location);
 	}
 
-	// Context
+	// Add source code context if available
 	if (diagnostic.context) {
 		lines.push("");
 		lines.push(diagnostic.context);
 	}
 
-	// Suggestions
+	// Add actionable suggestions for fixing the error
 	const suggestions =
 		diagnostic.suggestions || getSuggestions(code, diagnostic.data);
 	if (suggestions.length > 0) {
@@ -49,7 +49,7 @@ export function formatForCLI(diagnostic: Diagnostic): string {
 		}
 	}
 
-	// Related location
+	// Add related location information if available
 	if (diagnostic.related) {
 		lines.push("");
 		lines.push(
@@ -57,7 +57,7 @@ export function formatForCLI(diagnostic: Diagnostic): string {
 		);
 	}
 
-	// Stack trace
+	// Add stack trace for runtime errors
 	if (diagnostic.stackTrace && diagnostic.stackTrace.length > 0) {
 		lines.push("");
 		lines.push("Stack trace:");
@@ -95,12 +95,12 @@ export function formatForLSP(diagnostic: Diagnostic): {
 		message: string;
 	}>;
 } {
-	const line = Math.max(0, (diagnostic.line || 1) - 1); // Convert to 0-based
-	const column = Math.max(0, (diagnostic.column || 1) - 1); // Convert to 0-based
+	const line = Math.max(0, (diagnostic.line || 1) - 1); // Convert 1-based to 0-based
+	const column = Math.max(0, (diagnostic.column || 1) - 1); // Convert 1-based to 0-based
 	const length = diagnostic.length || 1;
 	const endColumn = column + length;
 
-	// Map severity
+	// Map diagnostic severity to LSP severity levels
 	let lspSeverity: number;
 	switch (diagnostic.severity) {
 		case DiagnosticSeverity.Error:
@@ -130,10 +130,10 @@ export function formatForLSP(diagnostic: Diagnostic): {
 		result.code = diagnostic.code;
 	}
 
-	// Build related information
+	// Collect related information for LSP diagnostic
 	const relatedInformation: any[] = [];
 
-	// Add related location
+	// Include related location if provided
 	if (diagnostic.related) {
 		relatedInformation.push({
 			location: {
@@ -153,7 +153,7 @@ export function formatForLSP(diagnostic: Diagnostic): {
 		});
 	}
 
-	// Add first suggestion as related info
+	// Include first suggestion as related information with lightbulb icon
 	const suggestions =
 		diagnostic.suggestions ||
 		getSuggestions(diagnostic.code || "", diagnostic.data);

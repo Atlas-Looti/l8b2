@@ -98,7 +98,7 @@ function getSpritePixel(
 	v: number,
 	runtime?: any,
 ): { r: number; g: number; b: number; a: number } | null {
-	// Get sprite canvas
+	// Resolve sprite canvas from object or runtime registry
 	let canvas: HTMLCanvasElement | null = null;
 
 	if (sprite && typeof sprite === "object" && sprite.canvas) {
@@ -112,7 +112,7 @@ function getSpritePixel(
 
 	if (!canvas) return null;
 
-	// Wrap texture coordinates
+	// Apply texture coordinate wrapping (repeat mode)
 	const width = canvas.width;
 	const height = canvas.height;
 	const x = Math.floor(u) % width;
@@ -120,7 +120,7 @@ function getSpritePixel(
 	const px = x < 0 ? x + width : x;
 	const py = y < 0 ? y + height : y;
 
-	// Get pixel data
+	// Sample pixel color from sprite canvas
 	const ctx = canvas.getContext("2d");
 	if (!ctx) return null;
 

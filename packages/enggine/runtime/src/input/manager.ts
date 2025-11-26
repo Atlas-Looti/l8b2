@@ -21,13 +21,15 @@ export class InputManager {
 	public gamepad: GamepadInput;
 
 	constructor(canvas?: HTMLCanvasElement) {
-		// Create input systems
+		// Initialize all input subsystems
+		// Each system handles its own event listeners and state management
 		this.keyboard = new KeyboardInput();
 		this.mouse = new MouseInput();
 		this.touch = new TouchInput(this.mouse);
 		this.gamepad = new GamepadInput();
 
-		// Attach to canvas if provided
+		// Attach event listeners to canvas if provided
+		// Canvas is required for mouse and touch input
 		if (canvas) {
 			this.attachCanvas(canvas);
 		}

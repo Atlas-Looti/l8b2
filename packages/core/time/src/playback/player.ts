@@ -17,7 +17,7 @@ export class StatePlayer {
 	private loopCallback: (() => void) | null = null;
 
 	constructor(loopLength = 60 * 4) {
-		// Default: 4 seconds at 60fps
+		// Default loop buffer size: 4 seconds at 60fps (240 frames)
 		this.loopLength = loopLength;
 	}
 
@@ -86,14 +86,14 @@ export class StatePlayer {
 			return;
 		}
 
-		// Clear existing properties (except protected ones)
+		// Remove all existing properties except protected system APIs
 		for (const key in target) {
 			if (Object.hasOwn(target, key) && !this.isProtectedKey(key)) {
 				delete target[key];
 			}
 		}
 
-		// Restore snapshot properties
+		// Apply snapshot properties to target object via deep copy
 		for (const key in snapshot) {
 			if (Object.hasOwn(snapshot, key)) {
 				target[key] = this.deepCopy(snapshot[key]);
@@ -105,7 +105,7 @@ export class StatePlayer {
 	 * Check if key should be protected from restoration
 	 */
 	private isProtectedKey(key: string): boolean {
-		// Protect system APIs and special objects
+		// Prevent system APIs and runtime objects from being overwritten during restore
 		const protected_keys = [
 			"screen",
 			"audio",

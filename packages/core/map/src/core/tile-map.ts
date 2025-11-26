@@ -45,7 +45,7 @@ export class TileMap {
 		block_height: number,
 		sprites?: Record<string, Sprite>,
 	) {
-		// Validate map dimensions
+		// Validate map dimensions to ensure positive, finite values
 		if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
 			const diagnostic = createDiagnostic(APIErrorCode.E7034, {
 				data: { width, height },
@@ -71,7 +71,7 @@ export class TileMap {
 	}
 
 	set(x: number, y: number, ref: string | null): void {
-		// Validate tile coordinates
+		// Validate tile coordinates are within map bounds
 		if (
 			x < 0 ||
 			y < 0 ||
@@ -80,8 +80,8 @@ export class TileMap {
 			!isFinite(x) ||
 			!isFinite(y)
 		) {
-			// Note: TileMap doesn't have runtime reference, so we can't report error
-			// This validation is for debugging purposes
+			// Silent fail: TileMap lacks runtime reference for error reporting
+			// Out-of-bounds access is ignored to prevent crashes during development
 			return;
 		}
 
@@ -94,7 +94,7 @@ export class TileMap {
 	}
 
 	get(x: number, y: number): string | number | null {
-		// Validate tile coordinates
+		// Validate tile coordinates are within map bounds
 		if (
 			x < 0 ||
 			y < 0 ||
@@ -103,8 +103,8 @@ export class TileMap {
 			!isFinite(x) ||
 			!isFinite(y)
 		) {
-			// Note: TileMap doesn't have runtime reference, so we can't report error
-			// Return 0 for out-of-bounds (existing behavior)
+			// Silent fail: TileMap lacks runtime reference for error reporting
+			// Returns 0 for out-of-bounds access to maintain backward compatibility
 			return 0;
 		}
 		let cell = this.map[x + y * this.width];
@@ -339,7 +339,7 @@ export function SaveMap(map: TileMap): string {
 	return JSON.stringify(payload);
 }
 
-// Aliases for convenience
+// Export aliases for backward compatibility and convenience
 export const Map = TileMap;
 export const loadMap = LoadMap;
 export const updateMap = UpdateMap;
