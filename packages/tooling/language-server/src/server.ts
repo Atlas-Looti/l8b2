@@ -67,6 +67,10 @@ connection.onInitialize((params: InitializeParams) => {
 			signatureHelpProvider: {
 				triggerCharacters: ["(", ","],
 			},
+			hoverProvider: true,
+			definitionProvider: true,
+			documentSymbolProvider: true,
+			workspaceSymbolProvider: true,
 			referencesProvider: true,
 			documentFormattingProvider: true,
 			renameProvider: {
