@@ -12,6 +12,7 @@ export {
 	CompilationErrorCode,
 	SceneErrorCode,
 	CLIErrorCode,
+	APIErrorCode,
 	WarningCode,
 	type ErrorCode,
 	type DiagnosticCode,

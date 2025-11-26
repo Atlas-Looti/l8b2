@@ -21,6 +21,7 @@ export enum DiagnosticCategory {
 	Type = "type",
 	Scene = "scene",
 	CLI = "cli",
+	API = "api",
 }
 
 /**

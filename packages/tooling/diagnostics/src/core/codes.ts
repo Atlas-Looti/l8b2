@@ -73,6 +73,73 @@ export enum CLIErrorCode {
 }
 
 /**
+ * API Error Codes (E7xxx)
+ */
+export enum APIErrorCode {
+	// Screen API Errors (E7001-E7010)
+	E7001 = "E7001", // Failed to get canvas context
+	E7002 = "E7002", // Invalid canvas dimensions
+	E7003 = "E7003", // Invalid color format
+	E7004 = "E7004", // Sprite not found
+	E7005 = "E7005", // Sprite not ready
+	E7006 = "E7006", // Invalid font
+	E7007 = "E7007", // Invalid blend mode
+
+	// Audio API Errors (E7011-E7020)
+	E7011 = "E7011", // Audio context creation failed
+	E7012 = "E7012", // Audio worklet failed to start
+	E7013 = "E7013", // Sound not found
+	E7014 = "E7014", // Music not found
+	E7015 = "E7015", // Audio context suspended
+	E7016 = "E7016", // Invalid audio parameters
+
+	// Sprite API Errors (E7021-E7030)
+	E7021 = "E7021", // Sprite loading failed
+	E7022 = "E7022", // Invalid sprite properties
+	E7023 = "E7023", // Invalid sprite URL
+	E7024 = "E7024", // Sprite frame out of bounds
+
+	// Map API Errors (E7031-E7040)
+	E7031 = "E7031", // Map canvas context failed
+	E7032 = "E7032", // Invalid tile coordinates
+	E7033 = "E7033", // Tile sprite not found
+	E7034 = "E7034", // Invalid map dimensions
+
+	// Asset API Errors (E7041-E7050)
+	E7041 = "E7041", // Asset not found
+	E7042 = "E7042", // Asset loading failed
+	E7043 = "E7043", // Invalid asset type
+	E7044 = "E7044", // Asset not ready
+
+	// Input API Errors (E7051-E7060)
+	E7051 = "E7051", // Input device not available
+	E7052 = "E7052", // Invalid input state
+
+	// Storage API Errors (E7061-E7070)
+	E7061 = "E7061", // Storage quota exceeded
+	E7062 = "E7062", // Storage operation failed
+	E7063 = "E7063", // Invalid storage key
+
+	// Palette API Errors (E7071-E7080)
+	E7071 = "E7071", // Palette not found
+	E7072 = "E7072", // Invalid palette format
+	E7073 = "E7073", // Invalid color index
+	E7074 = "E7074", // Palette loading failed
+	E7075 = "E7075", // Invalid palette size
+
+	// Time API Errors (E7081-E7090)
+	E7081 = "E7081", // Invalid time value
+	E7082 = "E7082", // Time playback failed
+	E7083 = "E7083", // Time recording failed
+	E7084 = "E7084", // Invalid time format
+
+	// Drawing API Errors (E7091-E7100)
+	E7091 = "E7091", // Drawing operation failed
+	E7092 = "E7092", // Invalid drawing context
+	E7093 = "E7093", // Invalid drawing parameters
+}
+
+/**
  * Warning Codes (W1xxx - W5xxx)
  */
 export enum WarningCode {
@@ -98,7 +165,8 @@ export type ErrorCode =
 	| RuntimeErrorCode
 	| CompilationErrorCode
 	| SceneErrorCode
-	| CLIErrorCode;
+	| CLIErrorCode
+	| APIErrorCode;
 
 /**
  * Union type of all diagnostic codes
