@@ -4,6 +4,9 @@
 	"description": "Looti Engine",
 	"private": true,
 	"scripts": {
+		"docs:dev": "vitepress dev .",
+		"docs:build": "vitepress build .",
+		"docs:preview": "vitepress preview .",
 		"build": "turbo run build ",
 		"dev": "turbo run dev --concurrency=15",
 		"lint": " biome check --write .",
@@ -42,6 +45,7 @@
 		"@swc/core": "^1.15.0",
 		"sirv": "^3.0.2",
 		"tsup": "^8.5.0",
+		"vitepress": "^1.6.4",
 		"vitest": "^4.0.7"
 	}
 }

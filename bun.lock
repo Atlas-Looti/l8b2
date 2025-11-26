@@ -8,6 +8,7 @@
         "@swc/core": "^1.15.0",
         "sirv": "^3.0.2",
         "tsup": "^8.5.0",
+        "vitepress": "^1.6.4",
         "vitest": "^4.0.7",
       },
       "devDependencies": {
@@ -16,12 +17,6 @@
         "prettier": "^3.6.2",
         "turbo": "2.6.1",
         "typescript": "5.9.2",
-      },
-    },
-    "apps/docs": {
-      "name": "docs",
-      "dependencies": {
-        "vitepress": "^1.6.4",
       },
     },
     "examples/framework/fish": {
@@ -868,8 +863,6 @@
     "diff": ["diff@7.0.0", "", {}, "sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw=="],
 
     "dino-runer": ["dino-runer@workspace:examples/runtimes/dino-runer"],
-
-    "docs": ["docs@workspace:apps/docs"],
 
     "draw": ["draw@workspace:examples/runtimes/draw"],
 
