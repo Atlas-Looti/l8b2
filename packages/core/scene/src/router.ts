@@ -1,12 +1,7 @@
 import type { RouteManager } from "./route-manager";
 import type { SceneManager } from "./scene-manager";
 import type { RouterState } from "./types";
-import {
-	DEFAULT_PATH,
-	ERROR_MESSAGES,
-	LOG_PREFIXES,
-	WARNING_MESSAGES,
-} from "./constants";
+import { DEFAULT_PATH } from "./constants";
 import { isBrowser, normalizePath } from "./utils";
 
 export class Router {
@@ -88,7 +83,6 @@ export class Router {
 	 */
 	private validatePath(path: unknown): path is string {
 		if (!path || typeof path !== "string") {
-			console.error(`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.INVALID_PATH(path)}`);
 			return false;
 		}
 		return true;
@@ -144,8 +138,6 @@ export class Router {
 	 * Handle case when no route matches
 	 */
 	private handleNoRouteMatch(path: string): void {
-		console.warn(`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.NO_ROUTE_MATCHED(path)}`);
-
 		if (!this.sceneManager.hasActiveScene()) {
 			this.activateFirstAvailableScene(path);
 		}
@@ -158,17 +150,10 @@ export class Router {
 		const availableScenes = this.sceneManager.registry.getNames();
 
 		if (availableScenes.length === 0) {
-			console.warn(
-				`${LOG_PREFIXES.ROUTER} ${ERROR_MESSAGES.NO_SCENES_REGISTERED}`,
-			);
 			return;
 		}
 
 		const firstScene = availableScenes[0];
-		console.warn(
-			`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.ACTIVATING_FIRST_SCENE(firstScene)}`,
-		);
-
 		this.state = {
 			path,
 			params: {},
@@ -201,17 +186,10 @@ export class Router {
 		const availableScenes = this.sceneManager.registry.getNames();
 
 		if (availableScenes.length === 0) {
-			console.warn(
-				`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.NO_SCENES_BEFORE_INIT}`,
-			);
 			return;
 		}
 
 		const firstScene = availableScenes[0];
-		console.warn(
-			`${LOG_PREFIXES.ROUTER} ${WARNING_MESSAGES.NO_ROUTE_MATCHED_INITIAL(firstScene)}`,
-		);
-
 		this.state = {
 			path: this.state.path,
 			params: {},

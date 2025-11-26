@@ -32,12 +32,10 @@ export class RouteManager {
 		sceneName: unknown,
 	): path is string {
 		if (!isValidString(path)) {
-			console.error(`[RouteManager] Invalid path: ${path}`);
 			return false;
 		}
 
 		if (!isValidString(sceneName)) {
-			console.error(`[RouteManager] Invalid scene name: ${sceneName}`);
 			return false;
 		}
 

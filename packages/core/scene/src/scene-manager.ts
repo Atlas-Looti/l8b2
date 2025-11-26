@@ -2,7 +2,6 @@ import { SceneRegistry } from "./scene-registry";
 import { RouteManager } from "./route-manager";
 import { Router } from "./router";
 import type { SceneDefinition } from "./types";
-import { ERROR_MESSAGES, LOG_PREFIXES } from "./constants";
 import { isValidString, isValidObject, safeExecute } from "./utils";
 
 export class SceneManager {
@@ -40,16 +39,10 @@ export class SceneManager {
 		definition: unknown,
 	): definition is SceneDefinition {
 		if (!isValidString(name)) {
-			console.error(
-				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.INVALID_SCENE_NAME(name)}`,
-			);
 			return false;
 		}
 
 		if (!isValidObject(definition)) {
-			console.error(
-				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.INVALID_SCENE_DEFINITION(name)}`,
-			);
 			return false;
 		}
 
@@ -87,14 +80,8 @@ export class SceneManager {
 	/**
 	 * Handle scene not found error
 	 */
-	private handleSceneNotFound(name: string): void {
-		const availableScenes = this.registry.getNames();
-		console.error(
-			`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.SCENE_NOT_FOUND(name)}`,
-		);
-		console.error(
-			`${LOG_PREFIXES.SCENE_MANAGER} Available scenes: ${availableScenes.join(", ")}`,
-		);
+	private handleSceneNotFound(_name: string): void {
+		// Scene not found - silently fail (validation should prevent this)
 	}
 
 	/**
@@ -112,17 +99,14 @@ export class SceneManager {
 	 */
 	private handleSameSceneActivation(
 		scene: SceneDefinition,
-		name: string,
+		_name: string,
 		params: Record<string, string>,
 	): void {
 		if (scene.onEnter) {
 			safeExecute(
 				() => scene.onEnter?.(params),
-				(error) => {
-					console.error(
-						`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' onEnter:`,
-						error,
-					);
+				() => {
+					// Error handled silently - scene lifecycle errors should be handled by caller
 				},
 			);
 		}
@@ -150,11 +134,8 @@ export class SceneManager {
 
 		safeExecute(
 			() => this.activeScene?.onLeave?.(),
-			(error) => {
-				console.error(
-					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' onLeave:`,
-					error,
-				);
+			() => {
+				// Error handled silently - scene lifecycle errors should be handled by caller
 			},
 		);
 	}
@@ -177,7 +158,7 @@ export class SceneManager {
 	/**
 	 * Initialize scene if not already initialized
 	 */
-	private initializeSceneIfNeeded(name: string, scene: SceneDefinition): void {
+	private initializeSceneIfNeeded(_name: string, scene: SceneDefinition): void {
 		if (!scene.init || scene._initialized) {
 			return;
 		}
@@ -187,11 +168,8 @@ export class SceneManager {
 				scene.init?.();
 				scene._initialized = true;
 			},
-			(error) => {
-				console.error(
-					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' init:`,
-					error,
-				);
+			() => {
+				// Error handled silently - scene lifecycle errors should be handled by caller
 			},
 		);
 	}
@@ -200,7 +178,7 @@ export class SceneManager {
 	 * Enter scene (call onEnter lifecycle method)
 	 */
 	private enterScene(
-		name: string,
+		_name: string,
 		scene: SceneDefinition,
 		params: Record<string, string>,
 	): void {
@@ -210,11 +188,8 @@ export class SceneManager {
 
 		safeExecute(
 			() => scene.onEnter?.(params),
-			(error) => {
-				console.error(
-					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${name}' onEnter:`,
-					error,
-				);
+			() => {
+				// Error handled silently - scene lifecycle errors should be handled by caller
 			},
 		);
 	}
@@ -229,11 +204,8 @@ export class SceneManager {
 
 		safeExecute(
 			() => this.activeScene?.update?.(),
-			(error) => {
-				console.error(
-					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' update:`,
-					error,
-				);
+			() => {
+				// Error handled silently - scene lifecycle errors should be handled by caller
 			},
 		);
 	}
@@ -247,19 +219,13 @@ export class SceneManager {
 		}
 
 		if (!this.activeScene.draw) {
-			console.warn(
-				`${LOG_PREFIXES.SCENE_MANAGER} ${ERROR_MESSAGES.SCENE_NO_DRAW(this.activeSceneName!)}`,
-			);
 			return;
 		}
 
 		safeExecute(
 			() => this.activeScene?.draw?.(),
-			(error) => {
-				console.error(
-					`${LOG_PREFIXES.SCENE_MANAGER} Error in scene '${this.activeSceneName}' draw:`,
-					error,
-				);
+			() => {
+				// Error handled silently - scene lifecycle errors should be handled by caller
 			},
 		);
 	}

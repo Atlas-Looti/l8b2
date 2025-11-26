@@ -15,7 +15,7 @@
  * @module lootiscript/processor
  */
 
-import type { CallFrame } from "./error-handler";
+import type { CallFrame } from "@l8b/diagnostics";
 import { IC_STATE, InlineCache } from "./inline-cache";
 import { Routine } from "./routine";
 
@@ -228,7 +228,7 @@ export class Processor {
 		}
 	}
 
-	applyFunction(_args: any): void {}
+	applyFunction(_args: any): void { }
 
 	/**
 	 * Inline Cache Handler for Property Access
@@ -247,7 +247,7 @@ export class Processor {
 	 * @returns {any} The property value
 	 */
 	resolvePropertyIC(obj: any, prop: string, ic: InlineCache): any {
-		if (obj == null) {return null;}
+		if (obj == null) { return null; }
 
 		// Check cache state
 		if (ic.state === IC_STATE.MONOMORPHIC) {
@@ -1062,19 +1062,19 @@ export class Processor {
 					op_index++;
 					break;
 				case 18: // OPCODE_CREATE_OBJECT
-					if (profiling) {this.metrics.allocations++;}
+					if (profiling) { this.metrics.allocations++; }
 					stack[++stack_index] = this.getObject();
 					op_index++;
 					break;
 				case 19: // OPCODE_MAKE_OBJECT
 					if (typeof stack[stack_index] !== "object") {
-						if (profiling) {this.metrics.allocations++;}
+						if (profiling) { this.metrics.allocations++; }
 						stack[stack_index] = this.getObject();
 					}
 					op_index++;
 					break;
 				case 20: // OPCODE_CREATE_ARRAY
-					if (profiling) {this.metrics.allocations++;}
+					if (profiling) { this.metrics.allocations++; }
 					stack[++stack_index] = this.getArray();
 					op_index++;
 					break;

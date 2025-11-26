@@ -38,10 +38,103 @@ import {
 import { Token } from "./token";
 import { Tokenizer } from "./tokenizer";
 import {
-	SyntaxError as LootiSyntaxError,
-	formatSourceContext,
-	ErrorCode,
-} from "./error-handler";
+	SyntaxErrorCode as ErrorCode,
+} from "@l8b/diagnostics";
+
+/**
+ * Base error class for LootiScript errors
+ */
+export class LootiScriptError extends Error {
+	constructor(
+		message: string,
+		public file: string,
+		public line: number,
+		public column: number,
+		public stackTrace?: any[],
+	) {
+		super(message);
+		this.name = "LootiScriptError";
+	}
+
+	toString(): string {
+		let msg = `${this.name}: ${this.message}\n`;
+		msg += `  at ${this.file}:${this.line}:${this.column}\n`;
+		return msg;
+	}
+}
+
+/**
+ * Syntax error during parsing
+ */
+export class LootiSyntaxError extends LootiScriptError {
+	constructor(
+		message: string,
+		file: string,
+		line: number,
+		column: number,
+		public context?: string,
+		public code?: string,
+		public suggestions?: string[],
+		public related?: {
+			file: string;
+			line: number;
+			column: number;
+			message: string;
+		},
+	) {
+		super(message, file, line, column);
+		this.name = "SyntaxError";
+	}
+
+	toString(): string {
+		let msg = "";
+		if (this.code) {
+			msg += `[${this.code}] `;
+		}
+		msg += `${this.name}: ${this.message}\n`;
+		msg += `  at ${this.file}:${this.line}:${this.column}\n`;
+		if (this.context) {
+			msg += `\n${this.context}\n`;
+		}
+		return msg;
+	}
+}
+
+/**
+ * Helper to format source context around an error
+ */
+export function formatSourceContext(
+	source: string,
+	line: number,
+	column: number,
+	contextLines: number = 3,
+	errorLength: number = 1,
+): string {
+	const lines = source.split("\n");
+	const startLine = Math.max(0, line - contextLines - 1);
+	const endLine = Math.min(lines.length - 1, line + contextLines - 1);
+
+	let context = "\nSource context:\n";
+
+	for (let i = startLine; i <= endLine; i++) {
+		const lineNum = i + 1;
+		const prefix = lineNum === line ? ">" : " ";
+		const lineNumStr = String(lineNum).padStart(4, " ");
+		const lineContent = lines[i] || "";
+
+		context += `${prefix} ${lineNumStr} | ${lineContent}\n`;
+
+		if (lineNum === line) {
+			const baseOffset = 8;
+			const pointer =
+				" ".repeat(baseOffset + Math.max(0, column - 1)) +
+				"^".repeat(Math.max(1, errorLength));
+			context += `${pointer}\n`;
+		}
+	}
+
+	return context;
+}
 
 /**
  * Parser for LootiScript
