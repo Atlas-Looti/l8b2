@@ -4,6 +4,7 @@
  */
 import { Beeper } from "../devices/beeper";
 import { AUDIO_WORKLET_CODE } from "./audio-worklet";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export class AudioCore {
 	public context!: AudioContext;
@@ -63,10 +64,20 @@ export class AudioCore {
 		loopit: boolean = false,
 	): number {
 		if (typeof sound === "string") {
-			const s = this.runtime.sounds[sound.replace(/\//g, "-")];
-			if (s) {
-				return s.play(volume, pitch, pan, loopit);
+			const soundName = sound.replace(/\//g, "-");
+			const s = this.runtime.sounds[soundName];
+			if (!s) {
+				const diagnostic = createDiagnostic(APIErrorCode.E7013, {
+					data: { soundName },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
+				return 0;
 			}
+			return s.play(volume, pitch, pan, loopit);
 		}
 		return 0;
 	}
@@ -80,10 +91,20 @@ export class AudioCore {
 		loopit: boolean = false,
 	): number {
 		if (typeof music === "string") {
-			const m = this.runtime.music[music.replace(/\//g, "-")];
-			if (m) {
-				return m.play(volume, loopit);
+			const musicName = music.replace(/\//g, "-");
+			const m = this.runtime.music[musicName];
+			if (!m) {
+				const diagnostic = createDiagnostic(APIErrorCode.E7014, {
+					data: { musicName },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
+				return 0;
 			}
+			return m.play(volume, loopit);
 		}
 		return 0;
 	}
@@ -153,7 +174,14 @@ export class AudioCore {
 
 			this.flushBuffer();
 		} catch (e) {
-			console.error("Failed to start audio worklet", e);
+			const diagnostic = createDiagnostic(APIErrorCode.E7012, {
+				data: { error: String(e) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
 		}
 	}
 
@@ -262,7 +290,14 @@ export class AudioCore {
 			try {
 				p.stop();
 			} catch (err) {
-				console.error(err);
+				const diagnostic = createDiagnostic(APIErrorCode.E7016, {
+					data: { error: String(err) },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
 			}
 		}
 		this.playing = [];

@@ -2,6 +2,8 @@
  * Sound - Sound effect playback
  * Handles loading and playing audio buffers
  */
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
+
 export class Sound {
 	public ready: number = 0;
 	public buffer?: AudioBuffer;
@@ -38,13 +40,27 @@ export class Sound {
 					this.ready = 1;
 				},
 				(err: any) => {
-					console.error("Error decoding audio:", err);
+					const diagnostic = createDiagnostic(APIErrorCode.E7016, {
+						data: { error: `Audio decoding failed: ${String(err)}` },
+					});
+					const formatted = formatForBrowser(diagnostic);
+					
+					if (this.audio?.runtime?.listener?.reportError) {
+						this.audio.runtime.listener.reportError(formatted);
+					}
 				},
 			);
 		};
 
 		request.onerror = () => {
-			console.error("Error loading sound:", url);
+			const diagnostic = createDiagnostic(APIErrorCode.E7016, {
+				data: { error: `Failed to load sound: ${url}` },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.audio?.runtime?.listener?.reportError) {
+				this.audio.runtime.listener.reportError(formatted);
+			}
 		};
 
 		request.send();

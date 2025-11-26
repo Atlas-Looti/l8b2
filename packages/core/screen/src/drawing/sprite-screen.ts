@@ -1,5 +1,6 @@
 import type { Map } from "@l8b/map";
 import type { Sprite } from "@l8b/sprites";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 import { PrimitiveScreen } from "./primitives-screen";
 
@@ -20,6 +21,7 @@ export class SpriteScreen extends PrimitiveScreen {
 		}
 
 		if (typeof sprite === "string") {
+			const spriteName = sprite;
 			if (this.runtime && this.runtime.sprites) {
 				spriteObj = this.runtime.sprites[sprite];
 			}
@@ -30,11 +32,38 @@ export class SpriteScreen extends PrimitiveScreen {
 					frame = Number.parseInt(parts[1]) || 0;
 				}
 			}
+			
+			// Report sprite not found error
+			if (!spriteObj) {
+				const diagnostic = createDiagnostic(APIErrorCode.E7004, {
+					data: { spriteName },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
+				return null;
+			}
 		} else if (sprite && (sprite as Sprite).frames) {
 			spriteObj = sprite as Sprite;
 		}
 
-		if (!(spriteObj && spriteObj.ready)) {
+		if (!spriteObj) {
+			return null;
+		}
+		
+		// Report sprite not ready error
+		if (!spriteObj.ready) {
+			const spriteName = typeof sprite === "string" ? sprite : "unknown";
+			const diagnostic = createDiagnostic(APIErrorCode.E7005, {
+				data: { spriteName },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
 			return null;
 		}
 

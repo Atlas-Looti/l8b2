@@ -26,6 +26,7 @@
 		}
 	},
 	"dependencies": {
+		"@l8b/diagnostics": "workspace:*",
 		"@l8b/sprites": "workspace:*"
 	},
 	"devDependencies": {

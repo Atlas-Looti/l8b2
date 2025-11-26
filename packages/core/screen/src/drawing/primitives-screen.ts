@@ -1,4 +1,5 @@
 import { BaseScreen } from "../core/base-screen";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 /**
  * Adds primitive shape drawing APIs on top of BaseScreen.
@@ -11,6 +12,30 @@ export class PrimitiveScreen extends BaseScreen {
 		h: number,
 		color?: string | number,
 	): void {
+		// Validate drawing context
+		if (!this.context) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7092);
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return;
+		}
+		
+		// Validate drawing parameters
+		if (!isFinite(x) || !isFinite(y) || !isFinite(w) || !isFinite(h) || w <= 0 || h <= 0) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7093, {
+				data: { error: `Invalid parameters: x=${x}, y=${y}, w=${w}, h=${h}` },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return;
+		}
+		
 		if (color) this.setColor(color);
 		this.context.globalAlpha = this.alpha;
 		if (this.initDrawOp(x, -y)) {

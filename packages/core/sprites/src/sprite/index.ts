@@ -34,8 +34,8 @@ export class Sprite {
 		return AnimationOps.setFPS(this, fps);
 	}
 
-	setFrame(f: number): void {
-		AnimationOps.setFrame(this, f);
+	setFrame(f: number, runtime?: any): void {
+		AnimationOps.setFrame(this, f, runtime);
 	}
 
 	getFrame(): number {

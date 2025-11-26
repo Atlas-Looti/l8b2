@@ -16,6 +16,9 @@
 		"clean": "rm -rf dist",
 		"typecheck": "tsc --noEmit"
 	},
+	"dependencies": {
+		"@l8b/diagnostics": "workspace:*"
+	},
 	"devDependencies": {
 		"@types/node": "^20.0.0",
 		"tsup": "^8.0.0",

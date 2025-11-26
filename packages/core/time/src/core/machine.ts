@@ -10,6 +10,7 @@
 import { StatePlayer } from "../playback";
 import { StateRecorder } from "../recording";
 import type { TimeMachineMessage, TimeMachineStatus } from "../types";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export interface TimeMachineRuntime {
 	vm?: {
@@ -89,7 +90,14 @@ export class TimeMachine {
 
 			this.sendStatus();
 		} catch (err) {
-			console.error("TimeMachine step error:", err);
+			const diagnostic = createDiagnostic(APIErrorCode.E7082, {
+				data: { error: String(err) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
 		}
 	}
 
@@ -138,10 +146,22 @@ export class TimeMachine {
 			return;
 		}
 
-		this.recording = true;
-		this.recorder.clear();
-		this.replayPosition = 0;
-		this.sendStatus();
+		try {
+			this.recording = true;
+			this.recorder.clear();
+			this.replayPosition = 0;
+			this.sendStatus();
+		} catch (err) {
+			this.recording = false;
+			const diagnostic = createDiagnostic(APIErrorCode.E7083, {
+				data: { error: String(err) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
+		}
 	}
 
 	/**
@@ -152,8 +172,19 @@ export class TimeMachine {
 			return;
 		}
 
-		this.recording = false;
-		this.sendStatus();
+		try {
+			this.recording = false;
+			this.sendStatus();
+		} catch (err) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7083, {
+				data: { error: String(err) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
+		}
 	}
 
 	/**
@@ -188,6 +219,19 @@ export class TimeMachine {
 	 * Set replay position
 	 */
 	private setReplayPosition(position: number): void {
+		// Validate time value
+		if (!isFinite(position) || position < 0) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7081, {
+				data: { value: String(position) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
+			return;
+		}
+		
 		const pos = Math.round(position);
 		this.replayPosition = Math.max(
 			2,

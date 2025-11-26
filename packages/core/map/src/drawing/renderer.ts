@@ -1,5 +1,6 @@
 import type { Sprite } from "@l8b/sprites";
 import type { AnimatedTile } from "../data/types";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export interface RenderState {
 	canvas: HTMLCanvasElement | null;
@@ -27,7 +28,11 @@ export const ensureCanvas = (
 		state.canvas.height = expectedHeight;
 	}
 	const ctx = state.canvas.getContext("2d");
-	if (!ctx) throw new Error("Unable to get canvas context");
+	if (!ctx) {
+		const diagnostic = createDiagnostic(APIErrorCode.E7031);
+		const formatted = formatForBrowser(diagnostic);
+		throw new Error(formatted);
+	}
 	ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
 	state.animated = [];
 	return ctx;

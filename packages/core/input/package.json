@@ -15,7 +15,9 @@
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
-	"dependencies": {},
+	"dependencies": {
+		"@l8b/diagnostics": "workspace:*"
+	},
 	"keywords": [
 		"input"
 	]

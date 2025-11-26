@@ -3,6 +3,7 @@
  */
 
 import type { ColorHex, ColorRGB, PaletteData } from "../types";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export interface PaletteOptions {
 	colors?: ColorHex[];
@@ -13,11 +14,28 @@ export class Palette {
 	private colors: ColorHex[];
 	private name: string;
 	private rgbCache: Map<number, ColorRGB>;
+	private runtime?: any;
 
-	constructor(options: PaletteOptions | PaletteData = {}) {
+	constructor(options: PaletteOptions | PaletteData = {}, runtime?: any) {
+		this.runtime = runtime;
+		
 		if ("colors" in options && Array.isArray(options.colors)) {
-			this.colors = [...options.colors];
-			this.name = options.name || "Custom";
+			// Validate palette format
+			if (!this.validatePaletteFormat(options.colors)) {
+				const diagnostic = createDiagnostic(APIErrorCode.E7072, {
+					data: { format: "invalid color array" },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
+				this.colors = [];
+				this.name = "Invalid";
+			} else {
+				this.colors = [...options.colors];
+				this.name = options.name || "Custom";
+			}
 		} else {
 			// Default: empty palette
 			this.colors = [];
@@ -26,11 +44,38 @@ export class Palette {
 
 		this.rgbCache = new Map();
 	}
+	
+	/**
+	 * Validate palette format
+	 */
+	private validatePaletteFormat(colors: any[]): boolean {
+		if (!Array.isArray(colors)) return false;
+		return colors.every(color => 
+			typeof color === "string" && /^#[0-9A-Fa-f]{6}$/.test(color)
+		);
+	}
 
 	/**
 	 * Get color by index
 	 */
 	get(index: number): ColorHex {
+		// Validate color index
+		if (!isFinite(index) || index < 0) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7073, {
+				data: { index, maxIndex: this.colors.length - 1 },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return "#000000";
+		}
+		
+		if (this.colors.length === 0) {
+			return "#000000";
+		}
+		
 		return this.colors[index % this.colors.length] || "#000000";
 	}
 
@@ -73,14 +118,38 @@ export class Palette {
 	 * Set color at index (expands palette if needed)
 	 */
 	set(index: number, color: ColorHex): void {
-		if (index >= 0) {
-			// Expand palette if needed
-			while (this.colors.length <= index) {
-				this.colors.push("#000000");
+		// Validate color index
+		if (!isFinite(index) || index < 0) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7073, {
+				data: { index, maxIndex: this.colors.length - 1 },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
 			}
-			this.colors[index] = color;
-			this.rgbCache.delete(index);
+			return;
 		}
+		
+		// Validate color format
+		if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7072, {
+				data: { format: color },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return;
+		}
+		
+		// Expand palette if needed
+		while (this.colors.length <= index) {
+			this.colors.push("#000000");
+		}
+		this.colors[index] = color;
+		this.rgbCache.delete(index);
 	}
 
 	/**
@@ -105,6 +174,19 @@ export class Palette {
 	 * Replace entire palette
 	 */
 	setPalette(colors: ColorHex[]): void {
+		// Validate palette format
+		if (!this.validatePaletteFormat(colors)) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7072, {
+				data: { format: "invalid color array" },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return;
+		}
+		
 		this.colors = [...colors];
 		this.rgbCache.clear();
 	}

@@ -3,6 +3,8 @@
  * Handles frame timing and animation control
  */
 
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
+
 export function setFPS(
 	sprite: {
 		fps: number;
@@ -24,9 +26,27 @@ export function setFrame(
 	sprite: {
 		fps: number;
 		animation_start: number;
+		frames: any[];
 	},
 	f: number,
+	runtime?: any,
 ): void {
+	// Validate frame index
+	if (sprite.frames && sprite.frames.length > 0) {
+		if (f < 0 || f >= sprite.frames.length || !isFinite(f)) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7024, {
+				data: { frame: f, totalFrames: sprite.frames.length },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (runtime?.listener?.reportError) {
+				runtime.listener.reportError(formatted);
+			}
+			// Clamp to valid range
+			f = Math.max(0, Math.min(sprite.frames.length - 1, Math.floor(f)));
+		}
+	}
+	
 	sprite.animation_start = Date.now() - (1000 / sprite.fps) * f;
 }
 

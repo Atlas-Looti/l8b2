@@ -2,14 +2,18 @@
  * Storage service - localStorage wrapper with automatic serialization
  */
 
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
+
 export class StorageService {
 	private namespace: string;
 	private cache: Map<string, any> = new Map();
 	private pendingWrites: Map<string, any> = new Map();
 	private writeTimer: ReturnType<typeof setTimeout> | null = null;
+	private runtime?: any;
 
-	constructor(namespace = "/l8b", preserve = false) {
+	constructor(namespace = "/l8b", preserve = false, runtime?: any) {
 		this.namespace = namespace;
+		this.runtime = runtime;
 
 		// Clear storage if not preserving
 		if (!preserve && typeof localStorage !== "undefined") {
@@ -21,6 +25,19 @@ export class StorageService {
 	 * Get value from storage
 	 */
 	get(name: string): any {
+		// Validate storage key
+		if (!name || typeof name !== "string" || name.trim() === "") {
+			const diagnostic = createDiagnostic(APIErrorCode.E7063, {
+				data: { key: String(name) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return null;
+		}
+		
 		// Check cache first
 		if (this.cache.has(name)) {
 			return this.cache.get(name);
@@ -36,8 +53,15 @@ export class StorageService {
 					this.cache.set(name, parsed);
 					return parsed;
 				}
-			} catch (err) {
-				console.error(`Storage get error for ${name}:`, err);
+			} catch (err: any) {
+				const diagnostic = createDiagnostic(APIErrorCode.E7062, {
+					data: { error: `Get operation failed: ${String(err)}` },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if (this.runtime?.listener?.reportError) {
+					this.runtime.listener.reportError(formatted);
+				}
 			}
 		}
 
@@ -48,6 +72,19 @@ export class StorageService {
 	 * Set value in storage (batched write)
 	 */
 	set(name: string, value: any): void {
+		// Validate storage key
+		if (!name || typeof name !== "string" || name.trim() === "") {
+			const diagnostic = createDiagnostic(APIErrorCode.E7063, {
+				data: { key: String(name) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if (this.runtime?.listener?.reportError) {
+				this.runtime.listener.reportError(formatted);
+			}
+			return;
+		}
+		
 		// Update cache
 		this.cache.set(name, value);
 
@@ -86,8 +123,25 @@ export class StorageService {
 				const key = `${this.namespace}.${name}`;
 				const serialized = JSON.stringify(this.sanitize(value));
 				localStorage.setItem(key, serialized);
-			} catch (err) {
-				console.error(`Storage set error for ${name}:`, err);
+			} catch (err: any) {
+				// Check for quota exceeded error
+				if (err.name === "QuotaExceededError" || err.code === 22) {
+					const diagnostic = createDiagnostic(APIErrorCode.E7061);
+					const formatted = formatForBrowser(diagnostic);
+					
+					if (this.runtime?.listener?.reportError) {
+						this.runtime.listener.reportError(formatted);
+					}
+				} else {
+					const diagnostic = createDiagnostic(APIErrorCode.E7062, {
+						data: { error: `Set operation failed: ${String(err)}` },
+					});
+					const formatted = formatForBrowser(diagnostic);
+					
+					if (this.runtime?.listener?.reportError) {
+						this.runtime.listener.reportError(formatted);
+					}
+				}
 			}
 		}
 

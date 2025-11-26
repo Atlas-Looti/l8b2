@@ -13,6 +13,7 @@ import type {
 	Runtime,
 	TextLoaderResult,
 } from "../types";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export type { Runtime };
 
@@ -67,10 +68,24 @@ export class AssetManager {
 					}
 				})
 				.catch((err) => {
-					console.error("Failed to load font:", err);
+					const diagnostic = createDiagnostic(APIErrorCode.E7042, {
+						data: { assetName: `font: ${font}`, error: String(err) },
+					});
+					const formatted = formatForBrowser(diagnostic);
+					
+					if ((this.runtime as any)?.listener?.reportError) {
+						(this.runtime as any).listener.reportError(formatted);
+					}
 				});
 		} catch (err) {
-			console.error("Failed to create font:", err);
+			const diagnostic = createDiagnostic(APIErrorCode.E7042, {
+				data: { assetName: `font: ${font}`, error: String(err) },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
 		}
 	}
 
@@ -108,7 +123,14 @@ export class AssetManager {
 			}
 		};
 		img.onerror = () => {
-			console.error(`Failed to load image: assets/${actualPath}`);
+			const diagnostic = createDiagnostic(APIErrorCode.E7042, {
+				data: { assetName: `image: ${actualPath}` },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			
+			if ((this.runtime as any)?.listener?.reportError) {
+				(this.runtime as any).listener.reportError(formatted);
+			}
 			loader.ready = 1; // Mark as ready even on error to avoid blocking
 		};
 
@@ -140,7 +162,14 @@ export class AssetManager {
 				}
 			})
 			.catch((err) => {
-				console.error(`Failed to load JSON: ${url}`, err);
+				const diagnostic = createDiagnostic(APIErrorCode.E7042, {
+					data: { assetName: `JSON: ${path}`, error: String(err) },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if ((this.runtime as any)?.listener?.reportError) {
+					(this.runtime as any).listener.reportError(formatted);
+				}
 			});
 
 		return loader;
@@ -176,7 +205,14 @@ export class AssetManager {
 				}
 			})
 			.catch((err) => {
-				console.error(`Failed to load text: ${url}`, err);
+				const diagnostic = createDiagnostic(APIErrorCode.E7042, {
+					data: { assetName: `text: ${path}`, error: String(err) },
+				});
+				const formatted = formatForBrowser(diagnostic);
+				
+				if ((this.runtime as any)?.listener?.reportError) {
+					(this.runtime as any).listener.reportError(formatted);
+				}
 			});
 
 		return loader;

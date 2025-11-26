@@ -16,6 +16,7 @@ import {
 	normalizeRefForUsage,
 } from "../shared/references";
 import { getDefaultSprites } from "../shared/sprites";
+import { createDiagnostic, APIErrorCode, formatForBrowser } from "@l8b/diagnostics";
 
 export class TileMap {
 	public width: number;
@@ -40,6 +41,15 @@ export class TileMap {
 		block_height: number,
 		sprites?: Record<string, Sprite>,
 	) {
+		// Validate map dimensions
+		if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
+			const diagnostic = createDiagnostic(APIErrorCode.E7034, {
+				data: { width, height },
+			});
+			const formatted = formatForBrowser(diagnostic);
+			throw new Error(formatted);
+		}
+		
 		this.width = width;
 		this.height = height;
 		this.block_width = block_width;
@@ -57,18 +67,26 @@ export class TileMap {
 	}
 
 	set(x: number, y: number, ref: string | null): void {
-		if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
-			let normalized = ref;
-			if (typeof normalized === "string") {
-				normalized = normalizeRefForStorage(normalized);
-			}
-			this.map[x + y * this.width] = normalized;
-			this.needs_update = true;
+		// Validate tile coordinates
+		if (x < 0 || y < 0 || x >= this.width || y >= this.height || !isFinite(x) || !isFinite(y)) {
+			// Note: TileMap doesn't have runtime reference, so we can't report error
+			// This validation is for debugging purposes
+			return;
 		}
+		
+		let normalized = ref;
+		if (typeof normalized === "string") {
+			normalized = normalizeRefForStorage(normalized);
+		}
+		this.map[x + y * this.width] = normalized;
+		this.needs_update = true;
 	}
 
 	get(x: number, y: number): string | number | null {
-		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
+		// Validate tile coordinates
+		if (x < 0 || y < 0 || x >= this.width || y >= this.height || !isFinite(x) || !isFinite(y)) {
+			// Note: TileMap doesn't have runtime reference, so we can't report error
+			// Return 0 for out-of-bounds (existing behavior)
 			return 0;
 		}
 		let cell = this.map[x + y * this.width];
