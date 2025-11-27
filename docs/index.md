@@ -1,57 +1,29 @@
----
-layout: home
+# Apa itu L8B?
 
-hero:
-  name: "l8b"
-  text: "Looti Engine"
-  tagline: Game engine web berbasis LootiScript - fokus pada gameplay, bukan konfigurasi
-  actions:
-    - theme: brand
-      text: Get Started
-      link: /guide/getting-started
-    - theme: alt
-      text: View on GitHub
-      link: https://github.com/Atlas-Looti/l8b2
+Gambaran umum tentang L8B dan kegunaannya.
 
-features:
-  - icon: ⚡
-    title: Ship Fast
-    details: Tulis gameplay dengan file .loot, refresh browser untuk melihat perubahan. Tidak ada review store atau setup bundler manual.
-  - icon: 🎮
-    title: Retain Players
-    details: Engine menyiapkan canvas responsif, input multi-perangkat, dan loop stabil sehingga pengalaman konsisten di desktop maupun mobile.
-  - icon: 💾
-    title: Transact Seamlessly
-    details: Integrasi storage dan IO memungkinkan penyimpanan skor, state, atau integrasi layanan eksternal tanpa boilerplate panjang.
-  - icon: 🌐
-    title: Build Social
-    details: Karena berbasis web, game mudah dibagikan lewat tautan. Manfaatkan API LootiScript untuk menambahkan fitur komunitas.
----
+L8B adalah game engine 2D untuk membangun pengalaman game yang interaktif dan dinamis.
 
-## Quick Start
+L8B mendukung sistem sprite, animasi, collision, audio, dan level design dalam satu alur kerja terpadu. Engine ini memberi kontrol penuh dalam merancang alur permainan, logika game, dan tampilan visual secara terstruktur dan efisien.
 
-```bash
-# Create a new project
-mkdir my-game && cd my-game
-npm init -y
+L8B dirancang agar ringan, fleksibel, dan ekspresif—cocok untuk prototyping cepat maupun produksi game 2D skala penuh.
 
-# Install l8b
-npm install l8b
+## What is it used for?
 
-# Create your game file (game.loot)
-# Add HTML file to load the game
-# Start a local server and play!
-```
+L8B adalah 2D game engine & Web3-engine all-in-one—ideal untuk membangun game atau aplikasi berbasis Web3 yang langsung bisa dijalankan sebagai mini-apps di Farcaster, Base App, dan klien Web3 serupa.
 
-## What is l8b?
+Dengan L8B kamu bisa membuat game 2D seperti platformer, RPG, puzzle, atau game berbasis token/NFT dengan sistem sprite, animasi, collision, audio, dan gameplay logic yang sudah ditangani engine.
 
-**l8b** adalah game engine web yang dibangun sepenuhnya dengan LootiScript. Engine ini mempermudah developer membuat game berbasis web tanpa harus merangkai toolchain sendiri.
+Karena mendukung integrasi dengan Farcaster Mini Apps dan Base App, game atau aplikasimu dapat berjalan sebagai mini-app on-chain: pengguna dapat berinteraksi, menandatangani transaksi, memakai wallet on-chain, memanfaatkan identitas Farcaster, tanpa perlu instal aplikasi terpisah .
 
-Tujuannya sederhana: **fokus pada mekanik game, bukan konfigurasi tool**.
+Cocok untuk membangun produk Web3 seperti:
 
-## Community
+- game peer-to-peer
+- web-game dengan token/NFT utilities
+- mini-app sosial
+- marketplace on-chain
+- eksperimen blockchain + game dengan distribusi sosial bawaan
 
-- [GitHub Discussions](https://github.com/Atlas-Looti/l8b2/discussions)
-- Discord komunitas Looti (bila tersedia)
+Engine + Web3 stack ini mempermudah perjalanan dari ide → prototipe → live app/mini-app sambil memanfaatkan fitur sosial dan wallet crypto yang sudah tersedia di ekosistem.
 
-Dokumentasi ini masih berkembang—masukanmu akan membantu bentuk akhirnya.
+L8B bukan sekadar engine game 2D; ia adalah jembatan antara gameplay 2D, interaksi on-chain, dan distribusi di ekosistem Web3.
