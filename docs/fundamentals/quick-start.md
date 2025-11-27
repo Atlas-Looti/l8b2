@@ -1,23 +1,102 @@
 # Quick Start
 
-Selamat datang di **l8b** - game engine web berbasis LootiScript! Panduan ini akan membantu Anda memulai project game pertama Anda.
-
-## Apa itu l8b?
-
-l8b adalah game engine web yang powerful dan mudah digunakan. l8b menyediakan:
-
-- **LootiScript** - Bahasa scripting yang simple namun powerful, dilengkapi bytecode compiler dan inline cache optimization
-- **Scheduler Blocks** - Fitur `after`, `every`, dan `sleep` untuk time-based operations
-- **Runtime System** - Game loop yang efisien dengan `init`, `update`, dan `draw` lifecycle
-- **Web3 Integration** - Built-in support untuk blockchain dan NFT
-- **Asset Management** - Sistem untuk mengelola sprites, sounds, dan assets lainnya
+Panduan ini akan membantu Anda memulai project game pertama Anda dengan L8B. Untuk gambaran umum tentang L8B, lihat [Apa itu L8B?](/).
 
 ## Setup Project
 
 ### Instalasi
 
+Install L8B CLI sebagai dev dependency:
+
 ```bash
-npm install l8b
+npm install @l8b/cli --save-dev
+```
+
+**Catatan:** Runtime tidak perlu di-install secara terpisah. CLI akan otomatis menggunakan runtime dari workspace (jika menggunakan monorepo) atau akan di-bundle saat build.
+
+### Struktur Project
+
+L8B menggunakan struktur project yang standar:
+
+```text
+my-game/
+├── scripts/              # File LootiScript (.loot)
+│   └── main.loot         # Main game code
+├── public/               # Static assets
+│   ├── sprites/          # Sprite images (.png, .jpg, .webp)
+│   ├── maps/             # Map files (.json, .tmj)
+│   ├── sounds/           # Sound effects (.mp3, .wav, .ogg)
+│   ├── music/            # Music files (.mp3, .wav, .ogg)
+│   └── fonts/            # Font files (.ttf)
+├── l8b.config.json       # Project configuration
+├── package.json
+└── .l8b/                 # Build output (generated)
+```
+
+**Catatan:** File `.loot` juga bisa ditempatkan di `src/l8b/ls/` sebagai alternatif.
+
+### Configuration
+
+File `l8b.config.json` di root project digunakan untuk mengatur metadata dan behavior:
+
+```json
+{
+  "name": "my-game",
+  "orientation": "any",
+  "aspect": "free",
+  "dev": {
+    "port": 5173,
+    "host": "localhost"
+  },
+  "logging": {
+    "browser": { "lifecycle": false, "canvas": false },
+    "terminal": { "listener": true, "errors": true }
+  }
+}
+```
+
+**Options:**
+
+- `name`: Nama project (identifier)
+- `orientation`: Orientasi layar (`any`, `portrait`, `landscape`)
+- `aspect`: Rasio aspek layar (`free`, `16:9`, `4:3`, dll)
+- `dev.port`: Port untuk development server (default: 5173)
+- `dev.host`: Host untuk development server (default: "localhost")
+- `logging`: Konfigurasi output debug di browser dan terminal
+
+### Package.json
+
+Tambahkan scripts untuk development dan build di `package.json`:
+
+```json
+{
+  "name": "my-game",
+  "type": "module",
+  "scripts": {
+    "dev": "l8b dev",
+    "build": "l8b build",
+    "start": "l8b start"
+  },
+  "devDependencies": {
+    "@l8b/cli": "workspace:*"
+  }
+}
+```
+
+**Catatan:** Untuk workspace/monorepo, gunakan `workspace:*`. Untuk npm registry, gunakan versi yang sesuai seperti `"@l8b/cli": "^0.0.1"`.
+
+**Commands:**
+
+- `npm run dev` atau `l8b dev`: Menjalankan development server dengan HMR (Hot Module Replacement)
+- `npm run build` atau `l8b build`: Build project untuk production (output ke `.l8b/`)
+- `npm run start` atau `l8b start`: Preview hasil build production
+
+**Development Server Options:**
+
+```bash
+l8b dev [root]              # Start dev server
+l8b dev --port 3000         # Custom port
+l8b dev --host 0.0.0.0      # Expose to network
 ```
 
 ### Integrasi dengan Code Editor
@@ -39,68 +118,9 @@ Untuk pengalaman development yang optimal, install **LootiScript extension** unt
 - ✅ Code snippets untuk pattern umum
 - ✅ Formatting support
 
-### Struktur Project
-
-```
-my-game/
-├── src/
-│   └── main.loot       # Main game code
-├── assets/
-│   ├── sprites/        # Sprite images
-│   └── sounds/         # Sound files
-├── l8b.config.json     # Project configuration
-└── package.json
-```
-
-### Configuration
-
-File `l8b.config.json` di root project digunakan untuk mengatur metadata dan behavior:
-
-```json
-{
-  "name": "my-game",
-  "orientation": "any",
-  "aspect": "free",
-  "logging": {
-    "browser": { "lifecycle": false, "canvas": false },
-    "terminal": { "listener": true, "errors": true }
-  }
-}
-```
-
-**Options:**
-
-- `name`: Nama project (identifier)
-- `orientation`: Orientasi layar (`any`, `portrait`, `landscape`)
-- `aspect`: Rasio aspek layar (`free`, `16:9`, `4:3`, dll)
-- `logging`: Konfigurasi output debug di browser dan terminal
-
-### Package.json
-
-Tambahkan scripts untuk development dan build di `package.json`:
-
-```json
-{
-  "name": "my-game",
-  "type": "module",
-  "scripts": {
-    "dev": "l8b dev",
-    "build": "l8b build",
-    "preview": "l8b start"
-  },
-  "dependencies": {
-    "l8b": "^0.0.1"
-  }
-}
-```
-
-- `npm run dev`: Menjalankan development server dengan HMR
-- `npm run build`: Build project untuk production
-- `npm run preview`: Preview hasil build
-
 ## First Program
 
-Buat file `main.loot` dan mulai dengan program sederhana:
+Buat file `scripts/main.loot` dan mulai dengan program sederhana:
 
 ```lua
 init = function()
@@ -187,6 +207,23 @@ end
 ```
 
 **Penting:** `update()` selalu dipanggil 60x/detik, sedangkan `draw()` dipanggil sesuai refresh rate device.
+
+### Execution Order
+
+Urutan eksekusi dalam satu frame:
+
+1. **Input Update** - Input devices (keyboard, mouse, touch, gamepad) diupdate
+2. **Scene Update** - Jika ada scene aktif, `scene.update()` dipanggil, jika tidak `update()` global dipanggil
+3. **Scene Draw** - Jika ada scene aktif, `scene.draw()` dipanggil, jika tidak `draw()` global dipanggil
+
+```lua
+// Execution flow per frame:
+// 1. Input update
+// 2. update() atau scene.update()
+// 3. draw() atau scene.draw()
+```
+
+**Catatan:** Jika menggunakan Scene Management, lifecycle scene (`init`, `onEnter`, `onLeave`, `update`, `draw`) akan dipanggil sesuai dengan scene yang aktif.
 
 ## Input Handling
 
@@ -359,24 +396,114 @@ bullets.forEach((b, i) => {
 
 ### Print to Console
 
+Fungsi `print()` mengirim output ke browser console dan terminal:
+
 ```lua
 update = function()
   print("Player position: " + player_x + ", " + player_y)
   print("Score: " + score)
+  
+  // Print multiple values
+  print("Health:", hp, "Mana:", mana)
 end
 ```
 
-### Check Variable Values
+**Output:**
 
-Gunakan console untuk inspect variables saat development:
+- Browser: Lihat di Developer Tools Console (F12)
+- Terminal: Output muncul di terminal tempat dev server berjalan
 
-```
+### Interactive Console
+
+L8B menyediakan interactive console untuk debugging saat development. Anda bisa:
+
+1. **Inspect Variables** - Ketik nama variable untuk melihat nilainya
+2. **Execute Commands** - Jalankan kode LootiScript langsung dari console
+3. **Call Functions** - Panggil fungsi yang sudah didefinisikan
+
+```lua
+// Di browser console atau terminal:
 > player_x
 150
+
 > score
 1250
+
 > enemies.length
 3
+
+> enemies[0].hp
+100
+
+// Execute code
+> x = 50
+> y = 100
+
+// Call functions
+> spawnEnemy(100, 200)
+```
+
+### Error Handling & Stack Trace
+
+Ketika terjadi error, L8B akan menampilkan stack trace yang detail:
+
+```lua
+// Contoh error
+update = function()
+  local enemy = enemies[0]
+  enemy.hp -= damage  // Error jika enemies kosong!
+end
+```
+
+**Error Output:**
+
+```text
+Error: Cannot read property 'hp' of undefined
+  at update (main.loot:15:3)
+  at RuntimeOrchestrator.update (orchestrator.ts:483:5)
+Stack trace:
+  1. update() - main.loot:15
+  2. RuntimeOrchestrator.update() - orchestrator.ts:483
+```
+
+### Debugging Tips
+
+#### 1. Gunakan print() untuk tracing
+
+```lua
+update = function()
+  print("Frame:", system.time)
+  print("Player:", player_x, player_y)
+  print("Enemies:", enemies.length)
+end
+```
+
+#### 2. Check variable values
+
+```lua
+// Di console, ketik:
+> player_x
+> enemies
+> GameState.current
+```
+
+#### 3. Test functions
+
+```lua
+// Di console, panggil fungsi:
+> calculateDistance(0, 0, 10, 10)
+> spawnEnemy(100, 100)
+```
+
+#### 4. Inspect objects
+
+```lua
+// Di console:
+> player
+{ x: 0, y: 0, hp: 100, speed: 2 }
+
+> player.hp
+100
 ```
 
 ## Best Practices

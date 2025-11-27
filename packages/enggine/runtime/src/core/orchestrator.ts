@@ -29,6 +29,7 @@ import { GameLoop } from "../loop";
 import { System } from "../system";
 import { ObjectPool } from "../utils/object-pool";
 import { SceneManager } from "@l8b/scene";
+import { Palette } from "@l8b/palette";
 import type {
 	RuntimeDebugOptions,
 	RuntimeListener,
@@ -298,6 +299,7 @@ export class RuntimeOrchestrator {
 		const inputStates = this.input.getStates();
 		const global: Partial<GlobalAPI> & {
 			ObjectPool: typeof ObjectPool;
+			Palette: typeof Palette;
 		} = {
 			screen: this.screen.getInterface(),
 			audio: this.audio.getInterface(),
@@ -326,6 +328,7 @@ export class RuntimeOrchestrator {
 			Sprite: Sprite,
 			Map: Map,
 			Sound: createSoundClass(this.audio),
+			Palette: Palette,
 			Random: Random,
 			ObjectPool: ObjectPool,
 		};

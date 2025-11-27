@@ -56,6 +56,7 @@ export interface GlobalAPI {
 	Image?: any;
 	Sprite?: any;
 	Map?: any;
+	Palette?: any;
 	Random?: any;
 }
 

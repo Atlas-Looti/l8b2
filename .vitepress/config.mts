@@ -35,6 +35,19 @@ export default defineConfig({
 						text: "API Cheatsheet",
 						link: "/quick-reference/api-cheatsheet",
 					},
+					{
+						text: "Error Cheatsheet",
+						link: "/quick-reference/error-cheatsheet",
+					},
+				],
+			},
+			{
+				text: "Advanced Topics",
+				items: [
+					{
+						text: "Advanced LootiScript",
+						link: "/advanced-topics/advanced-lootiscript",
+					},
 				],
 			},
 		],
