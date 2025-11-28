@@ -9,6 +9,7 @@
  * - dev: Start development server with HMR
  * - build: Compile project for production
  * - start: Serve production build
+ * - init: Initialize new project
  *
  * @module framework/cli
  */
@@ -20,7 +21,7 @@ import { fileURLToPath } from "url";
 import yargs, { type Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { dev, build, start } from "./commands";
+import { dev, build, start, init } from "./commands";
 import { DEFAULT_SERVER } from "./utils/constants";
 import {
 	ConfigError,
@@ -39,6 +40,11 @@ interface BaseArgs {
 interface ServerArgs extends BaseArgs {
 	port?: number;
 	host?: HostOption;
+}
+
+interface InitArgs {
+	name: string;
+	force?: boolean;
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -108,6 +114,32 @@ function handleCliError(error: unknown, fallbackMessage: string): never {
 
 void yargs(hideBin(process.argv))
 	.scriptName("l8b")
+	.command(
+		"init <name>",
+		"Initialize a new project",
+		(yargsBuilder: Argv) =>
+			yargsBuilder
+				.positional("name", {
+					type: "string",
+					describe: "Project name (directory)",
+					demandOption: true,
+				})
+				.option("force", {
+					type: "boolean",
+					alias: "f",
+					describe: "Overwrite existing directory",
+				}) as Argv<InitArgs>,
+		async (args: InitArgs) => {
+			try {
+				await init({
+					name: args.name,
+					force: args.force,
+				});
+			} catch (error) {
+				handleCliError(error, "Error initializing project:");
+			}
+		},
+	)
 	.command<ServerArgs>(
 		"dev [root]",
 		"Start development server with hot module replacement",

@@ -8,8 +8,6 @@
 import type { Plugin } from "vite";
 import fs from "fs-extra";
 import path from "path";
-import { ModuleGraph } from "../utils/module-graph";
-import { getModuleName } from "../utils/loot-dependencies";
 
 /**
  * File cache entry
@@ -29,18 +27,16 @@ const fileCache = new Map<string, FileCacheEntry>();
  */
 export function lootiScriptPlugin(): Plugin {
 	let root: string = "";
-	let moduleGraph: ModuleGraph | null = null;
 
 	return {
 		name: "vite-plugin-lootiscript",
 		enforce: "pre",
 
-		configResolved(config) {
+		configResolved(config: any) {
 			root = config.root;
-			moduleGraph = new ModuleGraph(root);
 		},
 
-		async load(id) {
+		async load(id: string) {
 			// Handle .loot?raw imports - return the file content as a string
 			if (!id.endsWith(".loot") && !id.includes(".loot?")) {
 				return null;
@@ -77,11 +73,6 @@ export function lootiScriptPlugin(): Plugin {
 				const content = await fs.readFile(filePath, "utf-8");
 				fileCache.set(filePath, { content, mtime: stat.mtimeMs });
 
-				// Update module graph
-				if (moduleGraph) {
-					await moduleGraph.addModule(filePath);
-				}
-
 				// Return as string export for ?raw imports
 				return `export default ${JSON.stringify(content)};`;
 			} catch (error) {
@@ -95,48 +86,24 @@ export function lootiScriptPlugin(): Plugin {
 			}
 		},
 
-		async handleHotUpdate({ file, server }) {
+		async handleHotUpdate({ file, server }: { file: string; server: any }) {
 			// Handle .loot file changes
 			if (file.endsWith(".loot")) {
 				// Clear cache for changed file
 				fileCache.delete(file);
 
-				if (!moduleGraph) {
-					// Fallback to full reload if module graph not initialized
-					server.ws.send({
-						type: "full-reload",
-						path: "*",
-					});
-					return [];
-				}
-
-				// Update module graph with changed file
-				const moduleName = getModuleName(file, root);
-				await moduleGraph.addModule(file);
-
-				// Get affected modules (changed module + all dependents)
-				const affectedModules = moduleGraph.getAffectedModules(moduleName);
-
-				// Send incremental HMR update
-				// For now, we still do full reload but can be optimized further
-				// to only reload affected modules
-				if (affectedModules.length > 0) {
-					server.ws.send({
-						type: "full-reload",
-						path: "*",
-					});
-				}
-
-				// Return affected modules for Vite's HMR system
-				// Vite expects ModuleNode[] but we'll return file paths
-				// The full reload will handle the update
+				// Always full reload for now since we don't track dependencies
+				server.ws.send({
+					type: "full-reload",
+					path: "*",
+				});
 				return [];
 			}
 		},
 
-		configureServer(server) {
+		configureServer(server: any) {
 			// Ensure .loot files are served with correct MIME type
-			server.middlewares.use((req, res, next) => {
+			server.middlewares.use((req: any, res: any, next: any) => {
 				if (req.url?.endsWith(".loot")) {
 					res.setHeader("Content-Type", "text/plain");
 				}

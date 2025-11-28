@@ -19,13 +19,7 @@ export const INTERNAL_ENDPOINTS = {
 	LOGGER: "/__l8b/log",
 } as const;
 
-/**
- * Cache settings
- */
-export const CACHE = {
-	/** Cache TTL in milliseconds for resources and sources */
-	TTL_MS: 100,
-} as const;
+
 
 /**
  * Font serving configuration
@@ -43,15 +37,4 @@ export const BUILD = {
 	MAX_WORKSPACE_DEPTH: 10,
 } as const;
 
-/**
- * Aspect ratio presets
- */
-export const ASPECT_SIZES = {
-	"16:9": { width: 1920, height: 1080 },
-	"4:3": { width: 1600, height: 1200 },
-	"1:1": { width: 1080, height: 1080 },
-	"3:4": { width: 900, height: 1200 },
-	"9:16": { width: 1080, height: 1920 },
-} as const;
 
-export type AspectRatio = keyof typeof ASPECT_SIZES;

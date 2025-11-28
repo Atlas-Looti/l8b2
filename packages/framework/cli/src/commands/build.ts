@@ -49,6 +49,14 @@ export async function build(
 	console.log(
 		pc.green(`  ✓ Found ${Object.keys(sources).length} source files`),
 	);
+	if (Object.keys(sources).length === 0) {
+		console.warn(
+			pc.yellow(
+				`  ⚠ No source files found in ${DEFAULT_DIRS.SCRIPTS}/. Create a .loot file to get started.`,
+			),
+		);
+	}
+
 	console.log(
 		pc.green(
 			`  ✓ Found ${resources.images?.length ?? 0} images, ${resources.maps?.length ?? 0} maps`,
@@ -69,6 +77,7 @@ export async function build(
 			{
 				totalErrors: compileResult.errors.length,
 				errors: compileResult.errors,
+				suggestion: "Check the syntax errors above and fix them in your source files.",
 			},
 		);
 	}
@@ -95,43 +104,16 @@ export async function build(
 	await bundleRuntime(distDir, projectPath);
 	console.log(pc.green("  ✓ Bundled runtime"));
 
-	// Copy and optimize public directory assets
+	// Copy public directory assets
 	const publicDir = path.join(projectPath, DEFAULT_DIRS.PUBLIC);
 	if (await fs.pathExists(publicDir)) {
-		console.log(pc.gray("  Copying and optimizing public assets..."));
+		console.log(pc.gray("  Copying public assets..."));
 
-		// Try to optimize images
-		const { optimizeImages, isSharpAvailable } = await import(
-			"../bundler/asset-optimizer"
-		);
-
-		const sharpAvailable = await isSharpAvailable();
-		if (sharpAvailable) {
-			const spritesDir = path.join(publicDir, "sprites");
-			const distSpritesDir = path.join(distDir, "sprites");
-
-			if (await fs.pathExists(spritesDir)) {
-				const stats = await optimizeImages(spritesDir, distSpritesDir);
-				if (stats.optimized > 0) {
-					console.log(
-						pc.green(
-							`  ✓ Optimized ${stats.optimized} images (${stats.skipped} skipped)`,
-						),
-					);
-				}
-			}
-		}
-
-		// Copy remaining assets (non-images or if optimization skipped)
 		await fs.copy(publicDir, distDir, {
 			overwrite: true,
 			filter: (src) => {
 				// Skip node_modules and other unnecessary files
 				const relative = path.relative(publicDir, src);
-				// Skip sprites if we already optimized them
-				if (relative.startsWith("sprites/") && sharpAvailable) {
-					return false;
-				}
 				return (
 					!relative.includes("node_modules") &&
 					!relative.startsWith(".") &&

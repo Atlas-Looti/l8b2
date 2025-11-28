@@ -19,10 +19,24 @@ npm install -g @l8b/cli
 Or use with npx:
 
 ```bash
+npx @l8b/cli init my-game
+cd my-game
+npm install
 npx @l8b/cli dev
 ```
 
 ## Commands
+
+### init
+
+Initialize a new LootiScript project.
+
+```bash
+l8b init <name>
+```
+
+**Options:**
+- `--force`, `-f` - Overwrite existing directory
 
 ### dev
 
@@ -86,7 +100,7 @@ l8b build ./my-game
 
 **Output:**
 - Compiled LootiScript bytecode
-- Optimized assets
+- Copied assets
 - Generated HTML with embedded runtime
 - Production-ready bundle in `.l8b/` directory
 
@@ -182,10 +196,9 @@ Create `l8b.config.json` in your project root:
 ### 1. Create Project
 
 ```bash
-mkdir my-game
+npx l8b init my-game
 cd my-game
-npm init -y
-npm install @l8b/cli
+npm install
 ```
 
 ### 2. Create Source File

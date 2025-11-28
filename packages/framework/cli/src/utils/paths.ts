@@ -30,6 +30,7 @@ export const DEFAULT_FILES = {
 	INDEX_HTML: "index.html",
 	RUNTIME_BUNDLE: "runtime.js",
 	BITCELL_FONT: "BitCell.ttf",
+	PACKAGE_JSON: "package.json",
 } as const;
 
 /**

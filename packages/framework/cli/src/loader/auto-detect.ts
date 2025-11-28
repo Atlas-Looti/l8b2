@@ -75,8 +75,8 @@ async function scanDirectory(
 /**
  * Detect all resources (images, maps, sounds, music) in project
  *
- * Scans `public/` and `public/l8b/` directories for assets and returns
- * them in the format expected by @l8b/runtime.
+ * Scans `public/` directory for assets and returns them in the format
+ * expected by @l8b/runtime.
  *
  * @param projectPath - Absolute path to project root
  * @returns Resources object with detected assets
@@ -103,79 +103,23 @@ export async function detectResources(
 	const MAP_EXTENSIONS = new Set([".json", ".tmj"]);
 	const AUDIO_EXTENSIONS = new Set([".mp3", ".wav", ".ogg"]);
 
-	// Scan multiple directories in parallel for better performance
-	// Check both public/subdir and public/l8b/subdir for compatibility
-	const scanTasks = [
-		// Images from sprites
+	// Scan asset directories in parallel
+	const [sprites, maps, sounds, music] = await Promise.all([
 		scanDirectory(
 			path.join(publicDir, ASSET_SUBDIRS.SPRITES),
 			IMAGE_EXTENSIONS,
 		),
-		scanDirectory(
-			path.join(publicDir, "l8b", ASSET_SUBDIRS.SPRITES),
-			IMAGE_EXTENSIONS,
-		),
-
-		// Maps
 		scanDirectory(path.join(publicDir, ASSET_SUBDIRS.MAPS), MAP_EXTENSIONS),
-		scanDirectory(
-			path.join(publicDir, "l8b", ASSET_SUBDIRS.MAPS),
-			MAP_EXTENSIONS,
-		),
-
-		// Sounds
 		scanDirectory(path.join(publicDir, ASSET_SUBDIRS.SOUNDS), AUDIO_EXTENSIONS),
-		scanDirectory(
-			path.join(publicDir, "l8b", ASSET_SUBDIRS.SOUNDS),
-			AUDIO_EXTENSIONS,
-		),
-
-		// Music
 		scanDirectory(path.join(publicDir, ASSET_SUBDIRS.MUSIC), AUDIO_EXTENSIONS),
-		scanDirectory(
-			path.join(publicDir, "l8b", ASSET_SUBDIRS.MUSIC),
-			AUDIO_EXTENSIONS,
-		),
-	];
+	]);
 
-	const [sprites1, sprites2, maps1, maps2, sounds1, sounds2, music1, music2] =
-		await Promise.all(scanTasks);
+	resources.images = sprites;
+	resources.maps = maps;
+	resources.sounds = sounds;
+	resources.music = music;
 
-	// Combine results (remove duplicates based on filename)
-	const imageSet = new Set<string>();
-	const mapSet = new Set<string>();
-	const soundSet = new Set<string>();
-	const musicSet = new Set<string>();
-
-	[...sprites1, ...sprites2].forEach((file) => {
-		if (!imageSet.has(file.file)) {
-			imageSet.add(file.file);
-			resources.images!.push(file);
-		}
-	});
-
-	[...maps1, ...maps2].forEach((file) => {
-		if (!mapSet.has(file.file)) {
-			mapSet.add(file.file);
-			resources.maps!.push(file);
-		}
-	});
-
-	[...sounds1, ...sounds2].forEach((file) => {
-		if (!soundSet.has(file.file)) {
-			soundSet.add(file.file);
-			resources.sounds!.push(file);
-		}
-	});
-
-	[...music1, ...music2].forEach((file) => {
-		if (!musicSet.has(file.file)) {
-			musicSet.add(file.file);
-			resources.music!.push(file);
-		}
-	});
-
-	// Scan root public for generic assets (non-parallel to avoid too many concurrent reads)
+	// Scan root public for generic assets
 	try {
 		const entries = await fs.readdir(publicDir, { withFileTypes: true });
 		for (const entry of entries) {

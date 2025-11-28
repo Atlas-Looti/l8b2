@@ -25,14 +25,7 @@ import {
 import { DEFAULT_SERVER, FONT } from "../utils/constants";
 import { handleRuntimeLogRequest } from "../utils/runtime-logs";
 import { ServerError } from "../utils/errors";
-import {
-	computeHash,
-	getCached,
-	setCached,
-	clearCache,
-	type CacheOptions,
-} from "../utils/cache";
-import type { Resources } from "@l8b/runtime";
+
 
 /**
  * Development server options
@@ -68,7 +61,7 @@ export async function dev(
 				? options.host
 				: (config.dev?.host ?? DEFAULT_SERVER.HOST);
 
-		// Setup file watchers to invalidate cache on changes
+		// Setup file watcher for HMR
 		const watchPaths = [
 			path.join(projectPath, DEFAULT_DIRS.PUBLIC),
 			path.join(projectPath, DEFAULT_DIRS.SCRIPTS),
@@ -80,75 +73,6 @@ export async function dev(
 			persistent: true,
 			ignoreInitial: true,
 		});
-
-		// Setup persistent cache directory
-		const cacheDir = path.join(projectPath, DEFAULT_DIRS.BUILD_OUTPUT, "cache");
-		const resourcesCacheOptions: CacheOptions = {
-			cacheDir,
-			key: "resources",
-		};
-		const sourcesCacheOptions: CacheOptions = {
-			cacheDir,
-			key: "sources",
-		};
-
-		// Clear cache on file changes
-		const clearCacheOnChange = async () => {
-			await Promise.all([
-				clearCache(resourcesCacheOptions),
-				clearCache(sourcesCacheOptions),
-			]);
-		};
-
-		watcher.on("change", clearCacheOnChange);
-		watcher.on("add", clearCacheOnChange);
-		watcher.on("unlink", clearCacheOnChange);
-
-		/**
-		 * Get or cache resources with hash-based invalidation
-		 */
-		const getResources = async (): Promise<Resources> => {
-			// Compute hash for resources (public directory and config)
-			const hashPaths = [DEFAULT_DIRS.PUBLIC, DEFAULT_FILES.CONFIG];
-			const currentHash = await computeHash(projectPath, hashPaths);
-
-			// Try to get from cache
-			const cached = await getCached<Resources>(
-				resourcesCacheOptions,
-				currentHash,
-			);
-			if (cached !== null) {
-				return cached;
-			}
-
-			// Cache miss, detect resources
-			const resources = await detectResources(projectPath);
-			await setCached(resourcesCacheOptions, resources, currentHash);
-			return resources;
-		};
-
-		/**
-		 * Get or cache sources with hash-based invalidation
-		 */
-		const getSources = async (): Promise<Record<string, string>> => {
-			// Compute hash for sources (scripts directory)
-			const hashPaths = [DEFAULT_DIRS.SCRIPTS];
-			const currentHash = await computeHash(projectPath, hashPaths);
-
-			// Try to get from cache
-			const cached = await getCached<Record<string, string>>(
-				sourcesCacheOptions,
-				currentHash,
-			);
-			if (cached !== null) {
-				return cached;
-			}
-
-			// Cache miss, load sources
-			const sources = await loadSources(projectPath);
-			await setCached(sourcesCacheOptions, sources, currentHash);
-			return sources;
-		};
 
 		const server = await createServer({
 			root: projectPath,
@@ -212,10 +136,10 @@ export async function dev(
 								req.url === `/${DEFAULT_FILES.INDEX_HTML}`
 							) {
 								try {
-									// Use cached versions when possible
+									// Load sources and resources
 									const [currentSources, currentResources] = await Promise.all([
-										getSources(),
-										getResources(),
+										loadSources(projectPath),
+										detectResources(projectPath),
 									]);
 
 									const html = generateHTML(
@@ -279,7 +203,7 @@ export async function dev(
 		const cleanup = async () => {
 			console.log("\n\nShutting down server...");
 			try {
-				await watcher.close();
+				if (watcher) await watcher.close();
 				await server.close();
 				process.exit(0);
 			} catch (error) {
@@ -301,9 +225,16 @@ export async function dev(
 		if (error instanceof ServerError) {
 			throw error;
 		}
+
+		let suggestion = "Check if the port is already in use.";
+		if (error instanceof Error && error.message.includes("EADDRINUSE")) {
+			suggestion = `Port ${options.port || DEFAULT_SERVER.PORT} is already in use. Try using a different port with --port <number>.`;
+		}
+
 		throw new ServerError("Failed to start development server", {
 			error: error instanceof Error ? error.message : String(error),
 			projectPath,
+			suggestion,
 		});
 	}
 }
