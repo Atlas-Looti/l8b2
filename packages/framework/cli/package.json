@@ -22,7 +22,7 @@
 		"@l8b/compiler": "workspace:*",
 		"@l8b/diagnostics": "workspace:*",
 		"@l8b/runtime": "workspace:*",
-		"chokidar": "^3.5.3",
+		"chokidar": "^5.0.0",
 		"esbuild": "^0.19.0",
 		"fs-extra": "^11.2.0",
 		"picocolors": "^1.0.0",
