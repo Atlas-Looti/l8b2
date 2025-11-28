@@ -1,195 +1,374 @@
 # @l8b/sprites
 
-Sprite and image management system for game development.
+**LootiScript API Binding** - Sprite and Image classes for creating and manipulating graphics.
 
-## Installation
-
-```bash
-bun add @l8b/sprites
-```
-
-## Features
-
-- **Image Class**: Canvas-based image manipulation with full drawing API
-- **Sprite Class**: Animated sprite management with frame control
-- **Modular Architecture**: Clean separation of concerns
-
-## Usage
-
-### Basic Image
-
-```typescript
-import { Image } from "@l8b/sprites";
-
-const img = new Image(100, 100);
-img.fillRect(0, 0, 50, 50, "red");
-img.drawText("Hello", 0, 0, 16, "white");
-```
-
-### Sprite Animation
-
-```typescript
-import { Sprite, loadSprite } from "@l8b/sprites";
-
-const sprite = loadSprite("/sprite.png", {
-  frames: 4,
-  fps: 10,
-});
-
-sprite.setFPS(15);
-const frame = sprite.getFrame();
-```
-
-### Drawing Operations
-
-```typescript
-const img = new Image(200, 200);
-
-// Shapes
-img.fillRect(0, 0, 50, 50, "blue");
-img.drawRound(0, 0, 60, 60, "green");
-img.drawPolygon(0, 0, 50, 50, 100, 0, "red");
-
-// Transform
-img.setTranslation(100, 100);
-img.setRotation(45);
-img.setScale(1.5, 1.5);
-
-// Gradients
-img.setLinearGradient(0, 0, 100, 100, "red", "blue");
-img.fillRect(0, 0, 100, 100);
-```
+> **Note**: This package is used as an API binding for LootiScript in the l8b engine.
 
 ## API Reference
 
-### Image Class
+### Sprite Constructor
 
-#### Constructor
+Create a new sprite with animation support.
 
-```typescript
-new Image(width: number, height: number, centered?: boolean)
-new Image(htmlImage: HTMLImageElement)
-new Image(canvas: HTMLCanvasElement)
+```lua
+// Create a 32x32 sprite
+local mySprite = Sprite(32, 32)
 ```
 
-#### Drawing
+**Parameters:**
+- `width` (number) - Sprite width in pixels
+- `height` (number) - Sprite height in pixels
 
-- `fillRect(x, y, w, h, color?)`
-- `drawRect(x, y, w, h, color?)`
-- `fillRound(x, y, w, h, color?)`
-- `drawRound(x, y, w, h, color?)`
-- `fillRoundRect(x, y, w, h, round, color?)`
-- `drawRoundRect(x, y, w, h, round, color?)`
-- `drawLine(x1, y1, x2, y2, color?)`
+### Sprite Properties
 
-#### Shapes
+```lua
+// Sprite dimensions
+local w = mySprite.width
+local h = mySprite.height
 
-- `drawPolygon(...points, color?)`
-- `fillPolygon(...points, color?)`
-- `drawPolyline(...points, color?)`
-- `drawArc(x, y, radius, angle1, angle2, ccw, color?)`
-- `fillArc(x, y, radius, angle1, angle2, ccw, color?)`
-- `drawQuadCurve(...points, color?)`
-- `drawBezierCurve(...points, color?)`
+// Animation frames
+local frameCount = #mySprite.frames
 
-#### Text
+// Ready state
+if mySprite.ready == 1 then
+  // Sprite is ready
+end
 
-- `drawText(text, x, y, size, color?)`
-- `drawTextOutline(text, x, y, size, color?)`
-- `textWidth(text, size)`
-- `setFont(font)`
-- `loadFont(font)`
-- `isFontReady(font?)`
-
-#### Transform
-
-- `setTranslation(x, y)`
-- `setScale(x, y)`
-- `setRotation(angle)`
-- `setDrawAnchor(x, y)`
-- `setDrawRotation(angle)`
-- `setDrawScale(x, y?)`
-
-#### Color
-
-- `setColor(color)`
-- `setAlpha(alpha)`
-- `setLinearGradient(x1, y1, x2, y2, c1, c2)`
-- `setRadialGradient(x, y, radius, c1, c2)`
-- `setBlending(mode)`
-
-#### Pixel
-
-- `setRGB(x, y, r, g, b)`
-- `setRGBA(x, y, r, g, b, a)`
-- `getRGB(x, y, result?)`
-- `getRGBA(x, y, result?)`
-
-#### Rendering
-
-- `drawSprite(sprite, x, y, w?, h?)`
-- `drawImage(sprite, x, y, w?, h?)`
-- `drawSpritePart(sprite, sx, sy, sw, sh, x, y, w?, h?)`
-- `drawImagePart(sprite, sx, sy, sw, sh, x, y, w?, h?)`
-- `drawMap(map, x, y, w, h)`
-
-#### Other
-
-- `clear(color?)`
-- `setLineWidth(width)`
-- `setLineDash(dash)`
-- `setPixelated(pixelated)`
-
-### Sprite Class
-
-#### Constructor
-
-```typescript
-new Sprite(width: number, height: number)
+// Frames per second
+local fps = mySprite.fps
 ```
 
-#### Properties
+### sprite.setFPS()
 
-- `width: number`
-- `height: number`
-- `frames: SpriteFrame[]`
-- `fps: number`
-- `ready: number`
-- `name: string`
+Set animation speed.
 
-#### Methods
-
-- `setFPS(fps: number): number`
-- `setFrame(frame: number): void`
-- `getFrame(): number`
-- `getCurrentFrameCanvas(): HTMLCanvasElement | null`
-
-### Functions
-
-#### loadSprite
-
-```typescript
-loadSprite(
-  url: string,
-  properties?: { frames?: number; fps?: number },
-  loaded?: () => void
-): Sprite
+```lua
+mySprite.setFPS(10)  // 10 frames per second
+mySprite.setFPS(5)   // 5 frames per second
 ```
 
-#### updateSprite
+**Parameters:**
+- `fps` (number) - Frames per second
 
-```typescript
-updateSprite(
-  sprite: Sprite,
-  img: HTMLImageElement,
-  properties?: { frames?: number; fps?: number }
-): void
+**Returns:** FPS value
+
+### sprite.setFrame()
+
+Set the current animation frame.
+
+```lua
+mySprite.setFrame(0)  // First frame
+mySprite.setFrame(2)  // Third frame
 ```
 
-## Blending Modes
+**Parameters:**
+- `frame` (number) - Frame index (0-based)
 
-Available modes: `normal`, `additive`, `multiply`, `screen`, `overlay`, `darken`, `lighten`, `color-dodge`, `color-burn`, `hard-light`, `soft-light`, `difference`, `exclusion`, `hue`, `saturation`, `color`, `luminosity`
+### sprite.getFrame()
 
-## License
+Get the current animation frame.
 
-MIT
+```lua
+local currentFrame = mySprite.getFrame()
+```
+
+**Returns:** Current frame index
+
+### sprite.getCurrentFrameCanvas()
+
+Get the canvas of the current frame.
+
+```lua
+local canvas = mySprite.getCurrentFrameCanvas()
+```
+
+**Returns:** HTMLCanvasElement or null
+
+## Image Constructor
+
+Create an off-screen image for drawing.
+
+```lua
+// Create a 100x100 image
+local img = Image(100, 100)
+
+// Create from existing image element
+local img = Image(imageElement)
+
+// Create from existing canvas
+local img = Image(canvasElement)
+```
+
+**Parameters:**
+- `width` (number) - Image width in pixels
+- `height` (number, optional) - Image height (defaults to width for square)
+- OR `imageElement` (HTMLImageElement) - Existing image
+- OR `canvasElement` (HTMLCanvasElement) - Existing canvas
+
+### Image Properties
+
+```lua
+// Image dimensions
+local w = img.width
+local h = img.height
+
+// Canvas element
+local canvas = img.canvas
+
+// Rendering context
+local ctx = img.context
+```
+
+### Pixel Operations
+
+#### img.setRGB()
+
+Set pixel color (RGB).
+
+```lua
+// Set pixel at (0, 0) to red
+img.setRGB(0, 0, 255, 0, 0)
+
+// Using RGB object
+img.setRGB(0, 0, {r = 255, g = 0, b = 0})
+```
+
+**Parameters:**
+- `x` (number) - X position
+- `y` (number) - Y position
+- `r` (number or RGB object) - Red value 0-255
+- `g` (number, optional) - Green value 0-255
+- `b` (number, optional) - Blue value 0-255
+
+#### img.setRGBA()
+
+Set pixel color with alpha (RGBA).
+
+```lua
+// Set pixel at (0, 0) to semi-transparent red
+img.setRGBA(0, 0, 255, 0, 0, 128)
+
+// Using RGBA object
+img.setRGBA(0, 0, {r = 255, g = 0, b = 0, a = 128})
+```
+
+**Parameters:**
+- `x` (number) - X position
+- `y` (number) - Y position
+- `r` (number or RGBA object) - Red value 0-255
+- `g` (number, optional) - Green value 0-255
+- `b` (number, optional) - Blue value 0-255
+- `a` (number, optional) - Alpha value 0-255
+
+#### img.getRGB()
+
+Get pixel color (RGB).
+
+```lua
+local rgb = img.getRGB(0, 0)
+// Returns: {r = 255, g = 0, b = 0}
+
+local r = rgb.r
+local g = rgb.g
+local b = rgb.b
+```
+
+**Parameters:**
+- `x` (number) - X position
+- `y` (number) - Y position
+
+**Returns:** RGB object `{r, g, b}`
+
+#### img.getRGBA()
+
+Get pixel color with alpha (RGBA).
+
+```lua
+local rgba = img.getRGBA(0, 0)
+// Returns: {r = 255, g = 0, b = 0, a = 255}
+```
+
+**Parameters:**
+- `x` (number) - X position
+- `y` (number) - Y position
+
+**Returns:** RGBA object `{r, g, b, a}`
+
+### Drawing on Images
+
+Images support the same drawing API as screen:
+
+```lua
+// Clear image
+img.clear("#FFFFFF")
+
+// Set color
+img.setColor("#FF0000")
+
+// Draw shapes
+img.fillRect(10, 10, 50, 50)
+img.drawLine(0, 0, 100, 100)
+img.fillRound(50, 50, 30, 30)
+
+// Draw text
+img.setFont("BitCell")
+img.drawText("Hello", 10, 10, 16)
+
+// Draw sprites
+img.drawSprite("player", 50, 50)
+
+// Draw maps
+img.drawMap(myMap, 0, 0, 100, 100)
+```
+
+### Image State
+
+```lua
+// Set alpha
+img.setAlpha(0.5)
+
+// Set pixelation
+img.setPixelated(1)
+
+// Set blending
+img.setBlending("additive")
+
+// Set line width
+img.setLineWidth(2)
+
+// Set line dash
+img.setLineDash({5, 5})
+```
+
+### Image Transformations
+
+```lua
+// Translation
+img.setTranslation(50, 50)
+
+// Scale
+img.setScale(2, 2)
+
+// Rotation
+img.setRotation(45)
+
+// Draw anchor
+img.setDrawAnchor(0.5, 0.5)
+
+// Draw rotation
+img.setDrawRotation(90)
+
+// Draw scale
+img.setDrawScale(2, 2)
+```
+
+### Gradients
+
+```lua
+// Linear gradient
+img.setLinearGradient(0, 0, 100, 0, "#FF0000", "#0000FF")
+img.fillRect(0, 0, 100, 50)
+
+// Radial gradient
+img.setRadialGradient(50, 50, 50, "#FFFFFF", "#000000")
+img.fillRound(50, 50, 50, 50)
+```
+
+### Font Operations
+
+```lua
+// Set font
+img.setFont("Arial")
+
+// Load font
+img.loadFont("CustomFont")
+
+// Check if font is ready
+if img.isFontReady("CustomFont") then
+  // Font is loaded
+end
+
+// Get text width
+local width = img.textWidth("Hello", 16)
+```
+
+## Example Usage
+
+### Creating and Using a Sprite
+
+```lua
+// Create sprite
+local playerSprite = Sprite(32, 32)
+
+// Set animation speed
+playerSprite.setFPS(8)
+
+// Use in game
+function draw()
+  screen.drawSprite(playerSprite, playerX, playerY)
+end
+```
+
+### Creating an Off-Screen Buffer
+
+```lua
+// Create image buffer
+local buffer = Image(320, 240)
+
+// Draw to buffer
+buffer.clear("#000000")
+buffer.setColor("#FFFFFF")
+buffer.fillRect(10, 10, 50, 50)
+buffer.drawText("Buffered", 10, 70, 12)
+
+// Draw buffer to screen
+function draw()
+  screen.clear("#000")
+  screen.drawImage(buffer, 0, 0, screen.width, screen.height)
+end
+```
+
+### Pixel Manipulation
+
+```lua
+// Create image
+local img = Image(100, 100)
+
+// Set pixels
+for y = 0, 99 do
+  for x = 0, 99 do
+    local r = x * 2.55
+    local g = y * 2.55
+    local b = 128
+    img.setRGB(x, y, r, g, b)
+  end
+end
+
+// Read pixels
+local rgb = img.getRGB(50, 50)
+Console.log("Color at (50,50): " .. rgb.r .. "," .. rgb.g .. "," .. rgb.b)
+```
+
+### Dynamic Sprite Generation
+
+```lua
+// Create sprite
+local dynamicSprite = Sprite(64, 64)
+
+// Get first frame canvas
+local canvas = dynamicSprite.frames[1].canvas
+local img = Image(canvas)
+
+// Draw on sprite
+img.clear("#000000")
+img.setColor("#FFFF00")
+img.fillRound(32, 32, 20, 20)
+img.setColor("#000000")
+img.fillRound(20, 25, 5, 5)
+img.fillRound(44, 25, 5, 5)
+
+// Use sprite
+function draw()
+  screen.drawSprite(dynamicSprite, 100, 100)
+end
+```

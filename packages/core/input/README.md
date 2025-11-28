@@ -1,256 +1,284 @@
 # @l8b/input
 
-Game input management system for keyboard, mouse, touch, and gamepad.
+**LootiScript API Binding** - Input handling for keyboard, mouse, touch, and gamepad.
 
-## Features
-
-- **Keyboard Input**: Key press/release detection with directional keys
-- **Mouse Input**: Position tracking, button states, and wheel events
-- **Touch Input**: Multi-touch support with position tracking
-- **Gamepad Input**: Full gamepad support with buttons, triggers, and analog sticks
-
-## Installation
-
-```bash
-bun add @l8b/input
-```
-
-## Usage
-
-### Basic Setup
-
-```typescript
-import { Input } from "@l8b/input";
-
-const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
-const input = new Input(canvas);
-
-// Game loop
-function update() {
-  input.update();
-
-  const keyboard = input.getKeyboard();
-  const mouse = input.getMouse();
-  const touch = input.getTouch();
-  const gamepad = input.getGamepad();
-
-  // Use input states...
-
-  requestAnimationFrame(update);
-}
-
-update();
-```
-
-### Keyboard Input
-
-```typescript
-const keyboard = input.getKeyboard();
-
-// Check if key is pressed
-if (keyboard.KEY_W || keyboard.UP) {
-  // Move up
-}
-
-// Check for key press (once)
-if (keyboard.press.SPACE) {
-  // Jump
-}
-
-// Check for key release
-if (keyboard.release.ENTER) {
-  // Action released
-}
-
-// Directional keys
-if (keyboard.LEFT) {
-  // Move left
-}
-```
-
-### Mouse Input
-
-```typescript
-const mouse = input.getMouse();
-
-// Mouse position (normalized to canvas)
-console.log(mouse.x, mouse.y);
-
-// Button states
-if (mouse.left) {
-  // Left button pressed
-}
-
-if (mouse.press) {
-  // Any button just pressed
-}
-
-// Mouse wheel
-if (mouse.wheel > 0) {
-  // Scroll up
-} else if (mouse.wheel < 0) {
-  // Scroll down
-}
-```
-
-### Touch Input
-
-```typescript
-const touch = input.getTouch();
-
-// Check if touching
-if (touch.touching) {
-  console.log(touch.x, touch.y);
-}
-
-// Touch press/release
-if (touch.press) {
-  // Touch started
-}
-
-if (touch.release) {
-  // Touch ended
-}
-
-// Multi-touch
-for (const point of touch.touches) {
-  console.log(point.id, point.x, point.y);
-}
-```
-
-### Gamepad Input
-
-```typescript
-const gamepad = input.getGamepad();
-
-// Check button states
-if (gamepad.status.A) {
-  // A button pressed
-}
-
-// Analog sticks
-const leftStickAngle = gamepad.status.LEFT_STICK_ANGLE;
-const leftStickAmount = gamepad.status.LEFT_STICK_AMOUNT;
-
-// Triggers
-const leftTrigger = gamepad.status.LT;
-const rightTrigger = gamepad.status.RT;
-
-// D-pad
-if (gamepad.status.DPAD_UP) {
-  // D-pad up pressed
-}
-
-// Per-gamepad access
-if (gamepad.count > 0) {
-  const pad1 = gamepad.status[0];
-  if (pad1.A) {
-    // Player 1 pressed A
-  }
-}
-```
+> **Note**: This package is used as an API binding for LootiScript in the l8b engine.
 
 ## API Reference
 
-### Input Class
+### keyboard
 
-#### Constructor
+Global object for keyboard input state.
 
-```typescript
-new Input(canvas?: HTMLCanvasElement)
+```lua
+// Check if key is held down (returns 1 or 0)
+if keyboard.UP == 1 then
+  // Move up
+end
+
+if keyboard.SPACE == 1 then
+  // Jump
+end
+
+// Arrow keys
+keyboard.UP, keyboard.DOWN, keyboard.LEFT, keyboard.RIGHT
+
+// Letter keys
+keyboard.A, keyboard.B, keyboard.C, ... keyboard.Z
+
+// Number keys
+keyboard["0"], keyboard["1"], ... keyboard["9"]
+
+// Special keys
+keyboard.ENTER, keyboard.ESCAPE, keyboard.SHIFT, keyboard.CTRL
+keyboard.ALT, keyboard.TAB, keyboard.BACKSPACE, keyboard.DELETE
+
+// Check for key press (triggers once per press)
+if keyboard.press.ENTER == 1 then
+  // Select option
+end
+
+// Check for key release
+if keyboard.release.SPACE == 1 then
+  // Released jump
+end
 ```
 
-#### Methods
+**Properties:**
+- `keyboard[KEY]` - 1 if key is held, 0 if not
+- `keyboard.press[KEY]` - 1 on frame key was pressed, 0 otherwise
+- `keyboard.release[KEY]` - 1 on frame key was released, 0 otherwise
 
-- `update(): void` - Update all input states (call once per frame)
-- `getKeyboard(): KeyboardState` - Get keyboard state
-- `getMouse(): MouseState` - Get mouse state
-- `getTouch(): TouchState` - Get touch state
-- `getGamepad(): GamepadInput` - Get gamepad manager
-- `setCanvas(canvas: HTMLCanvasElement): void` - Change target canvas
+### mouse
 
-### KeyboardState
+Global object for mouse input state.
 
-```typescript
-interface KeyboardState {
-  press: Record<string, number>; // Keys just pressed
-  release: Record<string, number>; // Keys just released
-  UP: number; // W or Arrow Up
-  DOWN: number; // S or Arrow Down
-  LEFT: number; // A or Arrow Left
-  RIGHT: number; // D or Arrow Right
-  [key: string]: number; // Any key state (1 = pressed, 0 = released)
-}
+```lua
+// Mouse position (screen coordinates)
+local mx = mouse.x
+local my = mouse.y
+
+// Mouse buttons (1 if pressed, 0 if not)
+if mouse.left == 1 then
+  // Left button held
+end
+
+if mouse.right == 1 then
+  // Right button held
+end
+
+if mouse.middle == 1 then
+  // Middle button held
+end
+
+// Button press (triggers once)
+if mouse.press == 1 then
+  // Any button just pressed
+end
+
+// Button release
+if mouse.release == 1 then
+  // Any button just released
+end
+
+// Mouse wheel
+local wheelDelta = mouse.wheel  // -1, 0, or 1
+
+// Check if any button is pressed
+if mouse.pressed == 1 then
+  // At least one button is held
+end
 ```
 
-### MouseState
+**Properties:**
+- `mouse.x` - Mouse X position
+- `mouse.y` - Mouse Y position
+- `mouse.left` - Left button state (1 or 0)
+- `mouse.right` - Right button state (1 or 0)
+- `mouse.middle` - Middle button state (1 or 0)
+- `mouse.pressed` - Any button pressed (1 or 0)
+- `mouse.press` - Button just pressed (1 or 0)
+- `mouse.release` - Button just released (1 or 0)
+- `mouse.wheel` - Wheel delta (-1, 0, or 1)
 
-```typescript
-interface MouseState {
-  x: number; // X position (normalized)
-  y: number; // Y position (normalized)
-  pressed: number; // Any button pressed
-  left: number; // Left button
-  middle: number; // Middle button
-  right: number; // Right button
-  press: number; // Just pressed
-  release: number; // Just released
-  wheel: number; // Wheel delta (-1, 0, 1)
-}
+### touch
+
+Global object for touch input state (mobile/tablet).
+
+```lua
+// Check if touching
+if touch.touching == 1 then
+  local tx = touch.x
+  local ty = touch.y
+  // Handle touch drag
+end
+
+// Touch press (first contact)
+if touch.press == 1 then
+  // Touch started
+end
+
+// Touch release
+if touch.release == 1 then
+  // Touch ended
+end
+
+// Multi-touch support
+local touchCount = #touch.touches
+for i = 1, touchCount do
+  local t = touch.touches[i]
+  local tx = t.x
+  local ty = t.y
+  local id = t.id
+  // Handle each touch point
+end
 ```
 
-### TouchState
+**Properties:**
+- `touch.touching` - 1 if screen is touched, 0 if not
+- `touch.x` - Primary touch X position
+- `touch.y` - Primary touch Y position
+- `touch.press` - 1 on touch start, 0 otherwise
+- `touch.release` - 1 on touch end, 0 otherwise
+- `touch.touches` - Array of all active touch points
 
-```typescript
-interface TouchState {
-  touching: number; // Is touching
-  x: number; // Primary touch X
-  y: number; // Primary touch Y
-  press: number; // Just started touching
-  release: number; // Just stopped touching
-  touches: TouchPoint[]; // All active touches
-}
+**Touch Point Object:**
+- `x` - Touch X position
+- `y` - Touch Y position
+- `id` - Unique touch identifier
 
-interface TouchPoint {
-  x: number;
-  y: number;
-  id: number | string;
-}
+### gamepad
+
+Global object for gamepad input state.
+
+```lua
+// Face buttons
+if gamepad.A == 1 then
+  // A button pressed
+end
+
+if gamepad.B == 1 then
+  // B button pressed
+end
+
+if gamepad.X == 1 then
+  // X button pressed
+end
+
+if gamepad.Y == 1 then
+  // Y button pressed
+end
+
+// D-pad
+if gamepad.UP == 1 then
+  // D-pad up
+end
+
+if gamepad.DOWN == 1 then
+  // D-pad down
+end
+
+if gamepad.LEFT == 1 then
+  // D-pad left
+end
+
+if gamepad.RIGHT == 1 then
+  // D-pad right
+end
+
+// Shoulder buttons
+if gamepad.L1 == 1 then
+  // Left bumper
+end
+
+if gamepad.R1 == 1 then
+  // Right bumper
+end
+
+// Triggers (analog, 0.0 to 1.0)
+local leftTrigger = gamepad.L2
+local rightTrigger = gamepad.R2
+
+// Analog sticks (-1.0 to 1.0)
+local leftX = gamepad.LSX
+local leftY = gamepad.LSY
+local rightX = gamepad.RSX
+local rightY = gamepad.RSY
+
+// Stick buttons
+if gamepad.LS == 1 then
+  // Left stick pressed
+end
+
+if gamepad.RS == 1 then
+  // Right stick pressed
+end
+
+// Start/Select
+if gamepad.START == 1 then
+  // Start button
+end
+
+if gamepad.SELECT == 1 then
+  // Select button
+end
 ```
 
-### GamepadInput
+**Properties:**
+- `gamepad.A`, `gamepad.B`, `gamepad.X`, `gamepad.Y` - Face buttons
+- `gamepad.UP`, `gamepad.DOWN`, `gamepad.LEFT`, `gamepad.RIGHT` - D-pad
+- `gamepad.L1`, `gamepad.R1` - Shoulder buttons
+- `gamepad.L2`, `gamepad.R2` - Triggers (0.0 to 1.0)
+- `gamepad.LSX`, `gamepad.LSY` - Left stick (-1.0 to 1.0)
+- `gamepad.RSX`, `gamepad.RSY` - Right stick (-1.0 to 1.0)
+- `gamepad.LS`, `gamepad.RS` - Stick buttons
+- `gamepad.START`, `gamepad.SELECT` - Menu buttons
 
-#### Properties
+## Input Patterns
 
-- `status: StateMap` - Current gamepad state (aggregated from all gamepads)
-- `status[0-3]: StateMap` - Individual gamepad states
-- `count: number` - Number of connected gamepads
+### Movement with Keyboard
 
-#### Gamepad Buttons
+```lua
+local speed = 2
 
-- `A`, `B`, `X`, `Y` - Face buttons
-- `LB`, `RB` - Shoulder buttons
-- `LT`, `RT` - Triggers (0-1 analog)
-- `DPAD_UP`, `DPAD_DOWN`, `DPAD_LEFT`, `DPAD_RIGHT` - D-pad
-- `LS`, `RS` - Stick buttons
-- `VIEW`, `MENU` - View/Menu buttons
+if keyboard.UP == 1 then
+  playerY = playerY - speed
+end
 
-#### Analog Sticks
+if keyboard.DOWN == 1 then
+  playerY = playerY + speed
+end
 
-- `LEFT_STICK_ANGLE`, `LEFT_STICK_AMOUNT` - Left stick
-- `RIGHT_STICK_ANGLE`, `RIGHT_STICK_AMOUNT` - Right stick
-- `LEFT_STICK_UP`, `LEFT_STICK_DOWN`, `LEFT_STICK_LEFT`, `LEFT_STICK_RIGHT` - Digital directions
-- `RIGHT_STICK_UP`, `RIGHT_STICK_DOWN`, `RIGHT_STICK_LEFT`, `RIGHT_STICK_RIGHT` - Digital directions
+if keyboard.LEFT == 1 then
+  playerX = playerX - speed
+end
 
-## Key Codes
+if keyboard.RIGHT == 1 then
+  playerX = playerX + speed
+end
+```
 
-Keyboard keys are available in two formats:
+### Click Detection
 
-1. **Physical key codes**: `KEY_W`, `KEY_A`, `ARROW_UP`, `SPACE`, etc.
-2. **Character codes**: `W`, `A`, `ARROWUP`, ` `, etc.
+```lua
+if mouse.press == 1 then
+  // Check if clicked on button
+  if mouse.x > buttonX and mouse.x < buttonX + buttonW and
+     mouse.y > buttonY and mouse.y < buttonY + buttonH then
+    // Button clicked
+  end
+end
+```
 
-Both formats work, use whichever is more convenient.
+### Gamepad Movement
 
-## License
+```lua
+// Analog stick movement
+playerX = playerX + gamepad.LSX * speed
+playerY = playerY + gamepad.LSY * speed
 
-MIT
+// D-pad movement
+if gamepad.UP == 1 then
+  playerY = playerY - speed
+end
+```

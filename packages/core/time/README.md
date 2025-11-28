@@ -1,222 +1,360 @@
 # @l8b/time
 
-Time machine debugging for L8B game engine. Record, replay, and loop game state for debugging.
+**LootiScript API Binding** - System information and timing utilities.
 
-## Features
-
-- **State Recording**: Capture game state history (30 seconds at 60fps)
-- **Step Through Time**: Move backward/forward frame by frame
-- **Loop Playback**: Replay specific sections repeatedly (4 second loops)
-- **Smart Serialization**: Automatically excludes non-serializable objects
-- **Modular Architecture**: Clean separation of recording, playback, and control
-
-## Installation
-
-```bash
-bun add @l8b/time
-```
-
-## Usage
-
-### Basic Setup
-
-```typescript
-import { TimeMachine } from "@l8b/time";
-
-// Create time machine with runtime reference
-const timeMachine = new TimeMachine(runtime);
-
-// Listen to status updates
-timeMachine.onStatus((status) => {
-  console.log("Recording:", status.recording);
-  console.log("Position:", status.position);
-  console.log("Length:", status.length);
-});
-
-// Call step() each frame
-function gameLoop() {
-  // ... game logic ...
-  timeMachine.step();
-}
-```
-
-### Control Commands
-
-```typescript
-// Start recording
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "start_recording",
-});
-
-// Stop recording
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "stop_recording",
-});
-
-// Step backward
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "step_backward",
-});
-
-// Step forward
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "step_forward",
-});
-
-// Jump to position
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "replay_position",
-  position: 120, // frames from current
-});
-
-// Start looping
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "start_looping",
-});
-
-// Stop looping
-timeMachine.messageReceived({
-  name: "time_machine",
-  command: "stop_looping",
-});
-```
-
-### Advanced Usage
-
-```typescript
-import { StateRecorder, StatePlayer } from "@l8b/time";
-
-// Use recorder independently
-const recorder = new StateRecorder(60 * 60); // 60 seconds
-recorder.setExcluded([systemObjects]);
-recorder.record(gameState);
-
-// Use player independently
-const player = new StatePlayer(60 * 5); // 5 second loops
-player.startLoop(position, callback);
-const snapshot = recorder.getState(0);
-player.restoreState(target, snapshot);
-```
-
-## Architecture
-
-```
-@l8b/time/
-├── core/
-│   └── machine.ts      # Main TimeMachine coordinator
-├── recording/
-│   └── recorder.ts     # State recording logic
-├── playback/
-│   └── player.ts       # Replay and loop logic
-└── types/
-    └── state.ts        # Type definitions
-```
-
-### Design Principles
-
-- **< 500 lines per file**: Easy to understand and maintain
-- **Single responsibility**: Each module has one clear purpose
-- **No dependencies**: Pure TypeScript, no external packages
-- **Type-safe**: Full TypeScript support
+> **Note**: This package is used as an API binding for LootiScript in the l8b engine.
 
 ## API Reference
 
-### TimeMachine
+### system
 
-Main controller for time machine functionality.
+Global object providing system information and utilities.
 
-```typescript
-class TimeMachine {
-  constructor(runtime: TimeMachineRuntime);
-  step(): void;
-  messageReceived(data: TimeMachineMessage): void;
-  onStatus(callback: (status: TimeMachineStatus) => void): void;
-  isRecording(): boolean;
-  isLooping(): boolean;
-}
+### System Properties
+
+#### system.time
+
+Get current time in milliseconds since epoch.
+
+```lua
+local currentTime = system.time
+// Returns: 1701234567890
 ```
 
-### StateRecorder
+#### system.fps
 
-Records game state snapshots in a circular buffer.
+Get current frames per second.
 
-```typescript
-class StateRecorder {
-  constructor(maxLength?: number);
-  setExcluded(excluded: any[]): void;
-  record(state: any): void;
-  getState(position: number): StateSnapshot | null;
-  getLength(): number;
-  clear(): void;
-  trimTo(position: number): void;
-}
+```lua
+local fps = system.fps
+// Returns: 60
 ```
 
-### StatePlayer
+#### system.cpu_load
 
-Handles state restoration and loop playback.
+Get CPU load (0.0 to 1.0).
 
-```typescript
-class StatePlayer {
-  constructor(loopLength?: number);
-  isLooping(): boolean;
-  startLoop(position: number, callback: () => void): void;
-  stopLoop(): number;
-  updateLoop(): number | null;
-  restoreState(target: any, snapshot: StateSnapshot): void;
-}
+```lua
+local load = system.cpu_load
+// Returns: 0.45
 ```
 
-## Integration with @l8b/runtime
+#### system.update_rate
 
-The time machine is designed to integrate seamlessly with `@l8b/runtime`:
+Get update rate (updates per second).
 
-```typescript
-import { Runtime } from "@l8b/runtime";
-import { TimeMachine } from "@l8b/time";
-
-const runtime = new Runtime(options);
-const timeMachine = new TimeMachine(runtime);
-
-// Time machine automatically records during game loop
-// and can be controlled via messages
+```lua
+local rate = system.update_rate
+// Returns: 60
 ```
 
-## How It Works
+#### system.language
 
-1. **Recording**: Each frame, the time machine captures a snapshot of the game's global state
-2. **Circular Buffer**: Snapshots are stored in a circular buffer (default 30 seconds)
-3. **Exclusions**: System APIs and non-serializable objects are automatically excluded
-4. **Replay**: When stepping back, the state is restored from the snapshot
-5. **Looping**: A section of recorded frames can be played repeatedly for debugging
+Get browser/system language.
 
-## Limitations
-
-- Only serializable data is recorded (primitives, objects, arrays)
-- Functions, DOM elements, and system APIs are excluded
-- Maximum history length is configurable but limited by memory
-- Replay accuracy depends on game state being fully captured
-
-## Development
-
-```bash
-# Build
-bun run build
-
-# Test
-bun run test
-
-# Clean
-bun run clean
+```lua
+local lang = system.language
+// Returns: "en-US"
 ```
 
-## License
+#### system.loading
 
-MIT
+Get loading progress (0 to 100).
 
+```lua
+local progress = system.loading
+// Returns: 100 (when fully loaded)
+
+// Check if still loading
+if system.loading < 100 then
+  // Show loading screen
+end
+```
+
+### Input Availability
+
+#### system.inputs.keyboard
+
+Check if keyboard is available.
+
+```lua
+if system.inputs.keyboard == 1 then
+  // Keyboard is available
+end
+```
+
+#### system.inputs.mouse
+
+Check if mouse is available.
+
+```lua
+if system.inputs.mouse == 1 then
+  // Mouse is available
+end
+```
+
+#### system.inputs.touch
+
+Check if touch is available.
+
+```lua
+if system.inputs.touch == 1 then
+  // Touch screen is available
+  // Show touch controls
+end
+```
+
+#### system.inputs.gamepad
+
+Check if gamepad is available.
+
+```lua
+if system.inputs.gamepad == 1 then
+  // Gamepad API is available
+  // Show gamepad controls
+end
+```
+
+### System Functions
+
+#### system.pause()
+
+Pause the game execution.
+
+```lua
+system.pause()
+```
+
+#### system.exit()
+
+Exit the game (close window).
+
+```lua
+system.exit()
+```
+
+#### system.prompt()
+
+Show a prompt dialog and get user input.
+
+```lua
+system.prompt("Enter your name:", function(result)
+  Console.log("Hello " .. result)
+  playerName = result
+end)
+```
+
+**Parameters:**
+- `text` (string) - Prompt message
+- `callback` (function) - Called with user input
+
+#### system.say()
+
+Show an alert dialog.
+
+```lua
+system.say("Game Over!")
+system.say("You won! Score: " .. score)
+```
+
+**Parameters:**
+- `text` (string) - Alert message
+
+### File Drop Support
+
+#### system.file.dropped
+
+Check if a file was dropped (drag and drop).
+
+```lua
+if system.file.dropped == 1 then
+  // File was dropped
+  // Handle file
+end
+```
+
+### JavaScript Interop
+
+#### system.javascript
+
+Object for JavaScript interoperability.
+
+```lua
+// Access JavaScript functions
+system.javascript.myFunction()
+
+// Access JavaScript objects
+local value = system.javascript.myObject.property
+```
+
+### Thread Management
+
+#### system.threads
+
+Array of active threads.
+
+```lua
+local threadCount = #system.threads
+Console.log("Active threads: " .. threadCount)
+```
+
+### Additional Flags
+
+#### system.disable_autofullscreen
+
+Disable automatic fullscreen.
+
+```lua
+system.disable_autofullscreen = 1  // Disable
+system.disable_autofullscreen = 0  // Enable
+```
+
+#### system.preemptive
+
+Enable preemptive threading.
+
+```lua
+system.preemptive = 1  // Enable
+system.preemptive = 0  // Disable
+```
+
+## Example Usage
+
+### Loading Screen
+
+```lua
+function draw()
+  if system.loading < 100 then
+    // Show loading screen
+    screen.clear("#000")
+    screen.setColor("#FFF")
+    screen.drawText("Loading...", 10, 10, 16)
+    
+    // Draw progress bar
+    local progress = system.loading / 100
+    screen.fillRect(10, 30, progress * 200, 10, "#0F0")
+    screen.drawRect(10, 30, 200, 10, "#FFF")
+  else
+    // Game is loaded, draw game
+    drawGame()
+  end
+end
+```
+
+### FPS Counter
+
+```lua
+function draw()
+  screen.clear("#000")
+  
+  // Draw FPS
+  screen.setColor("#FFFF00")
+  screen.drawText("FPS: " .. system.fps, 10, 10, 12)
+  
+  // Draw game
+  drawGame()
+end
+```
+
+### Input Detection
+
+```lua
+function init()
+  // Detect available inputs
+  if system.inputs.touch == 1 then
+    Console.log("Touch controls available")
+    showTouchControls = true
+  end
+  
+  if system.inputs.gamepad == 1 then
+    Console.log("Gamepad available")
+    showGamepadHints = true
+  end
+end
+```
+
+### User Input
+
+```lua
+function showNamePrompt()
+  system.prompt("Enter your name:", function(name)
+    if name ~= "" then
+      playerName = name
+      system.say("Welcome, " .. name .. "!")
+      startGame()
+    end
+  end)
+end
+```
+
+### Pause Menu
+
+```lua
+local paused = false
+
+function update()
+  if keyboard.press.ESCAPE == 1 then
+    if paused then
+      // Resume
+      paused = false
+    else
+      // Pause
+      paused = true
+      system.pause()
+    end
+  end
+  
+  if not paused then
+    // Update game logic
+    updateGame()
+  end
+end
+```
+
+### Platform Detection
+
+```lua
+function init()
+  // Check platform capabilities
+  local isMobile = system.inputs.touch == 1
+  local hasGamepad = system.inputs.gamepad == 1
+  
+  if isMobile then
+    // Setup mobile controls
+    setupTouchControls()
+  else
+    // Setup desktop controls
+    setupKeyboardControls()
+  end
+  
+  if hasGamepad then
+    // Enable gamepad support
+    enableGamepad()
+  end
+  
+  // Log system info
+  Console.log("Language: " .. system.language)
+  Console.log("Update rate: " .. system.update_rate)
+end
+```
+
+### Time-Based Events
+
+```lua
+local startTime = 0
+local eventTriggered = false
+
+function init()
+  startTime = system.time
+end
+
+function update()
+  local elapsed = system.time - startTime
+  
+  // Trigger event after 5 seconds (5000ms)
+  if elapsed > 5000 and not eventTriggered then
+    system.say("5 seconds have passed!")
+    eventTriggered = true
+  end
+end
+```

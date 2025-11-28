@@ -1,351 +1,144 @@
 # @l8b/audio
 
-Audio system for game development with support for sound effects, music, and procedural beep generation.
+**LootiScript API Binding** - Audio playback for sound effects, music, and synthesized beeps.
 
-## Features
-
-- **Sound Effects**: Play audio buffers with volume, pitch, pan, and loop control
-- **Music Streaming**: HTML5 Audio-based music playback with position control
-- **Procedural Beeps**: Generate sounds from text notation (e.g., "square tempo 120 C4 D4 E4")
-- **Web Audio API**: Full Web Audio API integration with automatic context management
-- **Mobile Support**: Automatic audio activation on user interaction
-
-## Installation
-
-```bash
-bun add @l8b/audio
-```
-
-## Usage
-
-### Basic Setup
-
-```typescript
-import { AudioCore, Sound, Music } from "@l8b/audio";
-
-// Create audio core with runtime context
-const runtime = {
-  sounds: {},
-  music: {},
-};
-
-const audio = new AudioCore(runtime);
-
-// Get audio interface
-const audioInterface = audio.getInterface();
-```
-
-### Playing Sound Effects
-
-```typescript
-import { Sound } from "@l8b/audio";
-
-// Load sound from URL
-const sound = new Sound(audio, "/sounds/jump.wav");
-
-// Play with default settings
-sound.play();
-
-// Play with custom parameters
-const playback = sound.play(
-  0.8, // volume (0-1)
-  1.2, // pitch (playback rate)
-  0.5, // pan (-1 to 1, left to right)
-  false, // loop
-);
-
-// Control playback
-playback.setVolume(0.5);
-playback.setPitch(1.0);
-playback.setPan(-0.5);
-playback.stop();
-
-// Check if finished
-if (playback.finished) {
-  console.log("Sound finished playing");
-}
-```
-
-### Playing Music
-
-```typescript
-import { Music } from "@l8b/audio";
-
-// Load music from URL
-const music = new Music(audio, "/music/theme.mp3");
-
-// Play music
-const playback = music.play(
-  0.7, // volume (0-1)
-  true, // loop
-);
-
-// Control playback
-playback.setVolume(0.5);
-playback.stop();
-
-// Position control
-playback.setPosition(30); // Jump to 30 seconds
-const pos = playback.getPosition();
-const duration = playback.getDuration();
-```
-
-### Procedural Beeps
-
-```typescript
-// Simple beep
-audio.beep("C4 E4 G4");
-
-// With tempo
-audio.beep("tempo 120 C4 D4 E4 F4 G4");
-
-// Different waveforms
-audio.beep("square C4 D4 E4");
-audio.beep("sine A4 B4 C5");
-audio.beep("saw G3 A3 B3");
-audio.beep("noise - - - -"); // Noise/percussion
-
-// Volume and duration
-audio.beep("volume 50 duration 200 C4 E4 G4");
-
-// Loops
-audio.beep("loop 4 C4 E4 G4 end");
-
-// Slides
-audio.beep("C4 to C5"); // Slide from C4 to C5
-
-// Complex sequence
-audio.beep("square tempo 140 volume 80 loop 2 C4 E4 G4 end C5");
-
-// Cancel all beeps
-audio.cancelBeeps();
-```
-
-### Procedural Sound Generation
-
-```typescript
-// Create Sound class for procedural generation
-const SoundClass = Sound.createSoundClass(audio);
-
-// Create a 1-second stereo sound at 44100 Hz
-const procSound = new SoundClass(2, 44100, 44100);
-
-// Write samples (generate waveform)
-for (let i = 0; i < procSound.length; i++) {
-  const t = i / procSound.sampleRate;
-  const freq = 440; // A4
-  const sample = Math.sin(2 * Math.PI * freq * t) * 0.5;
-
-  procSound.write(0, i, sample); // Left channel
-  procSound.write(1, i, sample); // Right channel
-}
-
-// Play the generated sound
-procSound.play();
-
-// Read samples
-const leftSample = procSound.read(0, 1000);
-const rightSample = procSound.read(1, 1000);
-```
-
-### Runtime Integration
-
-```typescript
-// Setup runtime with sounds and music
-const runtime = {
-  sounds: {
-    jump: new Sound(audio, "/sounds/jump.wav"),
-    coin: new Sound(audio, "/sounds/coin.wav"),
-    hit: new Sound(audio, "/sounds/hit.wav"),
-  },
-  music: {
-    theme: new Music(audio, "/music/theme.mp3"),
-    gameover: new Music(audio, "/music/gameover.mp3"),
-  },
-};
-
-const audio = new AudioCore(runtime);
-
-// Play by name
-audio.playSound("jump", 1.0, 1.0, 0, false);
-audio.playMusic("theme", 0.7, true);
-```
+> **Note**: This package is used as an API binding for LootiScript in the l8b engine.
 
 ## API Reference
 
-### AudioCore
+### Audio.playSound()
+Play a sound effect with optional parameters.
 
-#### Constructor
+```lua
+// Basic usage
+Audio.playSound("jump.wav")
 
-```typescript
-new AudioCore(runtime: any)
+// With volume (0.0 to 1.0)
+Audio.playSound("explosion.wav", 0.8)
+
+// With volume and pitch (0.5 to 2.0)
+Audio.playSound("coin.wav", 1.0, 1.5)
+
+// With volume, pitch, and pan (-1.0 to 1.0)
+Audio.playSound("footstep.wav", 0.7, 1.0, -0.5)
+
+// With all parameters including loop
+Audio.playSound("engine.wav", 0.9, 1.0, 0, true)
+
+// Returns sound ID (number)
+local soundId = Audio.playSound("laser.wav")
 ```
 
-#### Methods
+**Parameters:**
+- `sound` (string) - Sound file name
+- `volume` (number, optional) - Volume level 0.0-1.0, default: 1.0
+- `pitch` (number, optional) - Pitch 0.5-2.0, default: 1.0
+- `pan` (number, optional) - Stereo pan -1.0 (left) to 1.0 (right), default: 0
+- `loop` (boolean, optional) - Loop the sound, default: false
 
-- `isStarted(): boolean` - Check if audio context is running
-- `getInterface(): AudioInterface` - Get audio interface for game code
-- `playSound(sound: string | Sound, volume?, pitch?, pan?, loop?): any` - Play sound effect
-- `playMusic(music: string | Music, volume?, loop?): any` - Play music
-- `beep(sequence: string): void` - Play beep sequence
-- `cancelBeeps(): void` - Cancel all playing beeps
-- `getContext(): AudioContext` - Get Web Audio context
-- `stopAll(): void` - Stop all playing audio
+**Returns:** Sound ID (number)
 
-### Sound
+### Audio.playMusic()
+Play background music with optional looping.
 
-#### Constructor
+```lua
+// Basic usage
+Audio.playMusic("theme.mp3")
 
-```typescript
-new Sound(audio: AudioCore, url: string | AudioBuffer)
+// With volume
+Audio.playMusic("battle.mp3", 0.6)
+
+// With volume and loop
+Audio.playMusic("menu.mp3", 0.8, true)
+
+// Returns music ID (number)
+local musicId = Audio.playMusic("credits.mp3", 1.0, false)
 ```
 
-#### Properties
+**Parameters:**
+- `music` (string) - Music file name
+- `volume` (number, optional) - Volume level 0.0-1.0, default: 1.0
+- `loop` (boolean, optional) - Loop the music, default: false
 
-- `ready: number` - Load status (0 = loading, 1 = ready)
-- `buffer: AudioBuffer` - Audio buffer
-- `name: string` - Sound name
-- `url: string` - Sound URL
+**Returns:** Music ID (number)
 
-#### Methods
+### Audio.beep()
+Play synthesized beep sequences.
 
-- `play(volume?, pitch?, pan?, loop?): PlaybackControl` - Play sound
+```lua
+// Single note
+Audio.beep("C4")
 
-#### PlaybackControl
+// Multiple notes
+Audio.beep("C4 E4 G4")
 
-```typescript
-interface PlaybackControl {
-  stop(): void;
-  setVolume(v: number): void;
-  setPitch(p: number): void;
-  setPan(p: number): void;
-  getDuration(): number;
-  finished: boolean;
-}
+// With duration (in seconds)
+Audio.beep("A3 0.1, B3 0.1, C4 0.2")
+
+// Complex melody
+Audio.beep("C4 0.25, D4 0.25, E4 0.25, F4 0.5")
 ```
 
-#### Static Methods
+**Note Format:**
+- Note names: `C`, `D`, `E`, `F`, `G`, `A`, `B`
+- Octaves: `0-8` (e.g., `C4`, `A3`)
+- Sharps: `#` (e.g., `C#4`, `F#3`)
+- Duration: Optional number after note (in seconds)
+- Separator: Space or comma
 
-- `Sound.createSoundClass(audio: AudioCore): SoundClass` - Create procedural sound class
+### Audio.cancelBeeps()
+Stop all currently playing beeps and sounds.
 
-### SoundClass (Procedural)
-
-#### Constructor
-
-```typescript
-new SoundClass(channels: number, length: number, sampleRate?: number)
+```lua
+// Stop everything
+Audio.cancelBeeps()
 ```
 
-#### Properties
+## Sound File Formats
 
-- `channels: number` - Number of channels (1 or 2)
-- `length: number` - Length in samples
-- `sampleRate: number` - Sample rate (Hz)
+Supported audio formats:
+- `.wav` - Uncompressed audio
+- `.mp3` - Compressed audio
+- `.ogg` - Compressed audio (recommended for web)
 
-#### Methods
+## File Paths
 
-- `play(volume?, pitch?, pan?, loop?): PlaybackControl` - Play sound
-- `write(channel: number, position: number, value: number): void` - Write sample
-- `read(channel: number, position: number): number` - Read sample
+All audio paths are relative to the `assets/` directory:
 
-### Music
+```lua
+// Loads from: assets/sounds/jump.wav
+Audio.playSound("sounds/jump.wav")
 
-#### Constructor
-
-```typescript
-new Music(audio: AudioCore, url: string)
+// Loads from: assets/music/theme.mp3
+Audio.playMusic("music/theme.mp3")
 ```
 
-#### Properties
+## Volume Control
 
-- `ready: number` - Load status (always 1 for HTML5 Audio)
-- `name: string` - Music name
-- `url: string` - Music URL
-- `playing: boolean` - Is currently playing
+Volume values range from 0.0 (silent) to 1.0 (full volume):
 
-#### Methods
-
-- `play(volume?, loop?): MusicControl` - Play music
-- `stop(): void` - Stop music
-
-#### MusicControl
-
-```typescript
-interface MusicControl {
-  play(): void;
-  stop(): void;
-  setVolume(v: number): void;
-  getPosition(): number;
-  getDuration(): number;
-  setPosition(pos: number): void;
-}
+```lua
+Audio.playSound("quiet.wav", 0.3)   // 30% volume
+Audio.playSound("normal.wav", 0.7)  // 70% volume
+Audio.playSound("loud.wav", 1.0)    // 100% volume
 ```
 
-### Beep Notation
+## Pitch Control
 
-The beep system supports a text-based music notation:
+Pitch values range from 0.5 (half speed, lower pitch) to 2.0 (double speed, higher pitch):
 
-#### Notes
-
-- `C`, `D`, `E`, `F`, `G`, `A`, `B` - Note names
-- `C#`, `Db`, `D#`, `Eb`, etc. - Sharps and flats
-- `C4`, `D4`, `E4`, etc. - Notes with octave
-- `-` - Rest/silence
-
-#### Commands
-
-- `tempo <bpm>` - Set tempo (beats per minute)
-- `duration <ms>` - Set note duration in milliseconds
-- `volume <0-100>` - Set volume percentage
-- `span <0-100>` - Set note span (sustain) percentage
-- `loop <count>` ... `end` - Loop section
-- `<note> to <note>` - Slide between notes
-
-#### Waveforms
-
-- `square` - Square wave (default)
-- `sine` - Sine wave
-- `saw` - Sawtooth wave
-- `noise` - White noise
-
-#### Examples
-
-```typescript
-// Simple melody
-audio.beep("C4 E4 G4 C5");
-
-// With tempo and waveform
-audio.beep("sine tempo 120 C4 D4 E4 F4");
-
-// Looped pattern
-audio.beep("loop 4 C4 E4 G4 end");
-
-// Complex sequence
-audio.beep(
-  "square tempo 140 volume 80 span 90 loop 2 C4 E4 G4 C5 end G4 to C4",
-);
+```lua
+Audio.playSound("voice.wav", 1.0, 0.5)  // Lower pitch
+Audio.playSound("voice.wav", 1.0, 1.0)  // Normal pitch
+Audio.playSound("voice.wav", 1.0, 2.0)  // Higher pitch
 ```
 
-## Browser Compatibility
+## Pan Control
 
-The audio system handles browser autoplay policies automatically:
+Pan values range from -1.0 (left) to 1.0 (right):
 
-- Audio context starts on first user interaction (click, touch, key press)
-- Queued sounds/music will play after activation
-- Works on desktop and mobile browsers
-
-### Web Audio API Support
-
-This package uses the [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) which is well supported across modern browsers (Baseline: Widely available since April 2021).
-
-**Note on Implementation**: Currently uses `ScriptProcessorNode` for beep generation, which is [deprecated](https://developer.mozilla.org/en-US/docs/Web/API/ScriptProcessorNode) but still widely supported. Future versions will migrate to `AudioWorklet` for better performance and lower latency.
-
-## Known Limitations
-
-- **Beep Generation**: Uses deprecated `ScriptProcessorNode` API (will be migrated to `AudioWorklet` in future)
-- **Autoplay Policy**: Requires user interaction before audio can play (browser security feature)
-- **Mobile Safari**: May require additional user interaction for audio context activation
-
-## License
-
-MIT
+```lua
+Audio.playSound("left.wav", 1.0, 1.0, -1.0)   // Left speaker
+Audio.playSound("center.wav", 1.0, 1.0, 0.0)  // Center
+Audio.playSound("right.wav", 1.0, 1.0, 1.0)   // Right speaker
+```

@@ -1,146 +1,257 @@
 # @l8b/map
 
-Tile map management system for l8b Game Enggine.
+**LootiScript API Binding** - Tile-based map creation and rendering.
 
-## Features
-
-- Create and manage tile-based maps
-- Support for animated tiles
-- Load and save map data
-- Efficient canvas-based rendering
-- Sprite integration
-
-## Installation
-
-```bash
-npm install @l8b/map
-```
-
-## Usage
-
-### Creating a Map
-
-```typescript
-import { Map } from '@l8b/map';
-
-const map = new Map(
-  20,    // width in tiles
-  15,    // height in tiles
-  16,    // tile width in pixels
-  16,    // tile height in pixels
-  sprites // optional sprite dictionary
-);
-```
-
-### Setting Tiles
-
-```typescript
-// Set a tile at position (x, y)
-map.set(5, 10, 'grass');
-
-// Get a tile at position (x, y)
-const tile = map.get(5, 10);
-
-// Clear all tiles
-map.clear();
-```
-
-### Drawing the Map
-
-```typescript
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-
-// Draw the map
-map.draw(ctx, 0, 0, canvas.width, canvas.height);
-```
-
-### Loading and Saving
-
-```typescript
-// Load a map from URL
-import { loadMap } from '@l8b/map';
-
-const map = loadMap('/maps/level1.json', sprites, () => {
-  console.log('Map loaded');
-});
-
-// Save a map to JSON
-import { saveMap } from '@l8b/map';
-
-const json = saveMap(map);
-```
-
-### Cloning Maps
-
-```typescript
-// Create a copy of a map
-const copy = map.clone();
-
-// Copy data from another map
-map.copyFrom(otherMap);
-```
-
-## Map Data Format
-
-Maps are stored in JSON format:
-
-```json
-{
-  "width": 20,
-  "height": 15,
-  "block_width": 16,
-  "block_height": 16,
-  "sprites": ["", "grass", "water", "stone"],
-  "data": [0, 1, 1, 2, 3, ...]
-}
-```
+> **Note**: This package is used as an API binding for LootiScript in the l8b engine.
 
 ## API Reference
 
-### TileMap Class
+### Map Constructor
 
-#### Constructor
+Create a new tile map.
 
-```typescript
-new TileMap(
-  width: number,
-  height: number,
-  block_width: number,
-  block_height: number,
-  sprites?: Record<string, Sprite>
-)
+```lua
+// Create a 10x10 map with 16x16 pixel tiles
+local myMap = Map(10, 10, 16, 16)
+
+// With sprite dictionary
+local myMap = Map(10, 10, 16, 16, sprites)
 ```
 
-#### Properties
+**Parameters:**
+- `width` (number) - Map width in tiles
+- `height` (number) - Map height in tiles
+- `block_width` (number) - Tile width in pixels
+- `block_height` (number) - Tile height in pixels
+- `sprites` (table, optional) - Sprite dictionary
 
-- `width: number` - Map width in tiles
-- `height: number` - Map height in tiles
-- `block_width: number` - Tile width in pixels
-- `block_height: number` - Tile height in pixels
-- `sprites: Record<string, Sprite>` - Sprite dictionary
-- `ready: boolean` - Whether the map is ready to use
-- `needs_update: boolean` - Whether the map needs re-rendering
+### map.set()
 
-#### Methods
+Set a tile at a specific position.
 
-- `set(x: number, y: number, ref: string | null): void` - Set a tile
-- `get(x: number, y: number): string | number | null` - Get a tile
-- `clear(): void` - Clear all tiles
-- `draw(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void` - Draw the map
-- `update(): void` - Update the map rendering
-- `clone(): TileMap` - Create a copy of the map
-- `copyFrom(map: TileMap): TileMap` - Copy data from another map
-- `load(data: string, sprites: Record<string, Sprite>): void` - Load map from JSON string
-- `loadFile(url: string, loaded?: () => void): void` - Load map from URL
+```lua
+// Set tile at (0, 0) to use 'grass' sprite
+myMap.set(0, 0, "grass")
 
-### Functions
+// Set with sprite and frame
+myMap.set(5, 5, "tree:0")
 
-- `loadMap(url: string, sprites?: Record<string, Sprite>, loaded?: () => void): TileMap` - Load a map from URL
-- `saveMap(map: TileMap): string` - Save a map to JSON string
-- `updateMap(map: TileMap, data: string, sprites?: Record<string, Sprite>): TileMap` - Update map with new data
+// Clear a tile
+myMap.set(2, 2, null)
+```
 
-## License
+**Parameters:**
+- `x` (number) - Tile X position
+- `y` (number) - Tile Y position
+- `ref` (string or null) - Sprite reference or null to clear
 
-MIT
+### map.get()
 
+Get the tile at a specific position.
+
+```lua
+local tile = myMap.get(0, 0)
+// Returns sprite reference string or 0 if empty
+```
+
+**Parameters:**
+- `x` (number) - Tile X position
+- `y` (number) - Tile Y position
+
+**Returns:** Sprite reference (string) or 0
+
+### map.clear()
+
+Clear all tiles in the map.
+
+```lua
+myMap.clear()
+```
+
+### map.draw()
+
+Draw the map to a canvas context.
+
+```lua
+// Draw map at (0, 0) with size 160x160
+myMap.draw(screen.context, 0, 0, 160, 160)
+```
+
+**Parameters:**
+- `context` (CanvasRenderingContext2D) - Canvas context
+- `x` (number) - Draw X position
+- `y` (number) - Draw Y position
+- `w` (number) - Draw width
+- `h` (number) - Draw height
+
+### map.update()
+
+Force update the map's internal canvas.
+
+```lua
+myMap.update()
+```
+
+### map.loadFile()
+
+Load map data from a JSON file.
+
+```lua
+myMap.loadFile("assets/level1.json", function()
+  // Map loaded
+end)
+```
+
+**Parameters:**
+- `url` (string) - File URL
+- `callback` (function, optional) - Called when loaded
+
+### map.load()
+
+Load map data from a JSON string.
+
+```lua
+local jsonData = '{"width":10,"height":10,...}'
+myMap.load(jsonData, sprites)
+```
+
+**Parameters:**
+- `data` (string) - JSON string
+- `sprites` (table) - Sprite dictionary
+
+### map.clone()
+
+Create a copy of the map.
+
+```lua
+local mapCopy = myMap.clone()
+```
+
+**Returns:** New Map object
+
+### map.copyFrom()
+
+Copy data from another map.
+
+```lua
+myMap.copyFrom(otherMap)
+```
+
+**Parameters:**
+- `map` (Map) - Source map
+
+**Returns:** Self (for chaining)
+
+## Properties
+
+```lua
+// Map dimensions
+local w = myMap.width
+local h = myMap.height
+
+// Tile dimensions
+local tw = myMap.block_width
+local th = myMap.block_height
+
+// Ready state
+if myMap.ready == 1 then
+  // Map is ready
+end
+
+// Needs update flag
+if myMap.needs_update == 1 then
+  myMap.update()
+end
+```
+
+## Helper Functions
+
+### loadMap()
+
+Load a map from a URL.
+
+```lua
+local myMap = loadMap("assets/level1.json", sprites, function()
+  // Map loaded
+end)
+```
+
+**Parameters:**
+- `url` (string) - File URL
+- `sprites` (table, optional) - Sprite dictionary
+- `callback` (function, optional) - Called when loaded
+
+**Returns:** Map object
+
+### updateMap()
+
+Update an existing map with new data.
+
+```lua
+updateMap(myMap, jsonData, sprites)
+```
+
+**Parameters:**
+- `map` (Map) - Map to update
+- `data` (string) - JSON string
+- `sprites` (table, optional) - Sprite dictionary
+
+**Returns:** Updated map
+
+### saveMap()
+
+Save map data to JSON string.
+
+```lua
+local jsonData = saveMap(myMap)
+```
+
+**Parameters:**
+- `map` (Map) - Map to save
+
+**Returns:** JSON string
+
+## Sprite References
+
+Tiles reference sprites by name with optional frame:
+
+```lua
+// Simple reference
+myMap.set(0, 0, "grass")
+
+// With frame number
+myMap.set(1, 1, "tree:0")
+myMap.set(2, 2, "tree:1")
+
+// Animated tiles use sprite FPS
+myMap.set(3, 3, "water")  // Will animate if 'water' has multiple frames
+```
+
+## Example Usage
+
+```lua
+// Create a 20x15 map with 16x16 tiles
+local map = Map(20, 15, 16, 16)
+
+// Fill with grass
+for y = 0, 14 do
+  for x = 0, 19 do
+    map.set(x, y, "grass")
+  end
+end
+
+// Add some trees
+map.set(5, 5, "tree")
+map.set(10, 8, "tree")
+
+// Add water
+for x = 0, 19 do
+  map.set(x, 0, "water")
+end
+
+// Draw the map
+function draw()
+  screen.clear("#000")
+  map.draw(screen.context, 0, 0, 320, 240)
+end
+```
