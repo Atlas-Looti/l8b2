@@ -1,0 +1,58 @@
+# Cursor Ignore File
+# Files and directories listed here will be blocked from:
+# - Codebase indexing
+# - Code accessible by Tab, Agent, and Inline Edit
+# - Code accessible via @ mention references
+
+# Dependencies
+node_modules/
+bun.lock
+
+# Build Outputs
+dist/
+.next/
+out/
+.turbo/
+.vitepress/dist/
+
+# Environment & Secrets
+.env
+.env.*
+**/.env
+**/.env.*
+**/credentials.json
+**/secrets.json
+**/*.key
+**/*.pem
+**/id_rsa
+
+# Testing & Coverage
+coverage/
+*.coverage
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*storybook.log
+
+# Misc
+.DS_Store
+*.pem
+
+# Storybook
+storybook-static/
+
+# Large binary assets (include via @ when needed)
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.webp
+**/*.mp4
+**/*.webm
+**/*.ogg
+**/*.mp3
+**/*.wav

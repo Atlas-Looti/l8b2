@@ -27,7 +27,10 @@ coverage
 out/
 
 dist
-
+.vitepress/dist
+.vitepress/build
+.vitepress/cache
+.vitepress/.cache
 
 # Debug
 npm-debug.log*

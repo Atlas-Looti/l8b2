@@ -1,0 +1,30 @@
+# Cursor Indexing Ignore
+# Files listed here are excluded from indexing only
+# They remain accessible to AI features but won't appear in codebase searches
+
+# Documentation build outputs
+.vitepress/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Lock files (accessible but not indexed)
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Test coverage reports
+coverage/
+.nyc_output/
+
+# Build artifacts
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

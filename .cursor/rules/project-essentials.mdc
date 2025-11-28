@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+description: Critical l8b-specific patterns and conventions
+---
+
+# L8b Project Essentials
+
+## Package Manager - CRITICAL
+
+**Always use Bun, never npm/yarn/pnpm:**
+
+```bash
+bun install
+bun add package-name
+bun run script-name
+```
+
+## Code Formatting - Biome
+
+- **Indentation**: TABS (not spaces)
+- **Quotes**: Double quotes
+- Auto-format: `bun run format`
+
+## Monorepo Workspace References
+
+When adding local package dependencies, use workspace protocol:
+
+```json
+{
+  "dependencies": {
+    "@l8b/core/sprites": "workspace:*"
+  }
+}
+```
+
+## API Definition Pattern
+
+When creating new Core APIs, add definition in `tooling/language-server/src/api-definitions/` for IDE autocomplete.
+
+## VM Global Registration
+
+Core APIs are exposed to LootiScript via VM globals:
+
+```typescript
+vm.setGlobal("apiName", apiImplementation);
+```
+
+See `packages/enggine/vm/` for existing patterns.
