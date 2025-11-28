@@ -8,8 +8,8 @@ Quick reference untuk L8B API
 
 | Member | Description |
 |--------|-------------|
-| `screen.width` | The current width of the screen in microStudio units |
-| `screen.height` | The current height of the screen in microStudio units |
+| `screen.width` | The current width of the screen in L8B coordinate units |
+| `screen.height` | The current height of the screen in L8B coordinate units |
 | `screen.clear([color])` | Clears the screen (fills it in black, or in the optional color argument passed) |
 | `screen.setColor(color)` | Sets the color for subsequent drawing operations |
 | `screen.setAlpha(opacity)` | Sets the opacity of subsequent drawing operations, in the range [0 .. 1] |
@@ -146,14 +146,14 @@ gamepad[3].release.A  // (B, X, Y ...)
 
 | Method | Description |
 |--------|-------------|
-| `asset_manager.loadFont(path)` | Initiates loading of the font asset |
-| `asset_manager.loadImage(path, callback)` | Loads image, returns a loader object and calls callback when ready |
-| `asset_manager.loadModel(path, scene, callback)` | Loads 3D model, returns a loader object and calls callback when ready |
-| `asset_manager.loadJSON(path, callback)` | Loads JSON as microScript object, returns a loader object and calls callback when ready |
-| `asset_manager.loadText(path, callback)` | Loads TXT as microScript string, returns a loader object and calls callback when ready |
-| `asset_manager.loadCSV(path, callback)` | Loads CSV as microScript string, returns a loader object and calls callback when ready |
-| `asset_manager.loadMarkdown(path, callback)` | Loads .md file as microScript string, returns a loader object and calls callback when ready |
-| `asset_manager.wasmInstance(path, callback)` | Creates an instance of a WebAssembly module, returns a loader object and calls callback when ready |
+| `Assets.loadFont(font)` | Initiates loading of the font asset (from `assets/{font}.ttf`) |
+| `Assets.loadImage(path, callback?)` | Loads image, returns a loader object with `ready` and `image` properties |
+| `Assets.loadJSON(path, callback?)` | Loads JSON file, returns a loader object with `ready` and `data` properties |
+| `Assets.loadText(path, callback?, ext?)` | Loads text file, returns a loader object with `ready` and `text` properties |
+| `Assets.loadCSV(path, callback?)` | Loads CSV file (shorthand for `loadText` with `.csv` extension) |
+| `Assets.loadMarkdown(path, callback?)` | Loads Markdown file (shorthand for `loadText` with `.md` extension) |
+
+**Note:** 3D Models and WASM are not supported in L8B (2D only).
 
 ## Misc
 
@@ -161,7 +161,7 @@ gamepad[3].release.A  // (B, X, Y ...)
 
 | Member | Description |
 |--------|-------------|
-| `system.time()` | Returns the system time in milliseconds (time elapsed since January 1st 1970) |
+| `system.time` | Returns the system time in milliseconds (time elapsed since January 1st 1970) |
 | `system.language` | Returns the language of the user |
 | `system.inputs` | Allows to check which input methods are available on the user's system |
 | `system.inputs.keyboard` | Returns 1 if the user's system has a keyboard |
@@ -177,7 +177,7 @@ gamepad[3].release.A  // (B, X, Y ...)
 | `system.update_rate` | Writable call rate of update(), example: `system.update_rate = 120` |
 | `system.fps` | Current frames per second |
 | `system.cpu_load` | Current CPU load |
-| `system.loading` | Loading progress (0-1) |
+| `system.loading` | Loading progress (0-100) |
 
 ### Storage
 
@@ -307,15 +307,15 @@ map.clear()  // Clears all tiles
 ### Beeps
 
 ```lua
-audio.beep("C4 E G C5 E G")
-audio.beep("volume 50 span 50 tempo 240 loop 4 C4 E G C5 E G end")
-audio.cancelBeeps()
+Audio.beep("C4 E G C5 E G")
+Audio.beep("volume 50 span 50 tempo 240 loop 4 C4 E G C5 E G end")
+Audio.cancelBeeps()
 ```
 
 ### Play Sounds
 
 ```lua
-sound = audio.playSound("mysound")  // Starts playing the sound "mysound" and returns a controller object
+sound = Audio.playSound("mysound")  // Starts playing the sound "mysound" and returns a controller object
 ```
 
 ### Control Sound Playback
@@ -332,7 +332,7 @@ sound = audio.playSound("mysound")  // Starts playing the sound "mysound" and re
 ### Play Music
 
 ```lua
-music = audio.playMusic("mymusic")  // Starts playing the music "mymusic" and returns a controller object
+music = Audio.playMusic("mymusic")  // Starts playing the music "mymusic" and returns a controller object
 ```
 
 ### Control Music Playback

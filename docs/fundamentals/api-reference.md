@@ -1,390 +1,604 @@
 # API Reference
 
-Dokumentasi lengkap dan mendetail untuk API built-in l8b.
+Complete and detailed documentation for L8B's built-in APIs.
+
+> **Note:** For detailed API documentation with full method signatures, parameters, and examples, see the individual package READMEs in `packages/core/`.
 
 ## Screen
 
-Di l8b, layar direpresentasikan oleh objek predefined `screen`. Untuk menampilkan bentuk atau gambar di layar, Anda cukup memanggil fungsi (method) pada objek ini.
+In L8B, the screen is represented by the predefined `screen` object. To display shapes or images on the screen, simply call functions (methods) on this object.
 
-### Sistem Koordinat
+### Coordinate System
 
-Untuk memudahkan pekerjaan Anda, l8b secara otomatis menskalakan koordinat layar, terlepas dari resolusi tampilan sebenarnya.
+To make your work easier, L8B automatically scales screen coordinates regardless of the actual display resolution.
 
-- **Titik Asal (0,0)**: Berada tepat di **tengah layar**.
-- **Skala**: Dimensi tampilan terkecil (lebar dalam mode portrait, tinggi dalam mode landscape) selalu dinormalisasi menjadi **200**.
-- **Rentang**: Karena 0 ada di tengah, dimensi terkecil berkisar dari **-100 hingga +100**.
+- **Origin (0,0)**: Located at the **center of the screen**.
+- **Scale**: The smallest display dimension (width in portrait mode, height in landscape mode) is always normalized to **200**.
+- **Range**: Since 0 is at the center, the smallest dimension ranges from **-100 to +100**.
 
-Dimensi terbesar akan menyesuaikan rasio aspek layar. Misalnya pada layar 16:9:
+The largest dimension will adjust to the screen aspect ratio. For example, on a 16:9 screen:
 
-- Landscape: Y dari -100 s/d +100, X dari -178 s/d +178.
-- Portrait: X dari -100 s/d +100, Y dari -178 s/d +178.
+- Landscape: Y from -100 to +100, X from -178 to +178.
+- Portrait: X from -100 to +100, Y from -178 to +178.
 
 ### Properties
 
-| Property | Deskripsi |
+| Property | Description |
 |----------|-------------|
-| `screen.width` | Lebar layar saat ini dalam unit koordinat l8b. |
-| `screen.height` | Tinggi layar saat ini dalam unit koordinat l8b. |
+| `screen.width` | Current screen width in L8B coordinate units. |
+| `screen.height` | Current screen height in L8B coordinate units. |
+| `screen.context` | Canvas rendering context (for advanced usage). |
 
-### Warna & Tampilan
+### Drawing State
+
+#### `screen.clear(color?)`
+
+Clears the screen (fills it with the given color, or black if no color is provided).
+
+```lua
+screen.clear("#000")  // Fill screen with black
+screen.clear("#FF0000")  // Fill screen with red
+```
 
 #### `screen.setColor(color)`
 
-Mendefinisikan warna yang akan digunakan untuk pemanggilan fungsi menggambar berikutnya.
+Sets the color for subsequent drawing operations.
 
-Warna didefinisikan sebagai string:
-
-- **RGB**: `"rgb(255,0,0)"` (Merah terang), `"rgb(255,255,255)"` (Putih). Nilai 0-255.
-- **Hex**: `"#FFF"` atau `"#FFFFFF"` (Putih), `"#F00"` (Merah).
-- **Nama**: `"red"`, `"blue"`, `"white"`, dll (sesuai standar HTML5).
-
-#### `screen.clear(color)`
-
-Membersihkan layar (mengisinya dengan warna yang diberikan, atau hitam jika tidak ada warna yang diberikan).
-
-```lua
-screen.clear("#000") // Isi layar dengan hitam
-```
+Color can be defined as:
+- **RGB**: `"rgb(255,0,0)"` (bright red), `"rgb(255,255,255)"` (white). Values 0-255.
+- **Hex**: `"#FFF"` or `"#FFFFFF"` (white), `"#F00"` (red).
+- **Named**: `"red"`, `"blue"`, `"white"`, etc. (HTML5 standard colors).
 
 #### `screen.setAlpha(opacity)`
 
-Mendefinisikan tingkat opasitas (transparansi) keseluruhan untuk fungsi menggambar selanjutnya.
+Sets the opacity level for subsequent drawing operations.
 
-- `0`: Transparan total (tidak terlihat).
-- `1`: Opasitas total (menutupi apa yang ada di bawahnya).
+- `0`: Fully transparent (invisible).
+- `1`: Fully opaque (covers what's underneath).
 
 ```lua
-screen.setAlpha(0.5) // Elemen berikutnya akan semi-transparan
-// ... menggambar sesuatu ...
-screen.setAlpha(1)   // Reset ke default
+screen.setAlpha(0.5)  // Next elements will be semi-transparent
+// ... draw something ...
+screen.setAlpha(1)    // Reset to default
 ```
 
 #### `screen.setBlending(mode)`
 
-Mendefinisikan bagaimana operasi menggambar selanjutnya akan dikomposisikan dengan gambar yang sudah ada.
+Sets how subsequent drawing operations will be composited with existing graphics.
 
-- `"normal"`: Menimpa gambar di bawahnya (default).
-- `"additive"`: Menambahkan nilai warna (efek cahaya/glowing).
+- `"normal"`: Overwrites graphics underneath (default).
+- `"additive"`: Adds color values (light/glowing effect).
+- `"multiply"`: Multiplies colors.
+- `"screen"`: Screen blend mode.
 
-### Menggambar Bentuk Dasar
+See [Screen API](/packages/core/screen/README.md) for all available blending modes.
 
-#### `screen.fillRect(x, y, width, height, color)`
+### Drawing Primitives
 
-Menggambar persegi panjang **padat** (terisi warna).
+#### `screen.fillRect(x, y, width, height, color?)`
 
-- `x, y`: Koordinat pusat persegi panjang.
-- `width, height`: Lebar dan tinggi.
-- `color`: (Opsional) Warna isi. Jika dihilangkan, menggunakan warna terakhir.
+Draws a **filled** rectangle.
 
-#### `screen.drawRect(x, y, width, height, color)`
+- `x, y`: Center coordinates of the rectangle.
+- `width, height`: Width and height.
+- `color`: (Optional) Fill color. If omitted, uses the last set color.
 
-Menggambar **garis tepi** (outline) persegi panjang. Parameter sama dengan `fillRect`.
+#### `screen.drawRect(x, y, width, height, color?)`
 
-#### `screen.fillRound(x, y, width, height, color)`
+Draws a rectangle **outline**. Same parameters as `fillRect`.
 
-Menggambar bentuk bulat padat (lingkaran atau elips tergantung dimensi).
+#### `screen.fillRoundRect(x, y, width, height, roundness, color?)`
 
-- `x, y`: Koordinat pusat.
-- `width, height`: Diameter horizontal dan vertikal.
+Draws a filled rounded rectangle.
 
-#### `screen.drawRound(x, y, width, height, color)`
+- `roundness`: Corner radius in pixels.
 
-Menggambar garis tepi bentuk bulat.
+#### `screen.drawRoundRect(x, y, width, height, roundness, color?)`
 
-#### `screen.drawLine(x1, y1, x2, y2, color)`
+Draws a rounded rectangle outline.
 
-Menggambar garis lurus yang menghubungkan titik `(x1, y1)` dan `(x2, y2)`.
+#### `screen.fillRound(x, y, width, height, color?)`
+
+Draws a filled round shape (circle or ellipse depending on dimensions).
+
+- `x, y`: Center coordinates.
+- `width, height`: Horizontal and vertical diameter.
+
+#### `screen.drawRound(x, y, width, height, color?)`
+
+Draws a round shape outline.
+
+#### `screen.drawLine(x1, y1, x2, y2, color?)`
+
+Draws a straight line connecting points `(x1, y1)` and `(x2, y2)`.
 
 #### `screen.setLineWidth(width)`
 
-Mengatur ketebalan garis untuk operasi `draw...` (outline) selanjutnya. Default adalah 1.
+Sets the line width for subsequent `draw...` (outline) operations. Default is 1.
 
-### Menggambar Bentuk Lanjut
+#### `screen.setLineDash(dash)`
 
-#### `screen.fillPolygon(x1, y1, x2, y2, ..., color)`
+Sets the line dash pattern.
 
-Mengisi poligon yang didefinisikan oleh daftar koordinat titik.
-Bisa juga menerima array sebagai argumen pertama: `screen.fillPolygon([x1, y1, x2, y2, ...], color)`.
+```lua
+screen.setLineDash([5, 5])  // 5px dash, 5px gap
+screen.setLineDash([10, 5, 2, 5])  // Complex pattern
+screen.setLineDash(null)  // Solid line
+```
 
-#### `screen.drawPolyline(x1, y1, x2, y2, ..., color)`
+### Advanced Shapes
 
-Sama seperti polygon tapi garis tidak ditutup otomatis kembali ke titik awal.
+#### `screen.fillPolygon(x1, y1, x2, y2, ..., color?)`
 
-#### `screen.drawArc(x, y, radius, startAngle, endAngle, counterClockwise, color)`
+Fills a polygon defined by a list of coordinate points.
+Can also accept an array as the first argument: `screen.fillPolygon([x1, y1, x2, y2, ...], color)`.
 
-Menggambar busur lingkaran.
+#### `screen.drawPolygon(x1, y1, x2, y2, ..., color?)`
 
-- `radius`: Jari-jari lingkaran.
-- `startAngle, endAngle`: Sudut dalam **derajat**.
+Draws a polygon outline.
+
+#### `screen.drawPolyline(x1, y1, x2, y2, ..., color?)`
+
+Similar to polygon but the line doesn't automatically close back to the starting point.
+
+#### `screen.drawArc(x, y, radius, startAngle, endAngle, counterClockwise, color?)`
+
+Draws a circle arc.
+
+- `radius`: Circle radius.
+- `startAngle, endAngle`: Angles in **degrees**.
+- `counterClockwise`: Boolean, draw counter-clockwise if true.
+
+#### `screen.fillArc(x, y, radius, startAngle, endAngle, counterClockwise, color?)`
+
+Fills a circle arc.
 
 ### Sprites & Maps
 
-#### `screen.drawSprite(name, x, y, width, height)`
+#### `screen.drawSprite(name, x, y, width, height?)`
 
-Menggambar sprite yang telah Anda buat di tab Sprites.
+Draws a sprite that you've created.
 
-- `name`: Nama sprite (string), contoh `"player"`.
-- `x, y`: Koordinat pusat sprite.
-- `width`: Lebar tampilan.
-- `height`: (Opsional) Tinggi tampilan. Jika dihilangkan, akan dihitung proporsional.
+- `name`: Sprite name (string), e.g., `"player"`.
+- `x, y`: Center coordinates of the sprite.
+- `width`: Display width.
+- `height`: (Optional) Display height. If omitted, calculated proportionally.
 
-**Animated Sprites**:
-Jika sprite memiliki animasi, l8b otomatis memutar frame yang sesuai.
+**Animated Sprites:**
+If the sprite has animation, L8B automatically plays the appropriate frame.
 
-- `sprites["name"].setFrame(0)`: Reset animasi ke frame awal.
-- `screen.drawSprite("name.0", ...)`: Menggambar frame spesifik (frame 0).
+- `sprites["name"].setFrame(0)`: Reset animation to first frame.
+- `screen.drawSprite("name.0", ...)`: Draw specific frame (frame 0).
 
-#### `screen.drawMap(name, x, y, width, height)`
+#### `screen.drawImage(image, x, y, width, height?)`
 
-Menggambar map yang dibuat di tab Maps.
+Alias for `drawSprite`. Can accept Image object or sprite name.
 
-- `name`: Nama map.
-- `x, y`: Koordinat pusat tampilan map.
-- `width, height`: Ukuran tampilan map di layar.
+#### `screen.drawSpritePart(name, sx, sy, sw, sh, x, y, width?, height?)`
 
-### Teks
+Draws part of a sprite (spritesheet).
 
-#### `screen.drawText(text, x, y, size, color)`
+- `sx, sy`: Source position in sprite.
+- `sw, sh`: Source size.
+- `x, y`: Destination position.
+- `width, height`: Destination size.
 
-Menampilkan teks di layar.
+#### `screen.drawImagePart(image, sx, sy, sw, sh, x, y, width?, height?)`
 
-- `text`: String teks yang akan ditampilkan.
-- `x, y`: Koordinat pusat teks.
-- `size`: Tinggi teks.
+Alias for `drawSpritePart`.
+
+#### `screen.drawMap(map, x, y, width, height)`
+
+Draws a map created in the Maps tab.
+
+- `map`: Map object or map name (string).
+- `x, y`: Center coordinates of the map display.
+- `width, height`: Map display size on screen.
+
+### Text
+
+#### `screen.drawText(text, x, y, size, color?)`
+
+Displays text on the screen.
+
+- `text`: String to display.
+- `x, y`: Center coordinates of the text.
+- `size`: Text height in pixels.
+
+#### `screen.drawTextOutline(text, x, y, size, color?)`
+
+Draws outlined text.
 
 #### `screen.setFont(fontName)`
 
-Mengatur font untuk panggilan `drawText` selanjutnya.
-Contoh font bawaan: `"BitCell"`, `"DigitalDisco"`, `"PressStart2P"`, dll.
+Sets the font for subsequent `drawText` calls.
+Example built-in fonts: `"BitCell"`, `"DigitalDisco"`, `"PressStart2P"`, etc.
 
 #### `screen.loadFont(fontName)`
 
-Memulai proses loading font. Font harus diload sebelum bisa digunakan dengan sempurna. Gunakan `screen.isFontReady(fontName)` untuk mengecek statusnya.
+Initiates font loading. Fonts must be loaded before they can be used properly. Use `screen.isFontReady(fontName)` to check status.
 
-### Transformasi Layar
+#### `screen.isFontReady(fontName?)`
 
-Fungsi-fungsi ini mengubah sistem koordinat untuk operasi menggambar selanjutnya. **Penting:** Selalu reset kembali nilai transformasi setelah selesai menggambar bagian yang diinginkan.
+Checks if a font is ready to use. Returns `1` if ready, `0` if not.
+
+#### `screen.textWidth(text, size)`
+
+Returns the width of the given text when drawn at the given size.
+
+### Screen Transformations
+
+These functions change the coordinate system for subsequent drawing operations. **Important:** Always reset transformation values after drawing the desired section.
 
 #### `screen.setTranslation(tx, ty)`
 
-Menggeser titik asal koordinat.
+Shifts the coordinate origin.
 
 ```lua
 screen.setTranslation(50, 50)
-// Menggambar di (0,0) sekarang akan muncul di (50,50)
-screen.setTranslation(0, 0) // Reset
+// Drawing at (0,0) will now appear at (50,50)
+screen.setTranslation(0, 0)  // Reset
 ```
 
 #### `screen.setRotation(angle)`
 
-Memutar seluruh sistem koordinat sebesar `angle` derajat.
+Rotates the entire coordinate system by `angle` degrees.
 
 ```lua
 screen.setRotation(45)
-// Gambar miring 45 derajat
-screen.setRotation(0) // Reset
+// Graphics rotated 45 degrees
+screen.setRotation(0)  // Reset
 ```
 
 #### `screen.setScale(x, y)`
 
-Memperbesar/memperkecil sistem koordinat.
+Scales the coordinate system.
 
 ```lua
-screen.setScale(2, 2) // Zoom 2x
-screen.setScale(1, 1) // Reset
+screen.setScale(2, 2)  // 2x zoom
+screen.setScale(1, 1)  // Reset
 ```
 
-### Transformasi Objek (Draw Parameters)
+### Object Transformations (Draw Parameters)
 
-Berbeda dengan transformasi layar, fungsi ini hanya mempengaruhi **bagaimana objek digambar**, bukan sistem koordinatnya.
+Unlike screen transformations, these functions only affect **how objects are drawn**, not the coordinate system.
 
 #### `screen.setDrawRotation(angle)`
 
-Memutar objek (sprite/text/rect) pada porosnya sendiri.
+Rotates objects (sprite/text/rect) around their own axis.
 
 ```lua
 screen.setDrawRotation(90)
-screen.drawSprite("player", 0, 0, 32) // Player diputar 90 derajat
-screen.setDrawRotation(0) // Reset
+screen.drawSprite("player", 0, 0, 32)  // Player rotated 90 degrees
+screen.setDrawRotation(0)  // Reset
 ```
 
 #### `screen.setDrawAnchor(anchorX, anchorY)`
 
-Mengubah titik tumpu (anchor point) gambar. Defaultnya adalah tengah (0,0).
+Changes the anchor (pivot) point of graphics. Default is center (0, 0).
 
-- `x`: -1 (kiri), 0 (tengah), 1 (kanan)
-- `y`: -1 (bawah), 0 (tengah), 1 (atas)
+- `x`: -1 (left), 0 (center), 1 (right)
+- `y`: -1 (bottom), 0 (center), 1 (top)
 
 ```lua
-screen.setDrawAnchor(-1, 1) // Anchor di pojok kiri atas
-screen.drawText("Score", -100, 100, 20) // Teks rata kiri di pojok layar
-screen.setDrawAnchor(0, 0) // Reset
+screen.setDrawAnchor(-1, 1)  // Anchor at top-left corner
+screen.drawText("Score", -100, 100, 20)  // Text left-aligned at corner
+screen.setDrawAnchor(0, 0)  // Reset
 ```
+
+#### `screen.setDrawScale(x, y?)`
+
+Sets the drawing scale for elements.
+
+```lua
+screen.setDrawScale(2, 2)  // 2x scale
+screen.setDrawScale(1, -1)  // Flip vertically
+screen.setDrawScale(1, 1)  // Reset
+```
+
+### 3D Triangles
+
+#### `screen.tri(x1, y1, x2, y2, x3, y3, color?)`
+
+Draws a filled triangle.
+
+#### `screen.trib(x1, y1, x2, y2, x3, y3, color?)`
+
+Draws a triangle outline.
+
+#### `screen.ttri(x1, y1, x2, y2, x3, y3, u1, v1, u2, v2, u3, v3, texture, textureSource?, z1?, z2?, z3?, useDepth?)`
+
+Draws a textured triangle with UV coordinates for 3D rendering.
+
+### Cursor
+
+#### `screen.setCursorVisible(visible)`
+
+Show or hide the mouse cursor.
+
+```lua
+screen.setCursorVisible(false)  // Hide cursor
+screen.setCursorVisible(true)   // Show cursor
+```
+
+For complete Screen API documentation, see [@l8b/screen README](/packages/core/screen/README.md).
 
 ## Inputs
 
-Untuk membuat program interaktif, Anda perlu membaca input dari pengguna.
+To create interactive programs, you need to read input from users.
 
 ### Keyboard
 
-Objek `keyboard` menyimpan status tombol saat ini.
+The `keyboard` object stores the current button state.
 
 ```lua
-if keyboard.UP then y += 1 end
-if keyboard.SPACE then shoot() end
+if keyboard.UP == 1 then y += 1 end
+if keyboard.SPACE == 1 then shoot() end
 ```
 
-**Mendeteksi penekanan tombol (sekali saja):**
-Gunakan `keyboard.press.<KEY>` di dalam fungsi `update()`. Bernilai true hanya pada frame saat tombol mulai ditekan.
+**Detecting button press (once):**
+Use `keyboard.press.<KEY>` inside the `update()` function. Returns `1` only on the frame when the button was first pressed.
 
 ```lua
-if keyboard.press.SPACE then
-  // Hanya dieksekusi sekali saat tombol ditekan
+if keyboard.press.SPACE == 1 then
+  // Executed only once when button is pressed
   jump()
 end
 ```
 
+**Detecting button release:**
+Use `keyboard.release.<KEY>` to detect when a key is released.
+
+```lua
+if keyboard.release.SPACE == 1 then
+  // Key was just released
+end
+```
+
+**Available Keys:**
+- Arrow keys: `UP`, `DOWN`, `LEFT`, `RIGHT`
+- Letter keys: `A`, `B`, `C`, ... `Z`
+- Number keys: `keyboard["0"]`, `keyboard["1"]`, ... `keyboard["9"]`
+- Special keys: `ENTER`, `ESCAPE`, `SHIFT`, `CTRL`, `ALT`, `TAB`, `BACKSPACE`, `DELETE`, `SPACE`
+
 ### Mouse
 
-Objek `mouse` melaporkan posisi dan status tombol mouse.
+The `mouse` object reports mouse pointer position and button status.
 
-| Field | Deskripsi |
-|-------|-----------|
-| `mouse.x`, `mouse.y` | Posisi pointer mouse dalam koordinat layar. |
-| `mouse.left` | 1 jika tombol kiri ditekan, 0 jika tidak. |
-| `mouse.right` | 1 jika tombol kanan ditekan, 0 jika tidak. |
-| `mouse.press` | true jika tombol mouse baru saja ditekan. |
-| `mouse.release` | true jika tombol mouse baru saja dilepas. |
+| Field | Description |
+|-------|-------------|
+| `mouse.x`, `mouse.y` | Mouse pointer position in screen coordinates. |
+| `mouse.left` | `1` if left button is pressed, `0` if not. |
+| `mouse.right` | `1` if right button is pressed, `0` if not. |
+| `mouse.middle` | `1` if middle button is pressed, `0` if not. |
+| `mouse.pressed` | `1` if any button is pressed, `0` otherwise. |
+| `mouse.press` | `1` if any button was just pressed. |
+| `mouse.release` | `1` if any button was just released. |
+| `mouse.wheel` | Wheel delta: `-1` (down), `0` (no movement), `1` (up). |
 
 ### Touch
 
-Objek `touch` untuk layar sentuh (juga melaporkan status mouse sebagai sentuhan tunggal).
+The `touch` object for touch screens (also reports mouse status as single touch).
 
-| Field | Deskripsi |
-|-------|-----------|
-| `touch.touching` | true jika pengguna menyentuh layar. |
-| `touch.x`, `touch.y` | Posisi sentuhan. |
-| `touch.touches` | List (array) dari semua titik sentuh aktif (untuk multi-touch). |
+| Field | Description |
+|-------|-------------|
+| `touch.touching` | `1` if user is touching the screen, `0` if not. |
+| `touch.x`, `touch.y` | Touch position. |
+| `touch.press` | `1` on touch start. |
+| `touch.release` | `1` on touch end. |
+| `touch.touches` | Array of all active touch points (for multi-touch). |
+
+**Touch Point Object:**
+- `x` - Touch X position
+- `y` - Touch Y position
+- `id` - Unique touch identifier
 
 ### Gamepad
 
-Objek `gamepad` untuk controller fisik.
+The `gamepad` object for physical controllers.
 
 ```lua
-if gamepad.UP then y += 1 end
-if gamepad.press.A then jump() end
+if gamepad.UP == 1 then y += 1 end
+if gamepad.press.A == 1 then jump() end
 ```
+
+**Available Buttons:**
+- Face buttons: `A`, `B`, `X`, `Y`
+- D-pad: `UP`, `DOWN`, `LEFT`, `RIGHT`
+- Shoulder buttons: `L1`, `R1`
+- Triggers: `L2`, `R2` (0.0 to 1.0)
+- Analog sticks: `LSX`, `LSY`, `RSX`, `RSY` (-1.0 to 1.0)
+- Stick buttons: `LS`, `RS`
+- Menu buttons: `START`, `SELECT`
+
+For complete Input API documentation, see [@l8b/input README](/packages/core/input/README.md).
 
 ## Audio
 
-l8b memungkinkan Anda memutar efek suara dan musik.
+L8B allows you to play sound effects and music.
 
-### `audio.playSound(name, volume, pitch, pan, loop)`
+### `Audio.playSound(name, volume?, pitch?, pan?, loop?)`
 
-Memutar suara (SFX).
+Plays a sound effect (SFX).
 
-- `name`: Nama file suara di tab Sounds.
-- `volume`: 0 sampai 1 (default 1).
-- `pitch`: Kecepatan playback (default 1).
-- `pan`: Stereo pan, -1 (kiri) sampai 1 (kanan).
-- `loop`: 1 (true) untuk mengulang terus menerus.
+**Parameters:**
+- `name`: Sound file name (relative to `assets/` directory)
+- `volume`: 0.0 to 1.0 (default: 1.0)
+- `pitch`: 0.5 to 2.0 (default: 1.0)
+- `pan`: Stereo pan, -1.0 (left) to 1.0 (right) (default: 0)
+- `loop`: `true` to loop continuously (default: `false`)
 
-Mengembalikan objek suara yang bisa dikontrol:
+**Returns:** Sound control object with methods:
+- `stop()` - Stop the sound
+- `setVolume(v)` - Set volume (0.0-1.0)
+- `setPitch(p)` - Set pitch (0.5-2.0)
+- `setPan(p)` - Set pan (-1.0 to 1.0)
+- `getDuration()` - Get sound duration in seconds
+- `finished` - Boolean indicating if sound has finished
 
 ```lua
-sfx = audio.playSound("explosion")
+sfx = Audio.playSound("explosion")
 sfx.setVolume(0.5)
 sfx.stop()
 ```
 
-### `audio.playMusic(name, volume, loop)`
+### `Audio.playMusic(name, volume?, loop?)`
 
-Memutar musik latar (BGM).
+Plays background music (BGM).
 
-- `name`: Nama file musik di tab Music.
-- `volume`: 0 sampai 1.
-- `loop`: 1 (true) untuk looping.
+**Parameters:**
+- `name`: Music file name (relative to `assets/` directory)
+- `volume`: 0.0 to 1.0 (default: 1.0)
+- `loop`: `true` to loop (default: `false`)
 
-Mengembalikan objek musik:
+**Returns:** Music control object with methods:
+- `play()` - Resume playback
+- `stop()` - Stop the music
+- `setVolume(v)` - Set volume (0.0-1.0)
+- `getPosition()` - Get current playback position in seconds
+- `getDuration()` - Get total duration in seconds
+- `setPosition(pos)` - Seek to position in seconds
 
 ```lua
-bgm = audio.playMusic("theme", 0.8, 1)
+bgm = Audio.playMusic("theme", 0.8, true)
 bgm.stop()
-bgm.play() // Resume
+bgm.play()  // Resume
 ```
 
-### `audio.beep(pattern)`
+### `Audio.beep(pattern)`
 
-Memutar suara sintetis sederhana (legacy beeper).
+Plays synthesized beep sequences.
 
 ```lua
-audio.beep("C E G") // Memutar chord C Major
+Audio.beep("C4 E4 G4")  // Play C Major chord
+Audio.beep("tempo 120 C4 D4 E4 F4")
 ```
+
+**Note Format:**
+- Note names: `C`, `D`, `E`, `F`, `G`, `A`, `B`
+- Octaves: `0-8` (e.g., `C4`, `A3`)
+- Sharps: `#` (e.g., `C#4`)
+- Duration: Optional number after note (in seconds)
+- Commands: `tempo`, `volume`, `duration`, `span`, `square`, `sine`, `saw`, `noise`, `loop`
+
+### `Audio.cancelBeeps()`
+
+Stops all currently playing beeps and sounds.
+
+For complete Audio API documentation, see [@l8b/audio README](/packages/core/audio/README.md).
 
 ## Assets
 
-Asset manager memungkinkan Anda memuat file eksternal. Loading bersifat **asynchronous**.
+The asset manager allows you to load external files. Loading is **asynchronous**.
 
-### `asset_manager.loadJSON(path, callback)`
+### `Assets.loadImage(path, callback?)`
 
-Memuat file JSON dan mengubahnya menjadi objek l8b.
+Loads an image file.
+
+**Parameters:**
+- `path`: Image file path relative to `assets/` directory
+- `callback`: Optional callback called when image is loaded
+
+**Returns:** Loader object with:
+- `ready`: `0` (loading) or `1` (ready)
+- `image`: Image object when loaded
 
 ```lua
-// Cara 1: Callback
-asset_manager.loadJSON("data/items", function(data)
-  items = data
+// With callback
+Assets.loadImage("player.png", function(image)
+  // Image is ready to use
 end)
 
-// Cara 2: Loader Object
-loader = asset_manager.loadJSON("data/items")
-// Di update loop:
-if loader.ready then
-  items = loader.data
+// With loader object
+loader = Assets.loadImage("enemy.png")
+if loader.ready == 1 then
+  mySprite = loader.image
 end
 ```
 
-### `asset_manager.loadImage(path, callback)`
+### `Assets.loadJSON(path, callback?)`
 
-Memuat gambar eksternal untuk digunakan sebagai sprite.
+Loads a JSON file and parses it into an L8B object.
+
+**Parameters:**
+- `path`: JSON file path (without .json extension)
+- `callback`: Optional callback called when JSON is loaded
+
+**Returns:** Loader object with:
+- `ready`: `0` (loading) or `1` (ready)
+- `data`: Parsed JSON data when loaded
 
 ```lua
-asset_manager.loadImage("images/background.png", function(img)
-  // Gambar siap digunakan
+Assets.loadJSON("config", function(data)
+  items = data
 end)
 ```
 
-### Fungsi Load Lainnya
+### `Assets.loadText(path, callback?, ext?)`
 
-- `loadFont(path)`: Memuat font TTF.
-- `loadText(path)`: Memuat file teks biasa sebagai string.
-- `loadCSV(path)`: Memuat file CSV sebagai string.
-- `loadMarkdown(path)`: Memuat file Markdown sebagai string.
+Loads a text file.
 
-**Catatan:** 3D Models dan WASM saat ini tidak didukung di l8b.
+**Parameters:**
+- `path`: Text file path (without extension)
+- `callback`: Optional callback
+- `ext`: File extension (default: "txt")
+
+**Returns:** Loader object with `text` property.
+
+### `Assets.loadCSV(path, callback?)`
+
+Loads a CSV file (shorthand for `loadText` with `.csv` extension).
+
+### `Assets.loadMarkdown(path, callback?)`
+
+Loads a Markdown file (shorthand for `loadText` with `.md` extension).
+
+### `Assets.loadFont(font)`
+
+Loads a custom font file (.ttf).
+
+```lua
+Assets.loadFont("myfont")  // Loads assets/myfont.ttf
+```
+
+For complete Assets API documentation, see [@l8b/assets README](/packages/core/assets/README.md).
 
 ## System
 
-Objek `system` menyediakan informasi sistem dan kontrol alur.
+The `system` object provides system information and flow control.
 
-### Informasi
+### Information
 
-- `system.language`: Bahasa preferensi pengguna (misal "en", "id").
-- `system.fps`: Frame rate efektif saat ini.
-- `system.time`: Waktu saat ini dalam milidetik (sejak 1 Jan 1970).
-- `system.inputs`: Objek yang memberitahu ketersediaan input hardware (`keyboard`, `mouse`, `touch`, `gamepad`).
+- `system.time`: Current time in milliseconds (since January 1, 1970).
+- `system.fps`: Current effective frame rate.
+- `system.cpu_load`: Current CPU load (0.0 to 1.0).
+- `system.update_rate`: Update rate (updates per second).
+- `system.language`: User's preferred language (e.g., "en", "id").
+- `system.loading`: Loading progress (0 to 100).
 
-### Interaksi & Kontrol
+### Input Availability
+
+- `system.inputs.keyboard`: Returns `1` if keyboard is available.
+- `system.inputs.mouse`: Returns `1` if mouse pointer is available.
+- `system.inputs.touch`: Returns `1` if touch screen is available.
+- `system.inputs.gamepad`: Returns `1` if at least one gamepad is connected.
+
+### Control Functions
 
 #### `system.say(message)`
 
-Menampilkan jendela pesan (alert).
+Displays a message dialog.
+
+```lua
+system.say("Game Over!")
+```
 
 #### `system.prompt(message, callback)`
 
-Menampilkan jendela input teks.
+Displays a text input dialog.
 
 ```lua
-system.prompt("Siapa nama Anda?", function(result)
+system.prompt("What is your name?", function(result)
   if result then
     playerName = result
   end
@@ -393,180 +607,153 @@ end)
 
 #### `system.pause()`
 
-Menjeda eksekusi program (hanya di development environment).
+Pauses program execution (only in development environment).
 
 #### `system.exit()`
 
-Keluar dari program.
+Exits the program.
+
+### Additional Properties
+
+- `system.file.dropped`: `1` if a file was dropped (drag and drop).
+- `system.javascript`: Object for JavaScript interoperability.
+- `system.threads`: Array of active threads.
+- `system.disable_autofullscreen`: Set to `1` to disable automatic fullscreen.
+- `system.preemptive`: Set to `1` to enable preemptive threading (default: `1`).
+
+For complete System API documentation, see [@l8b/time README](/packages/core/time/README.md).
 
 ## Storage
 
-Objek `storage` memungkinkan penyimpanan data permanen (Persistent Storage). Data tetap tersimpan meskipun browser ditutup.
+The `storage` object enables persistent data storage. Data remains saved even after the browser is closed.
 
 ### `storage.set(name, value)`
 
-Menyimpan nilai secara permanen. Nilai bisa berupa number, string, list, atau object.
+Saves a value permanently. Value can be a number, string, list, or object.
 
 ```lua
 storage.set("highscore", 5000)
-storage.set("settings", { sound: true, music: false })
+storage.set("settings", {sound: true, music: false})
 ```
 
 ### `storage.get(name)`
 
-Mengambil nilai yang tersimpan. Mengembalikan `null` jika data tidak ditemukan (atau `0` tergantung implementasi, cek nilai balik).
+Retrieves a saved value. Returns `null` if data is not found.
 
 ```lua
 highscore = storage.get("highscore")
-if !highscore then highscore = 0 end
+if not highscore then highscore = 0 end
 ```
 
 ## Palette
 
-Palette memungkinkan Anda mengelola palet warna untuk game Anda. Berguna untuk efek visual seperti palette swapping atau color cycling.
+Palette allows you to manage color palettes for your game. Useful for visual effects like palette swapping or color cycling.
 
-### Membuat Palette
+### Creating Palette
 
 ```lua
-// Buat palette kosong
-palette = new Palette()
+// Create empty palette
+palette = Palette({})
 
-// Buat palette dengan warna
-palette = new Palette({
+// Create with colors
+palette = Palette({
   name: "Game Palette",
   colors: ["#000000", "#FF0000", "#00FF00", "#0000FF"]
 })
 ```
 
-### Menggunakan Palette
+### Using Palette
 
 #### `palette.get(index)`
 
-Mengambil warna berdasarkan indeks. Mengembalikan string hex seperti `"#FF0000"`.
-
-```lua
-red = palette.get(1)  // Ambil warna di indeks 1
-screen.setColor(red)
-```
+Gets color by index. Returns hex string like `"#FF0000"`.
 
 #### `palette.getRGB(index)`
 
-Mengambil warna sebagai objek RGB `{r, g, b}` dengan nilai 0-255.
-
-```lua
-rgb = palette.getRGB(2)  // {r: 0, g: 255, b: 0}
-```
+Gets color as RGB object `{r, g, b}` with values 0-255.
 
 #### `palette.set(index, color)`
 
-Mengatur warna di indeks tertentu. Warna harus dalam format hex seperti `"#FF0000"`.
-
-```lua
-palette.set(0, "#000000")  // Set warna hitam di indeks 0
-palette.set(1, "#FFFFFF")  // Set warna putih di indeks 1
-```
+Sets color at index. Color must be in hex format like `"#FF0000"`.
 
 #### `palette.add(color)`
 
-Menambahkan warna baru ke palette dan mengembalikan indeks baru.
-
-```lua
-index = palette.add("#FF00FF")  // Tambah warna magenta
-```
+Adds a new color to the palette and returns the new index.
 
 #### `palette.remove(index)`
 
-Menghapus warna di indeks tertentu.
+Removes color at index.
 
 #### `palette.setPalette(colors)`
 
-Mengganti seluruh palette dengan array warna baru.
+Replaces the entire palette with a new array of colors.
 
-```lua
-palette.setPalette(["#000000", "#FF0000", "#00FF00", "#0000FF"])
-```
+### Palette Effects
 
-### Efek Palette
+#### `palette.lighten(index, amount?)`
 
-#### `palette.lighten(index, amount)`
+Lightens a color. `amount` between 0-1 (default: 0.2).
 
-Mencerahkan warna. `amount` antara 0-1 (default 0.2).
+#### `palette.darken(index, amount?)`
 
-```lua
-lighter = palette.lighten(1, 0.3)  // Cerahkan warna di indeks 1 sebesar 30%
-```
+Darkens a color. `amount` between 0-1 (default: 0.2).
 
-#### `palette.darken(index, amount)`
+#### `palette.mix(index1, index2, ratio?)`
 
-Menggelapkan warna. `amount` antara 0-1 (default 0.2).
-
-#### `palette.mix(index1, index2, ratio)`
-
-Mencampur dua warna. `ratio` antara 0-1 (default 0.5).
-
-```lua
-mixed = palette.mix(0, 1, 0.5)  // Campur warna 0 dan 1 dengan rasio 50/50
-```
+Mixes two colors. `ratio` between 0-1 (default: 0.5).
 
 #### `palette.gradient(startIndex, endIndex, steps)`
 
-Membuat array gradient antara dua warna.
-
-```lua
-gradient = palette.gradient(0, 3, 10)  // Gradient dari warna 0 ke 3 dengan 10 langkah
-```
+Creates a gradient array between two colors.
 
 #### `palette.findClosest(hexColor)`
 
-Mencari indeks warna terdekat dengan warna yang diberikan.
-
-```lua
-closest = palette.findClosest("#FF8888")  // Cari warna terdekat dengan #FF8888
-```
+Finds the index of the color closest to the given hex color.
 
 ### Utility
 
-- `palette.size`: Jumlah warna dalam palette
-- `palette.paletteName`: Nama palette
-- `palette.getAll()`: Ambil semua warna sebagai array
-- `palette.toData()`: Export data palette sebagai objek `{name, colors}`
-- `Palette.rgbToHex(r, g, b)`: Method statis untuk mengkonversi RGB ke hex
+- `palette.size`: Number of colors in palette
+- `palette.paletteName`: Palette name
+- `palette.getAll()`: Get all colors as array
+- `Palette.rgbToHex(r, g, b)`: Static method to convert RGB to hex string
+
+For complete Palette API documentation, see [@l8b/palette README](/packages/core/palette/README.md).
 
 ## Scene Management
 
-Sistem scene management memungkinkan Anda mengorganisir game menjadi scene-scene terpisah dengan routing berbasis URL.
+The scene management system allows you to organize your game into separate scenes with URL-based routing.
 
-### Mendefinisikan Scene
+### Defining Scene
 
-Gunakan fungsi `scene()` untuk mendefinisikan scene dengan lifecycle methods:
+Use the `scene()` function to define a scene with lifecycle methods:
 
 ```lua
 scene("home", object
-  init = function()
-    // Dipanggil sekali saat scene pertama kali diregistrasi
+  init = function(self)
+    // Called once when scene is first registered
     print("Home scene initialized")
   end
 
-  onEnter = function(params)
-    // Dipanggil saat scene menjadi aktif
-    // params berisi parameter route jika ada
+  onEnter = function(self, params)
+    // Called when scene becomes active
+    // params contains route parameters if any
     print("Entered home scene")
   end
 
-  onLeave = function()
-    // Dipanggil saat scene dinonaktifkan
+  onLeave = function(self)
+    // Called when scene is deactivated
     print("Left home scene")
   end
 
-  update = function()
-    // Dipanggil setiap frame
-    if keyboard.press.SPACE then
+  update = function(self)
+    // Called every frame
+    if keyboard.press.SPACE == 1 then
       router.push("/game")
     end
   end
 
-  draw = function()
-    // Dipanggil setiap frame
+  draw = function(self)
+    // Called every frame
     screen.clear("blue")
     screen.drawText("Press SPACE to start", 0, 0, 20)
   end
@@ -575,21 +762,21 @@ end)
 
 ### Routing
 
-Gunakan fungsi `route()` untuk memetakan path ke scene:
+Use the `route()` function to map paths to scenes:
 
 ```lua
-route("/", "home")                    // Path root ke scene home
-route("/game", "game")                 // Path /game ke scene game
-route("/player/:id", "player")         // Path dengan parameter :id
+route("/", "home")                    // Root path to home scene
+route("/game", "game")                 // /game path to game scene
+route("/player/:id", "player")         // Path with parameter :id
 route("/game/:level/:difficulty", "game")  // Multiple parameters
 ```
 
-Parameter route akan diteruskan ke `onEnter` sebagai objek:
+Route parameters are passed to `onEnter` as an object:
 
 ```lua
 scene("player", object
-  onEnter = function(params)
-    playerId = params.id  // Ambil parameter :id dari route
+  onEnter = function(self, params)
+    playerId = params.id  // Get :id parameter from route
     print("Viewing player: " + playerId)
   end
 end)
@@ -597,123 +784,150 @@ end)
 
 ### Router API
 
-Objek `router` menyediakan navigasi dan informasi routing:
+The `router` object provides navigation and routing information:
 
 #### `router.push(path)`
 
-Navigasi ke path baru (menambahkan ke browser history).
+Navigate to a new path (adds to browser history).
 
 ```lua
-router.push("/game")           // Navigate ke /game
-router.push("/player/42")      // Navigate dengan parameter
+router.push("/game")           // Navigate to /game
+router.push("/player/42")      // Navigate with parameter
 ```
 
 #### `router.replace(path)`
 
-Mengganti path saat ini tanpa menambahkan ke history.
+Replace current path without adding to history.
 
 ```lua
-router.replace("/menu")  // Replace tanpa menambah history
+router.replace("/menu")  // Replace without adding to history
 ```
 
 #### `router.back()`
 
-Kembali ke halaman sebelumnya dalam history.
+Go back to the previous page in history.
 
 ```lua
-if keyboard.press.ESCAPE then
+if keyboard.press.ESCAPE == 1 then
   router.back()
 end
 ```
 
 #### Router Properties
 
-- `router.path`: Path saat ini
-- `router.params`: Parameter route saat ini (objek)
-- `router.sceneName`: Nama scene saat ini
+- `router.path`: Current path
+- `router.params`: Current route parameters (object)
+- `router.sceneName`: Current scene name
 
-Atau gunakan fungsi:
+For complete Scene API documentation, see [@l8b/scene README](/packages/core/scene/README.md).
 
-- `router.getPath()`: Ambil path saat ini
-- `router.getParams()`: Ambil parameter route
-- `router.getSceneName()`: Ambil nama scene
+## Sprites
 
-### Scene API
-
-- `scene(name, definition)`: Registrasi scene dengan lifecycle methods
-- `route(path, sceneName)`: Registrasi route mapping path ke scene
-- `scenes.goto(name, params)`: Navigasi langsung ke scene (params opsional)
-- `scenes.current()`: Ambil nama scene aktif saat ini
-
-### Contoh Lengkap
+### Creating Sprites
 
 ```lua
-// Define routes
-route("/", "home")
-route("/game", "game")
-route("/player/:id", "player")
-
-// Home scene
-scene("home", object
-  update = function()
-    if keyboard.press.SPACE then
-      router.push("/game")
-    end
-  end
-
-  draw = function()
-    screen.clear("blue")
-    screen.drawText("Press SPACE to start", 0, 0, 20)
-  end
-end)
-
-// Player scene dengan parameter
-scene("player", object
-  onEnter = function(params)
-    playerId = params.id
-  end
-
-  update = function()
-    if keyboard.press.ESCAPE then
-      router.back()
-    end
-  end
-
-  draw = function()
-    screen.clear("green")
-    screen.drawText("Player: " + playerId, 0, 0, 20)
-  end
-end)
+sprite = Sprite(32, 32)  // Create a new 32x32 sprite
 ```
+
+### Sprite Properties
+
+- `sprite.width`, `sprite.height`: Sprite dimensions
+- `sprite.frames`: Array of animation frames
+- `sprite.fps`: Animation frames per second
+- `sprite.ready`: `1` if sprite is ready, `0` if not
+
+### Sprite Methods
+
+- `sprite.setFPS(fps)`: Set animation speed
+- `sprite.setFrame(frame)`: Set current animation frame
+- `sprite.getFrame()`: Get current animation frame
+- `sprite.getCurrentFrameCanvas()`: Get canvas of current frame
+
+For complete Sprites API documentation, see [@l8b/sprites README](/packages/core/sprites/README.md).
+
+## Maps
+
+### Creating Maps
+
+```lua
+map = Map(20, 15, 16, 16)  // 20x15 tiles, 16x16 pixels per tile
+```
+
+### Map Methods
+
+- `map.set(x, y, ref)`: Set tile at position (x, y) to sprite reference
+- `map.get(x, y)`: Get tile at position (x, y)
+- `map.clear()`: Clear all tiles
+- `map.draw(context, x, y, w, h)`: Draw map to canvas context
+- `map.update()`: Force update the map's internal canvas
+- `map.loadFile(url, callback?)`: Load map from JSON file
+- `map.load(data, sprites)`: Load map from JSON string
+- `map.clone()`: Create a copy of the map
+- `map.copyFrom(map)`: Copy data from another map
+
+### Helper Functions
+
+- `loadMap(url, sprites?, callback?)`: Load map from URL
+- `updateMap(map, data, sprites?)`: Update existing map with new data
+- `saveMap(map)`: Save map data to JSON string
+
+For complete Map API documentation, see [@l8b/map README](/packages/core/map/README.md).
+
+## Images
+
+### Creating Images
+
+```lua
+image = Image(100, 100)  // Create a 100x100 image
+// Or from existing image/canvas
+image = Image(imageElement)
+image = Image(canvasElement)
+```
+
+### Image Properties
+
+- `image.width`, `image.height`: Image dimensions
+- `image.canvas`: Canvas element
+- `image.context`: Rendering context
+
+### Pixel Operations
+
+- `image.setRGB(x, y, r, g, b)`: Set pixel color (RGB)
+- `image.setRGBA(x, y, r, g, b, a)`: Set pixel color with alpha
+- `image.getRGB(x, y)`: Get pixel color as RGB object
+- `image.getRGBA(x, y)`: Get pixel color as RGBA object
+
+### Drawing on Images
+
+Images support the same drawing API as screen:
+- `image.clear(color)`, `image.setColor(color)`, `image.setAlpha(alpha)`
+- `image.fillRect()`, `image.drawRect()`, `image.drawLine()`, etc.
+- `image.drawSprite()`, `image.drawText()`, `image.drawMap()`
+
+For complete Image API documentation, see [@l8b/sprites README](/packages/core/sprites/README.md).
 
 ## Standard Library
 
-L8B menyediakan standard library utilities yang dapat diakses sebagai global objects: `Math`, `String`, `List`, dan `JSON`.
+L8B provides standard library utilities accessible as global objects: `Math`, `String`, `List`, and `JSON`.
 
 ### Math
 
-Objek `Math` menyediakan fungsi matematika dan utility untuk game development.
+#### Basic Functions
 
-#### Fungsi Dasar
+- `Math.abs(x)`, `Math.sqrt(x)`, `Math.floor(x)`, `Math.ceil(x)`, `Math.round(x)`
+- `Math.min(...args)`, `Math.max(...args)`, `Math.pow(base, exp)`
+- `Math.log(x)`, `Math.exp(x)`
 
-- `Math.abs(x)`: Nilai absolut
-- `Math.sqrt(x)`: Akar kuadrat
-- `Math.floor(x)`: Pembulatan ke bawah
-- `Math.ceil(x)`: Pembulatan ke atas
-- `Math.round(x)`: Pembulatan ke terdekat
-- `Math.min(...args)`: Nilai minimum
-- `Math.max(...args)`: Nilai maksimum
+#### Trigonometry
 
-#### Trigonometri
-
-- `Math.sin(x)`, `Math.cos(x)`, `Math.tan(x)`: Fungsi trigonometri (radian)
-- `Math.asin(x)`, `Math.acos(x)`, `Math.atan(x)`: Fungsi invers
+- `Math.sin(x)`, `Math.cos(x)`, `Math.tan(x)`: Functions in radians
+- `Math.asin(x)`, `Math.acos(x)`, `Math.atan(x)`: Inverse functions
 - `Math.atan2(y, x)`: Arc tangent 2
 
-#### Konversi Sudut
+#### Angle Conversion
 
-- `Math.degToRad(degrees)`: Konversi derajat ke radian
-- `Math.radToDeg(radians)`: Konversi radian ke derajat
+- `Math.degToRad(degrees)`: Convert degrees to radians
+- `Math.radToDeg(radians)`: Convert radians to degrees
 
 #### Random
 
@@ -723,51 +937,49 @@ Objek `Math` menyediakan fungsi matematika dan utility untuk game development.
 
 #### Game Utilities
 
-- `Math.clamp(value, min, max)`: Clamp nilai antara min dan max
+- `Math.clamp(value, min, max)`: Clamp value between min and max
 - `Math.lerp(a, b, t)`: Linear interpolation
-- `Math.distance(x1, y1, x2, y2)`: Jarak antara dua titik
-- `Math.distance3D(x1, y1, z1, x2, y2, z2)`: Jarak 3D
-- `Math.angleBetween(x1, y1, x2, y2)`: Sudut antara dua titik (radian)
-- `Math.sign(x)`: Tanda bilangan (-1, 0, atau 1)
+- `Math.distance(x1, y1, x2, y2)`: Distance between two points
+- `Math.distance3D(x1, y1, z1, x2, y2, z2)`: 3D distance
+- `Math.angleBetween(x1, y1, x2, y2)`: Angle between two points (radians)
+- `Math.sign(x)`: Sign of number (-1, 0, or 1)
 - `Math.mod(n, m)`: Euclidean modulo
 
-#### Konstanta
+#### Constants
 
 - `Math.PI`: Pi (3.14159...)
 - `Math.E`: Euler's number (2.71828...)
 
 ### String
 
-Objek `String` menyediakan fungsi manipulasi string.
-
 #### Split & Join
 
-- `String.split(str, separator)`: Split string menjadi array
-- `String.join(arr, separator)`: Join array menjadi string
+- `String.split(str, separator)`: Split string into array
+- `String.join(arr, separator)`: Join array into string
 
 #### Trim
 
-- `String.trim(str)`: Hapus whitespace di kedua ujung
-- `String.trimStart(str)`: Hapus whitespace di awal
-- `String.trimEnd(str)`: Hapus whitespace di akhir
+- `String.trim(str)`: Remove whitespace from both ends
+- `String.trimStart(str)`: Remove whitespace from start
+- `String.trimEnd(str)`: Remove whitespace from end
 
 #### Replace
 
-- `String.replace(str, search, replacement)`: Replace pertama
-- `String.replaceAll(str, search, replacement)`: Replace semua
+- `String.replace(str, search, replacement)`: Replace first occurrence
+- `String.replaceAll(str, search, replacement)`: Replace all occurrences
 
 #### Case
 
-- `String.toLowerCase(str)`: Konversi ke lowercase
-- `String.toUpperCase(str)`: Konversi ke uppercase
+- `String.toLowerCase(str)`: Convert to lowercase
+- `String.toUpperCase(str)`: Convert to uppercase
 
 #### Search
 
-- `String.startsWith(str, prefix)`: Cek apakah dimulai dengan prefix
-- `String.endsWith(str, suffix)`: Cek apakah diakhiri dengan suffix
-- `String.contains(str, search)`: Cek apakah mengandung substring
-- `String.indexOf(str, search, fromIndex)`: Cari indeks pertama
-- `String.lastIndexOf(str, search, fromIndex)`: Cari indeks terakhir
+- `String.startsWith(str, prefix)`: Check if starts with prefix
+- `String.endsWith(str, suffix)`: Check if ends with suffix
+- `String.contains(str, search)`: Check if contains substring
+- `String.indexOf(str, search, fromIndex?)`: Find first occurrence index
+- `String.lastIndexOf(str, search, fromIndex?)`: Find last occurrence index
 
 #### Substring
 
@@ -776,86 +988,82 @@ Objek `String` menyediakan fungsi manipulasi string.
 
 #### Character
 
-- `String.charAt(str, index)`: Ambil karakter di indeks
-- `String.charCodeAt(str, index)`: Ambil kode karakter
-- `String.fromCharCode(...codes)`: Buat string dari kode karakter
+- `String.charAt(str, index)`: Get character at index
+- `String.charCodeAt(str, index)`: Get character code
+- `String.fromCharCode(...codes)`: Create string from character codes
 
 #### Formatting
 
-- `String.repeat(str, count)`: Ulang string
-- `String.padStart(str, length, pad)`: Pad di awal
-- `String.padEnd(str, length, pad)`: Pad di akhir
-- `String.format(template, ...args)`: Format string dengan placeholder `{0}`, `{1}`, dll.
+- `String.repeat(str, count)`: Repeat string
+- `String.padStart(str, length, pad)`: Pad start with character
+- `String.padEnd(str, length, pad)`: Pad end with character
+- `String.format(template, ...args)`: Format string with placeholders `{0}`, `{1}`, etc.
 
 #### Parse
 
-- `String.parseInt(str, radix)`: Parse integer
+- `String.parseInt(str, radix?)`: Parse integer
 - `String.parseFloat(str)`: Parse float
 
 ### List (Array)
 
-Objek `List` menyediakan fungsi manipulasi array dan functional programming.
-
 #### Functional Methods
 
-- `List.map(arr, fn)`: Map setiap elemen
-- `List.filter(arr, fn)`: Filter elemen
-- `List.reduce(arr, fn, initial)`: Reduce ke satu nilai
-- `List.find(arr, fn)`: Cari elemen pertama yang match
-- `List.findIndex(arr, fn)`: Cari indeks pertama yang match
-- `List.some(arr, fn)`: Cek apakah ada yang match
-- `List.every(arr, fn)`: Cek apakah semua match
+- `List.map(arr, fn)`: Map array elements
+- `List.filter(arr, fn)`: Filter array elements
+- `List.reduce(arr, fn, initial)`: Reduce array to single value
+- `List.find(arr, fn)`: Find first matching element
+- `List.findIndex(arr, fn)`: Find index of first match
+- `List.some(arr, fn)`: Check if any element matches
+- `List.every(arr, fn)`: Check if all elements match
 
-#### Manipulasi (Non-mutating)
+#### Manipulation (Non-mutating)
 
-- `List.reverse(arr)`: Reverse array (return array baru)
-- `List.sort(arr, fn)`: Sort array (return array baru)
+- `List.reverse(arr)`: Reverse array (returns new array)
+- `List.sort(arr, fn?)`: Sort array (returns new array)
 - `List.slice(arr, start, end)`: Extract subarray
-- `List.concat(...arrays)`: Gabungkan array
-- `List.flat(arr, depth)`: Flatten nested arrays
-- `List.flatMap(arr, fn)`: Map dan flatten
+- `List.concat(...arrays)`: Concatenate arrays
+- `List.flat(arr, depth?)`: Flatten nested arrays
+- `List.flatMap(arr, fn)`: Map and flatten
 
-#### List Search
+#### Search
 
-- `List.indexOf(arr, item, fromIndex)`: Cari indeks item
-- `List.lastIndexOf(arr, item, fromIndex)`: Cari indeks terakhir
-- `List.includes(arr, item, fromIndex)`: Cek apakah mengandung item
+- `List.indexOf(arr, item, fromIndex?)`: Find index of item
+- `List.lastIndexOf(arr, item, fromIndex?)`: Find last index of item
+- `List.includes(arr, item, fromIndex?)`: Check if array includes item
 
 #### Access
 
-- `List.first(arr)`: Ambil elemen pertama
-- `List.last(arr)`: Ambil elemen terakhir
-- `List.at(arr, index)`: Ambil elemen di indeks (support negatif)
+- `List.first(arr)`: Get first element
+- `List.last(arr)`: Get last element
+- `List.at(arr, index)`: Get element at index (supports negative)
 
 #### Mutating Methods
 
-- `List.push(arr, ...items)`: Tambah item di akhir (mutate)
-- `List.pop(arr)`: Hapus dan return elemen terakhir
-- `List.shift(arr)`: Hapus dan return elemen pertama
-- `List.unshift(arr, ...items)`: Tambah item di awal (mutate)
-- `List.splice(arr, start, deleteCount, ...items)`: Insert/remove elemen
+- `List.push(arr, ...items)`: Add items to end (mutates)
+- `List.pop(arr)`: Remove and return last element
+- `List.shift(arr)`: Remove and return first element
+- `List.unshift(arr, ...items)`: Add items to start (mutates)
+- `List.splice(arr, start, deleteCount, ...items)`: Insert/remove elements
 
 #### Utilities
 
-- `List.fill(arr, value, start, end)`: Isi array dengan nilai (return baru)
-- `List.join(arr, separator)`: Join array menjadi string
-- `List.unique(arr)`: Hapus duplikat (return baru)
-- `List.shuffle(arr)`: Acak array (return baru)
-- `List.chunk(arr, size)`: Bagi menjadi chunk
-- `List.sum(arr)`: Jumlahkan angka
-- `List.average(arr)`: Rata-rata angka
-- `List.min(arr)`: Nilai minimum
-- `List.max(arr)`: Nilai maksimum
+- `List.fill(arr, value, start?, end?)`: Fill array with value (returns new)
+- `List.join(arr, separator)`: Join array into string
+- `List.unique(arr)`: Remove duplicates (returns new)
+- `List.shuffle(arr)`: Shuffle array (returns new)
+- `List.chunk(arr, size)`: Split into chunks
+- `List.sum(arr)`: Sum of numbers
+- `List.average(arr)`: Average of numbers
+- `List.min(arr)`: Minimum value
+- `List.max(arr)`: Maximum value
 
 ### JSON
 
-Objek `JSON` menyediakan encoding dan decoding JSON.
+- `JSON.encode(value)`: Encode value to JSON string
+- `JSON.decode(json)`: Decode JSON string to value
+- `JSON.pretty(value, indent?)`: Pretty-print JSON with indentation
 
-- `JSON.encode(value)`: Encode value ke JSON string
-- `JSON.decode(json)`: Decode JSON string ke value
-- `JSON.pretty(value, indent)`: Pretty-print JSON dengan indentasi
-
-### Contoh Standard Library
+### Standard Library Examples
 
 ```lua
 // Math examples
@@ -880,3 +1088,17 @@ jsonStr = JSON.encode({name: "Player", score: 100})
 data = JSON.decode(jsonStr)
 pretty = JSON.pretty({x: 1, y: 2}, 2)
 ```
+
+## Additional Resources
+
+For detailed API documentation with complete method signatures, parameters, return types, and examples, see the individual package READMEs:
+
+- [@l8b/screen](/packages/core/screen/README.md) - Screen rendering API
+- [@l8b/audio](/packages/core/audio/README.md) - Audio playback API
+- [@l8b/input](/packages/core/input/README.md) - Input handling API
+- [@l8b/assets](/packages/core/assets/README.md) - Asset loading API
+- [@l8b/sprites](/packages/core/sprites/README.md) - Sprite and Image API
+- [@l8b/map](/packages/core/map/README.md) - Map API
+- [@l8b/palette](/packages/core/palette/README.md) - Palette API
+- [@l8b/scene](/packages/core/scene/README.md) - Scene management API
+- [@l8b/time](/packages/core/time/README.md) - System API

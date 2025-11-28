@@ -1,17 +1,17 @@
 # Error Cheatsheet
 
-Quick reference untuk memahami dan men-debug error di L8B.
+Quick reference for understanding and debugging errors in L8B.
 
 ## Error Format
 
-Error di L8B memiliki format berikut:
+Errors in L8B have the following format:
 
 ```text
 [Code] Message
   at file:line:column
 ```
 
-Contoh:
+Example:
 
 ```text
 [E2001] Undefined variable 'playerX'
@@ -22,18 +22,18 @@ Contoh:
 
 | Code Range | Category | Description |
 |------------|----------|-------------|
-| E1xxx | Syntax Errors | Kesalahan sintaks LootiScript |
-| E2xxx | Runtime Errors | Error saat eksekusi program |
-| E3xxx | Compilation Errors | Error saat kompilasi |
-| E5xxx | Scene Errors | Error scene management |
-| E6xxx | CLI Errors | Error command line tools |
-| E7xxx | API Errors | Error API calls |
+| E1xxx | Syntax Errors | LootiScript syntax errors |
+| E2xxx | Runtime Errors | Errors during program execution |
+| E3xxx | Compilation Errors | Errors during compilation |
+| E5xxx | Scene Errors | Scene management errors |
+| E6xxx | CLI Errors | Command line tool errors |
+| E7xxx | API Errors | API call errors |
 
 ## Syntax Errors (E1xxx)
 
 ### E1001 - Unterminated function/block
 
-**Penyebab:** Function atau block tidak ditutup dengan `end`
+**Cause:** Function or block not closed with `end`
 
 ```lua
 // ❌ Error
@@ -49,13 +49,13 @@ end
 
 **Suggestions:**
 
-- Tambahkan `end` setelah statement terakhir
-- Cek jika ada `end` ekstra di tempat lain
-- Pastikan semua nested blocks (if, for, while) ditutup dengan benar
+- Add `end` after the last statement
+- Check if there's an extra `end` elsewhere
+- Ensure all nested blocks (if, for, while) are properly closed
 
 ### E1002 - Too many 'end'
 
-**Penyebab:** Terlalu banyak `end` statement
+**Cause:** Too many `end` statements
 
 ```lua
 // ❌ Error
@@ -72,77 +72,21 @@ end
 
 **Suggestions:**
 
-- Hapus `end` yang ekstra
-- Cek jika ada statement pembuka (if, for, while, function) yang hilang
-
-### E1003 - Missing 'end'
-
-**Penyebab:** Block tidak ditutup dengan `end`
-
-```lua
-// ❌ Error
-if x > 0 then
-  print("positive")
-  // Missing 'end'
-
-// ✅ Fix
-if x > 0 then
-  print("positive")
-end
-```
-
-**Suggestions:**
-
-- Tambahkan `end` untuk menutup block
-- Cek semua nested blocks ditutup dengan benar
+- Remove extra `end`
+- Check if there's a missing opening statement (if, for, while, function)
 
 ### E1004 - Unexpected token
 
-**Penyebab:** Token tidak terduga ditemukan saat parsing
+**Cause:** Unexpected token found during parsing
 
 **Suggestions:**
 
-- Cek syntax di sekitar lokasi error
-- Pastikan menggunakan syntax yang benar untuk statement tersebut
-
-### E1005 - Missing token
-
-**Penyebab:** Token yang diperlukan tidak ditemukan
-
-**Suggestions:**
-
-- Cek jika ada keyword atau symbol yang hilang
-- Pastikan syntax lengkap
-
-### E1006 - Unexpected end of file
-
-**Penyebab:** File berakhir saat parsing belum selesai
-
-**Suggestions:**
-
-- Cek jika ada statement penutup yang hilang
-- Pastikan semua blocks ditutup dengan benar
-
-### E1007 - Misuse of reserved keyword
-
-**Penyebab:** Reserved keyword digunakan dengan salah
-
-```lua
-// ❌ Error
-if = 5  // 'if' adalah reserved keyword
-
-// ✅ Fix
-condition = 5
-```
-
-**Suggestions:**
-
-- Gunakan identifier name yang berbeda
-- Cek konteks penggunaan keyword tersebut
+- Check syntax around the error location
+- Ensure correct syntax is used for that statement
 
 ### E1008 - Unterminated string
 
-**Penyebab:** String tidak ditutup dengan quote
+**Cause:** String not closed with quote
 
 ```lua
 // ❌ Error
@@ -154,281 +98,25 @@ message = "Hello world"
 
 **Suggestions:**
 
-- Tambahkan closing quote untuk menutup string
-- Cek escaped quotes di dalam string
-
-### E1009 - Unterminated object/array
-
-**Penyebab:** Object atau array tidak ditutup
-
-```lua
-// ❌ Error
-data = {x: 10, y: 20  // Missing closing brace
-
-// ✅ Fix
-data = {x: 10, y: 20}
-```
-
-**Suggestions:**
-
-- Tambahkan closing brace atau bracket
-- Cek nested objects/arrays yang perlu ditutup terlebih dahulu
+- Add closing quote to close the string
+- Check for escaped quotes inside the string
 
 ## Runtime Errors (E2xxx)
 
 ### E2001 - Undefined variable
 
-**Penyebab:** Variable digunakan sebelum didefinisikan
+**Cause:** Variable used before being defined
 
 ```lua
 // ❌ Error
-print(playerX)  // playerX belum didefinisikan
+print(playerX)  // playerX not defined
 
 // ✅ Fix
 playerX = 100
 print(playerX)
 ```
 
-**Suggestions:**
-
-- Cek jika nama variable benar
-- Pastikan variable didefinisikan sebelum digunakan
-- Cek scope variable
-
-### E2002 - Type mismatch
-
-**Penyebab:** Operasi dengan tipe data yang tidak kompatibel
-
-```lua
-// ❌ Error
-result = "hello" + 5  // String + Number
-
-// ✅ Fix
-result = "hello" + string(5)  // Convert to string
-// atau
-result = 5 + 10  // Number + Number
-```
-
-**Suggestions:**
-
-- Cek tipe operand
-- Gunakan type conversion jika diperlukan
-
-### E2003 - Division by zero
-
-**Penyebab:** Pembagian dengan nol
-
-```lua
-// ❌ Error
-result = 10 / 0
-
-// ✅ Fix
-if divisor != 0 then
-  result = 10 / divisor
-else
-  result = 0
-end
-```
-
-**Suggestions:**
-
-- Cek divisor sebelum pembagian
-- Tambahkan conditional check untuk mencegah division by zero
-
-### E2004 - Function not found
-
-**Penyebab:** Function dipanggil tapi tidak didefinisikan
-
-```lua
-// ❌ Error
-updateGame()  // Function tidak ada
-
-// ✅ Fix
-updateGame = function()
-  // implementation
-end
-updateGame()
-```
-
-**Suggestions:**
-
-- Cek jika nama function benar
-- Pastikan function didefinisikan sebelum dipanggil
-- Cek scope function
-
-### E2005 - Invalid operation
-
-**Penyebab:** Operasi tidak valid dilakukan
-
-**Suggestions:**
-
-- Cek operasi dan operand-nya
-- Pastikan operasi valid untuk tipe data yang diberikan
-
-## Compilation Errors (E3xxx)
-
-### E3001 - Compilation failed
-
-**Penyebab:** Proses kompilasi menemukan error
-
-**Suggestions:**
-
-- Cek error messages di atas untuk detail
-- Perbaiki error yang dilaporkan dan coba lagi
-
-### E3002 - File not found
-
-**Penyebab:** File yang diperlukan tidak ditemukan
-
-**Suggestions:**
-
-- Cek jika path file benar
-- Pastikan file ada di lokasi yang ditentukan
-
-### E3003 - Parse error
-
-**Penyebab:** Source code tidak bisa di-parse
-
-**Suggestions:**
-
-- Cek syntax source code
-- Cari syntax errors di file
-
-## Scene Errors (E5xxx)
-
-### E5001 - Invalid path
-
-**Penyebab:** Path route tidak valid
-
-```lua
-// ❌ Error
-route("", "menu")  // Empty path
-
-// ✅ Fix
-route("/", "menu")  // Valid path
-```
-
-**Suggestions:**
-
-- Cek format path
-- Pastikan path valid
-
-### E5002 - Invalid scene name
-
-**Penyebab:** Nama scene tidak valid
-
-**Suggestions:**
-
-- Cek format nama scene
-- Pastikan nama scene valid
-
-### E5003 - Invalid scene definition
-
-**Penyebab:** Scene didefinisikan dengan konfigurasi tidak valid
-
-**Suggestions:**
-
-- Cek syntax definisi scene
-- Pastikan semua property yang diperlukan disediakan
-
-### E5004 - Scene not found
-
-**Penyebab:** Scene yang diminta tidak ditemukan
-
-```lua
-// ❌ Error
-router.push("/game")  // Scene 'game' tidak ada
-
-// ✅ Fix
-scene("game", {
-  init = function()
-    // ...
-  end
-})
-route("/game", "game")
-router.push("/game")
-```
-
-**Suggestions:**
-
-- Cek jika scene sudah terdaftar
-- Pastikan nama scene benar
-
-### E5005 - No route matched
-
-**Penyebab:** Tidak ada route yang cocok dengan path
-
-**Suggestions:**
-
-- Cek jika route ada untuk path ini
-- Pastikan format path cocok dengan pattern route
-
-### E5006 - No scenes registered
-
-**Penyebab:** Tidak ada scene yang terdaftar di router
-
-**Suggestions:**
-
-- Daftarkan setidaknya satu scene sebelum menggunakan router
-- Cek jika registrasi scene dipanggil
-
-### E5007 - Scene has no draw function
-
-**Penyebab:** Scene tidak punya `draw()` function
-
-```lua
-// ❌ Error
-scene("menu", {
-  init = function()
-    // No draw function
-  end
-})
-
-// ✅ Fix
-scene("menu", {
-  init = function()
-    // ...
-  end,
-  draw = function()
-    screen.clear()
-    // ...
-  end
-})
-```
-
-**Suggestions:**
-
-- Tambahkan `draw()` function ke scene
-- Cek jika nama function benar
-
-## CLI Errors (E6xxx)
-
-### E6001 - Configuration error
-
-**Penyebab:** Error saat memproses konfigurasi
-
-**Suggestions:**
-
-- Cek file konfigurasi
-- Pastikan semua opsi konfigurasi yang diperlukan ada
-
-### E6002 - Build error
-
-**Penyebab:** Error saat proses build
-
-**Suggestions:**
-
-- Cek build output untuk detail
-- Perbaiki error yang dilaporkan dan coba lagi
-
-### E6003 - Server error
-
-**Penyebab:** Error di development server
-
-**Suggestions:**
-
-- Cek server logs untuk detail
-- Restart development server
+**Note:** In LootiScript, undefined variables default to `0`, so this error may not always occur.
 
 ## API Errors (E7xxx)
 
@@ -436,586 +124,217 @@ scene("menu", {
 
 #### E7001 - Failed to get 2D canvas context
 
-**Penyebab:** Browser tidak bisa membuat 2D rendering context untuk canvas
+**Cause:** Browser cannot create 2D rendering context for canvas
 
 **Suggestions:**
 
-- Cek jika canvas element valid
-- Pastikan browser mendukung canvas 2D rendering
-- Cek konflik canvas context
-
-#### E7002 - Invalid canvas dimensions
-
-**Penyebab:** Dimensi canvas tidak valid (nol atau negatif)
-
-**Suggestions:**
-
-- Pastikan width dan height adalah angka positif
-- Cek jika canvas diinisialisasi dengan benar
+- Check if canvas element is valid
+- Ensure browser supports canvas 2D rendering
+- Check for canvas context conflicts
 
 #### E7003 - Invalid color format
 
-**Penyebab:** Format warna tidak valid
+**Cause:** Invalid color format
 
 ```lua
-// ❌ Error
-screen.setColor("red")  // Format tidak valid
-
-// ✅ Fix
+// ✅ Valid formats
 screen.setColor("#FF0000")  // Hex format
-screen.setColor(palette.get(1))  // Palette index
+screen.setColor("red")      // Named color
+screen.setColor(999)        // Numeric color
 ```
 
 **Suggestions:**
 
-- Gunakan format hex: '#RRGGBB' atau '#RGB'
-- Gunakan named colors: 'red', 'blue', dll
-- Gunakan format numeric untuk palette colors
+- Use hex format: '#RRGGBB' or '#RGB'
+- Use named colors: 'red', 'blue', etc.
+- Use numeric format for palette colors
 
 #### E7004 - Sprite not found
 
-**Penyebab:** Sprite tidak ada di sprite collection
+**Cause:** Sprite not found in sprite collection
 
 ```lua
 // ❌ Error
 screen.drawSprite("nonexistent", 0, 0)
 
 // ✅ Fix
-// Pastikan sprite sudah di-load
-sprites.player = new Sprite("player.png")
-screen.drawSprite("player", 0, 0)
+// Ensure sprite is loaded first
+screen.drawSprite("player", 0, 0)  // Use existing sprite
 ```
 
 **Suggestions:**
 
-- Cek jika nama sprite benar
-- Pastikan sprite di-load sebelum digunakan
-- Cek namespace sprite
-
-#### E7005 - Sprite not ready
-
-**Penyebab:** Sprite ada tapi belum selesai loading
-
-**Suggestions:**
-
-- Tunggu sprite selesai loading
-- Cek `sprite.ready` sebelum digunakan
-- Gunakan callback atau promise untuk menunggu loading
-
-#### E7006 - Invalid font
-
-**Penyebab:** Nama font tidak valid atau tidak tersedia
-
-**Suggestions:**
-
-- Gunakan nama font yang valid
-- Cek jika font sudah di-load
-- Gunakan fallback font
-
-#### E7007 - Invalid blend mode
-
-**Penyebab:** Blend mode tidak didukung
-
-**Suggestions:**
-
-- Gunakan blend mode yang valid: 'normal', 'additive', 'multiply', dll
-- Cek daftar blend mode yang didukung
+- Check if sprite name is correct
+- Ensure sprite is loaded before use
+- Check sprite namespace
 
 ### Audio API Errors (E7011-E7020)
 
 #### E7011 - Audio context creation failed
 
-**Penyebab:** Browser tidak bisa membuat AudioContext
+**Cause:** Browser cannot create AudioContext
 
 **Suggestions:**
 
-- Cek jika browser mendukung Web Audio API
-- Coba user interaction untuk mengaktifkan audio
-- Cek browser console untuk detail lebih lanjut
+- Check if browser supports Web Audio API
+- Try user interaction to activate audio
+- Check browser console for more details
 
 #### E7012 - Audio worklet failed to start
 
-**Penyebab:** Audio worklet processor tidak bisa diinisialisasi
+**Cause:** Audio worklet processor cannot be initialized
 
 **Suggestions:**
 
-- Cek jika AudioWorklet didukung
-- Pastikan kode worklet valid
-- Cek browser console untuk errors
+- Check if AudioWorklet is supported
+- Ensure worklet code is valid
+- Check browser console for errors
 
 #### E7013 - Sound not found
 
-**Penyebab:** Sound tidak ada di sound collection
+**Cause:** Sound not found in sound collection
 
 ```lua
 // ❌ Error
-sounds.jump.play()
+Audio.playSound("nonexistent")
 
 // ✅ Fix
-// Pastikan sound sudah di-load
-sounds.jump = new Sound("jump.wav")
-sounds.jump.play()
+// Ensure sound file exists in assets/sounds/
+Audio.playSound("jump.wav")
 ```
 
 **Suggestions:**
 
-- Cek jika nama sound benar
-- Pastikan sound di-load sebelum digunakan
-- Cek path file sound
+- Check if sound name is correct
+- Ensure sound file exists in `assets/sounds/`
+- Check file path
 
 #### E7014 - Music not found
 
-**Penyebab:** Music tidak ada di music collection
+**Cause:** Music not found in music collection
 
 **Suggestions:**
 
-- Cek jika nama music benar
-- Pastikan music di-load sebelum digunakan
-- Cek path file music
-
-#### E7015 - Audio context suspended
-
-**Penyebab:** Audio context memerlukan user interaction untuk resume
-
-**Suggestions:**
-
-- Tunggu user interaction (click, touch, keypress)
-- Context akan resume otomatis
-- Cek jika audio autoplay diblokir
-
-#### E7016 - Invalid audio parameters
-
-**Penyebab:** Parameter audio playback tidak valid
-
-**Suggestions:**
-
-- Cek volume antara 0 dan 1
-- Cek pitch adalah angka positif
-- Cek pan antara -1 dan 1
+- Check if music name is correct
+- Ensure music file exists in `assets/music/`
+- Check file path
 
 ### Sprite API Errors (E7021-E7030)
 
 #### E7021 - Sprite loading failed
 
-**Penyebab:** Sprite image tidak bisa di-load
+**Cause:** Sprite image cannot be loaded
 
 **Suggestions:**
 
-- Cek jika URL benar
-- Pastikan file image ada
-- Cek CORS settings jika loading dari domain berbeda
-- Cek browser console untuk network errors
-
-#### E7022 - Invalid sprite properties
-
-**Penyebab:** Property sprite tidak valid
-
-**Suggestions:**
-
-- Cek frames adalah angka positif
-- Cek fps adalah angka positif
-- Pastikan semua property yang diperlukan diset
+- Check if URL is correct
+- Ensure image file exists
+- Check CORS settings if loading from different domain
+- Check browser console for network errors
 
 #### E7023 - Invalid sprite URL
 
-**Penyebab:** URL sprite tidak valid atau malformed
+**Cause:** Invalid or malformed sprite URL
 
 **Suggestions:**
 
-- Gunakan URL atau relative path yang valid
-- Cek jika URL diformat dengan benar
-- Pastikan file extension benar
-
-#### E7024 - Sprite frame out of bounds
-
-**Penyebab:** Frame index di luar range
-
-**Suggestions:**
-
-- Cek frame index antara 0 dan totalFrames-1
-- Pastikan sprite punya jumlah frame yang diharapkan
+- Use valid URL or relative path
+- Check if URL is formatted correctly
+- Ensure file extension is correct
 
 ### Map API Errors (E7031-E7040)
 
-#### E7031 - Map canvas context failed
-
-**Penyebab:** Tidak bisa mendapatkan 2D context untuk map rendering canvas
-
-**Suggestions:**
-
-- Cek jika canvas element valid
-- Pastikan browser mendukung canvas
-
-#### E7032 - Invalid tile coordinates
-
-**Penyebab:** Koordinat tile di luar map bounds
-
-**Suggestions:**
-
-- Cek koordinat dalam dimensi map
-- Pastikan map diinisialisasi dengan benar
-
-#### E7033 - Tile sprite not found
-
-**Penyebab:** Sprite untuk tile tidak ada
-
-**Suggestions:**
-
-- Cek jika nama sprite benar
-- Pastikan sprite sudah di-load
-- Cek definisi tile
-
 #### E7034 - Invalid map dimensions
 
-**Penyebab:** Dimensi map tidak valid
+**Cause:** Invalid map dimensions
 
 **Suggestions:**
 
-- Pastikan width dan height adalah angka positif
-- Cek inisialisasi map
+- Ensure width and height are positive numbers
+- Check map initialization
 
 ### Asset API Errors (E7041-E7050)
 
-#### E7041 - Asset not found
-
-**Penyebab:** Asset yang diminta tidak ada
-
-**Suggestions:**
-
-- Cek jika nama asset benar
-- Pastikan asset sudah di-load
-- Cek urutan loading asset
-
 #### E7042 - Asset loading failed
 
-**Penyebab:** Asset tidak bisa di-load
+**Cause:** Asset cannot be loaded
 
 **Suggestions:**
 
-- Cek jika URL asset benar
-- Pastikan file ada
-- Cek koneksi network
-- Cek CORS settings
-
-#### E7043 - Invalid asset type
-
-**Penyebab:** Tipe asset tidak didukung
-
-**Suggestions:**
-
-- Gunakan tipe asset yang didukung
-- Cek dokumentasi tipe asset
-
-#### E7044 - Asset not ready
-
-**Penyebab:** Asset ada tapi belum selesai loading
-
-**Suggestions:**
-
-- Tunggu asset selesai loading
-- Cek `asset.ready` sebelum digunakan
-
-### Input API Errors (E7051-E7060)
-
-#### E7051 - Input device not available
-
-**Penyebab:** Input device yang diminta tidak tersedia
-
-**Suggestions:**
-
-- Cek jika device terhubung
-- Pastikan browser permissions
-- Cek dukungan device
-
-#### E7052 - Invalid input state
-
-**Penyebab:** Input state tidak valid atau corrupted
-
-**Suggestions:**
-
-- Reinisialisasi input system
-- Cek koneksi input device
-
-### Storage API Errors (E7061-E7070)
-
-#### E7061 - Storage quota exceeded
-
-**Penyebab:** Storage quota telah melebihi batas
-
-**Suggestions:**
-
-- Hapus data storage lama
-- Kurangi jumlah data yang disimpan
-- Cek batas storage quota
-
-#### E7062 - Storage operation failed
-
-**Penyebab:** Operasi storage tidak bisa diselesaikan
-
-**Suggestions:**
-
-- Cek storage permissions
-- Pastikan storage tersedia
-- Cek browser console untuk detail
-
-#### E7063 - Invalid storage key
-
-**Penyebab:** Storage key tidak valid
-
-**Suggestions:**
-
-- Gunakan format key yang valid
-- Cek panjang dan karakter key
-
-### Palette API Errors (E7071-E7080)
-
-#### E7071 - Palette not found
-
-**Penyebab:** Palette yang diminta tidak ada
-
-```lua
-// ❌ Error
-palette.get(0)  // Palette belum dibuat
-
-// ✅ Fix
-palette = new Palette({colors: ["#000000", "#FFFFFF"]})
-palette.get(0)
-```
-
-**Suggestions:**
-
-- Cek jika nama palette benar
-- Pastikan palette sudah di-load
-- Cek urutan loading palette
-
-#### E7072 - Invalid palette format
-
-**Penyebab:** Format palette tidak didukung
-
-**Suggestions:**
-
-- Gunakan format palette yang didukung
-- Cek dokumentasi format palette
-- Pastikan format file palette benar
-
-#### E7073 - Invalid color index
-
-**Penyebab:** Color index di luar range palette
-
-**Suggestions:**
-
-- Cek color index dalam range palette
-- Pastikan ukuran palette
-- Gunakan color index yang valid
-
-#### E7074 - Palette loading failed
-
-**Penyebab:** Palette tidak bisa di-load
-
-**Suggestions:**
-
-- Cek jika file palette ada
-- Pastikan format file palette benar
-- Cek file permissions
-- Cek koneksi network jika loading dari URL
-
-#### E7075 - Invalid palette size
-
-**Penyebab:** Ukuran palette tidak valid
-
-**Suggestions:**
-
-- Cek ukuran palette sesuai dengan yang diharapkan
-- Pastikan data palette lengkap
-- Cek inisialisasi palette
-
-### Time API Errors (E7081-E7090)
-
-#### E7081 - Invalid time value
-
-**Penyebab:** Nilai time tidak valid atau di luar range
-
-**Suggestions:**
-
-- Cek nilai time adalah angka positif
-- Pastikan time dalam range yang valid
-- Cek format time
-
-#### E7082 - Time playback failed
-
-**Penyebab:** Operasi time playback tidak bisa diselesaikan
-
-**Suggestions:**
-
-- Cek jika time playback diinisialisasi
-- Pastikan state playback
-- Cek konflik operasi time
-
-#### E7083 - Time recording failed
-
-**Penyebab:** Operasi time recording tidak bisa diselesaikan
-
-**Suggestions:**
-
-- Cek jika time recording diinisialisasi
-- Pastikan state recording
-- Cek storage space yang tersedia
-
-#### E7084 - Invalid time format
-
-**Penyebab:** Format time tidak didukung
-
-**Suggestions:**
-
-- Gunakan format time yang didukung
-- Cek dokumentasi format time
-- Pastikan format string time benar
+- Check if asset URL is correct
+- Ensure file exists
+- Check network connection
+- Check CORS settings
 
 ### Drawing API Errors (E7091-E7100)
 
-#### E7091 - Drawing operation failed
-
-**Penyebab:** Operasi drawing tidak bisa diselesaikan
-
-**Suggestions:**
-
-- Cek jika drawing context valid
-- Pastikan parameter drawing
-- Cek state canvas
-
 #### E7092 - Invalid drawing context
 
-**Penyebab:** Drawing context tidak valid atau tidak tersedia
+**Cause:** Drawing context is invalid or unavailable
 
 **Suggestions:**
 
-- Cek jika canvas context diinisialisasi
-- Pastikan context tidak dihancurkan
-- Reinisialisasi drawing context
+- Check if canvas context is initialized
+- Ensure context is not destroyed
+- Reinitialize drawing context
 
 #### E7093 - Invalid drawing parameters
 
-**Penyebab:** Parameter drawing tidak valid
+**Cause:** Invalid drawing parameters
 
 **Suggestions:**
 
-- Cek nilai koordinat adalah angka yang valid
-- Pastikan dimensi positif
-- Cek nilai color valid
-- Pastikan semua parameter yang diperlukan disediakan
+- Check coordinate values are valid numbers
+- Ensure dimensions are positive
+- Check color value is valid
+- Ensure all required parameters are provided
 
 ### API Validation Errors (E7100-E7199)
 
 #### E7100 - Unknown property
 
-**Penyebab:** Property atau method yang tidak ada di API object diakses
+**Cause:** Property or method that doesn't exist on API object is accessed
 
 ```lua
 // ❌ Error
-screen.invalidMethod()  // Method tidak ada
+screen.invalidMethod()  // Method doesn't exist
 
 // ✅ Fix
-screen.clear()  // Method yang benar
+screen.clear()  // Correct method
 ```
 
 **Suggestions:**
 
-- Cek jika nama property benar
-- Pastikan API object mendukung property ini
-- Cek dokumentasi API untuk property yang tersedia
+- Check if property name is correct
+- Ensure API object supports this property
+- Check API documentation for available properties
 
 ## Warning Codes
 
-Warning tidak menghentikan eksekusi, tapi menunjukkan potensi masalah.
+Warnings don't stop execution but indicate potential issues.
 
 ### Syntax Warnings (W1xxx)
 
 #### W1001 - Assigning to API variable
 
-**Penyebab:** Mengubah API variable yang read-only
+**Cause:** Modifying read-only API variable
 
 ```lua
 // ⚠️ Warning
-screen = {}  // screen adalah API variable
+screen = {}  // screen is an API variable
 
 // ✅ Fix
-localScreen = {}  // Gunakan local variable
+localScreen = {}  // Use local variable
 ```
 
 **Suggestions:**
 
-- Gunakan local variable
-- Cek jika maksudnya menggunakan variable yang berbeda
-
-#### W1002 - Assignment as condition
-
-**Penyebab:** Assignment operator (=) digunakan sebagai condition
-
-```lua
-// ⚠️ Warning
-if x = 5 then  // Seharusnya ==
-
-// ✅ Fix
-if x == 5 then  // Comparison
-```
-
-**Suggestions:**
-
-- Gunakan == untuk comparison
-- Cek jika maksudnya assign sebelum compare
-
-### Runtime Warnings (W2xxx)
-
-#### W2001 - Deprecated API usage
-
-**Penyebab:** API yang deprecated digunakan
-
-**Suggestions:**
-
-- Update ke API baru
-- Cek dokumentasi untuk migration guide
-
-### Scene Warnings (W5xxx)
-
-#### W5001 - Activating first available scene
-
-**Penyebab:** Tidak ada route yang cocok, scene pertama diaktifkan
-
-**Suggestions:**
-
-- Daftarkan route untuk initial path
-- Cek jika pattern route benar
-
-#### W5002 - No route matched initial path
-
-**Penyebab:** Initial path tidak cocok dengan route manapun
-
-**Suggestions:**
-
-- Daftarkan route untuk initial path
-- Cek jika pattern route cocok dengan initial path
-
-#### W5003 - No scenes registered
-
-**Penyebab:** Tidak ada scene yang terdaftar
-
-**Suggestions:**
-
-- Daftarkan setidaknya satu scene
-- Cek jika registrasi scene dipanggil
-
-#### W5004 - No scenes before init
-
-**Penyebab:** Router diinisialisasi sebelum scene terdaftar
-
-**Suggestions:**
-
-- Daftarkan scene sebelum memanggil router.init()
-- Cek urutan inisialisasi
+- Use local variable
+- Check if you meant to use a different variable
 
 ## Stack Trace
 
-Stack trace menunjukkan urutan pemanggilan function yang menyebabkan error:
+Stack trace shows the sequence of function calls that caused the error:
 
 ```text
 [E2001] Undefined variable 'x'
@@ -1024,45 +343,45 @@ Stack trace menunjukkan urutan pemanggilan function yang menyebabkan error:
   at update (scripts/main.loot:10:2)
 ```
 
-**Membaca stack trace:**
+**Reading stack trace:**
 
-1. Baris pertama: Error message dan lokasi
-2. Baris berikutnya: Call stack (dari dalam ke luar)
+1. First line: Error message and location
+2. Following lines: Call stack (from inner to outer)
 3. Format: `at functionName (file:line:column)`
 
 ## Error Types
 
-Error memiliki `type` field yang menunjukkan kapan error terjadi:
+Errors have a `type` field indicating when the error occurred:
 
 | Type | Description |
 |------|-------------|
-| `init` | Error saat `init()` dipanggil |
-| `update` | Error saat `update()` dipanggil |
-| `draw` | Error saat `draw()` dipanggil |
-| `scene` | Error di scene lifecycle |
-| `compile` | Error saat kompilasi |
+| `init` | Error when `init()` is called |
+| `update` | Error when `update()` is called |
+| `draw` | Error when `draw()` is called |
+| `scene` | Error in scene lifecycle |
+| `compile` | Error during compilation |
 
 ## Debugging Tips
 
-### 1. Baca Error Message dengan Teliti
+### 1. Read Error Message Carefully
 
-Error message biasanya menjelaskan masalahnya. Baca dengan teliti sebelum mencari solusi.
+Error messages usually explain the problem. Read carefully before searching for solutions.
 
-### 2. Cek Lokasi Error
+### 2. Check Error Location
 
-Error menunjukkan `file:line:column`. Buka file tersebut dan cek baris yang disebutkan.
+Errors show `file:line:column`. Open that file and check the mentioned line.
 
-### 3. Gunakan Stack Trace
+### 3. Use Stack Trace
 
-Stack trace menunjukkan urutan pemanggilan. Gunakan untuk memahami alur program.
+Stack trace shows the call sequence. Use it to understand program flow.
 
-### 4. Cek Console
+### 4. Check Console
 
-Error juga ditampilkan di browser console. Buka DevTools (F12) untuk melihat detail lebih lengkap.
+Errors are also displayed in the browser console. Open DevTools (F12) to see more details.
 
-### 5. Gunakan Print untuk Debug
+### 5. Use Print for Debug
 
-Tambahkan `print()` statement untuk melihat nilai variable:
+Add `print()` statements to see variable values:
 
 ```lua
 update = function()
@@ -1071,26 +390,27 @@ update = function()
 end
 ```
 
-### 6. Cek Asset Loading
+### 6. Check Asset Loading
 
-Pastikan asset sudah di-load sebelum digunakan:
+Ensure assets are loaded before use:
 
 ```lua
 init = function()
-  sprites.player = new Sprite("player.png")
-  // Wait for asset to load
+  Assets.loadImage("player.png", function(image)
+    playerSprite = image
+  end)
 end
 
 update = function()
-  if sprites.player.ready then
-    screen.drawSprite("player", 0, 0)
+  if playerSprite then
+    screen.drawSprite(playerSprite, 0, 0)
   end
 end
 ```
 
-### 7. Validasi Input
+### 7. Validate Input
 
-Selalu validasi input sebelum digunakan:
+Always validate input before use:
 
 ```lua
 divide = function(a, b)
@@ -1108,8 +428,8 @@ end
 
 ```lua
 // Check if asset exists before use
-if sprites.player then
-  screen.drawSprite("player", x, y)
+if playerSprite then
+  screen.drawSprite(playerSprite, x, y)
 else
   print("Warning: Player sprite not loaded")
 end
@@ -1126,22 +446,11 @@ else
 end
 ```
 
-### Type Check Pattern
-
-```lua
-// Check type before operation
-if typeof(value) == "number" then
-  result = value * 2
-else
-  print("Error: Expected number, got " + typeof(value))
-end
-```
-
 ## Getting Help
 
-Jika error masih tidak jelas:
+If the error is still unclear:
 
-1. **Cek dokumentasi** - Lihat [API Reference](/fundamentals/api-reference)
-2. **Cek contoh** - Lihat contoh di `examples/` folder
-3. **Cek console** - Buka browser DevTools untuk detail lebih lengkap
-4. **Cek stack trace** - Gunakan stack trace untuk memahami alur program
+1. **Check documentation** - See [API Reference](/fundamentals/api-reference)
+2. **Check examples** - See examples in `examples/` folder
+3. **Check console** - Open browser DevTools for more details
+4. **Check stack trace** - Use stack trace to understand program flow

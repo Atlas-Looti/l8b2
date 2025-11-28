@@ -1,29 +1,87 @@
-# Apa itu L8B?
+# What is L8B?
 
-Gambaran umum tentang L8B dan kegunaannya.
+Overview of L8B and its purpose.
 
-L8B adalah game engine 2D untuk membangun pengalaman game yang interaktif dan dinamis.
+L8B is a 2D game engine for building interactive and dynamic game experiences.
 
-L8B mendukung sistem sprite, animasi, collision, audio, dan level design dalam satu alur kerja terpadu. Engine ini memberi kontrol penuh dalam merancang alur permainan, logika game, dan tampilan visual secara terstruktur dan efisien.
+L8B supports sprite systems, animations, collisions, audio, and level design in one integrated workflow. The engine gives you full control in designing game flow, game logic, and visual presentation in a structured and efficient way.
 
-L8B dirancang agar ringan, fleksibel, dan ekspresif—cocok untuk prototyping cepat maupun produksi game 2D skala penuh.
+L8B is designed to be lightweight, flexible, and expressive—perfect for rapid prototyping as well as full-scale 2D game production.
 
 ## What is it used for?
 
-L8B adalah 2D game engine & Web3-engine all-in-one—ideal untuk membangun game atau aplikasi berbasis Web3 yang langsung bisa dijalankan sebagai mini-apps di Farcaster, Base App, dan klien Web3 serupa.
+L8B is a 2D game engine & Web3-engine all-in-one—ideal for building games or Web3-based applications that can run directly as mini-apps in Farcaster, Base App, and similar Web3 clients.
 
-Dengan L8B kamu bisa membuat game 2D seperti platformer, RPG, puzzle, atau game berbasis token/NFT dengan sistem sprite, animasi, collision, audio, dan gameplay logic yang sudah ditangani engine.
+With L8B you can create 2D games like platformers, RPGs, puzzles, or token/NFT-based games with sprite systems, animations, collisions, audio, and gameplay logic all handled by the engine.
 
-Karena mendukung integrasi dengan Farcaster Mini Apps dan Base App, game atau aplikasimu dapat berjalan sebagai mini-app on-chain: pengguna dapat berinteraksi, menandatangani transaksi, memakai wallet on-chain, memanfaatkan identitas Farcaster, tanpa perlu instal aplikasi terpisah .
+Because it supports integration with Farcaster Mini Apps and Base App, your game or application can run as a mini-app on-chain: users can interact, sign transactions, use on-chain wallets, leverage Farcaster identity, without needing to install a separate application.
 
-Cocok untuk membangun produk Web3 seperti:
+Perfect for building Web3 products like:
 
-- game peer-to-peer
-- web-game dengan token/NFT utilities
-- mini-app sosial
-- marketplace on-chain
-- eksperimen blockchain + game dengan distribusi sosial bawaan
+- peer-to-peer games
+- web-games with token/NFT utilities
+- social mini-apps
+- on-chain marketplaces
+- blockchain + game experiments with built-in social distribution
 
-Engine + Web3 stack ini mempermudah perjalanan dari ide → prototipe → live app/mini-app sambil memanfaatkan fitur sosial dan wallet crypto yang sudah tersedia di ekosistem.
+This engine + Web3 stack makes it easier to go from idea → prototype → live app/mini-app while leveraging the social and crypto wallet features already available in the ecosystem.
 
-L8B bukan sekadar engine game 2D; ia adalah jembatan antara gameplay 2D, interaksi on-chain, dan distribusi di ekosistem Web3.
+L8B is not just a 2D game engine; it's a bridge between 2D gameplay, on-chain interactions, and distribution in the Web3 ecosystem.
+
+## Key Features
+
+- **LootiScript Language**: A lightweight scripting language inspired by Lua, compiled to bytecode for high performance
+- **2D Rendering**: Full-featured 2D rendering system with sprites, maps, text, and primitives
+- **Audio System**: Sound effects, music, and procedural beep generation
+- **Input Handling**: Keyboard, mouse, touch, and gamepad support
+- **Scene Management**: URL-based routing and scene lifecycle management
+- **Asset Management**: Load images, fonts, JSON, text files, and more
+- **Storage**: Persistent data storage using localStorage
+- **Web3 Integration**: Built-in support for Farcaster Mini Apps and Base App
+- **Hot Reload**: Development server with hot module replacement
+- **TypeScript/JavaScript Runtime**: Full TypeScript support for engine development
+
+## Getting Started
+
+1. **Install L8B CLI**:
+
+   ```bash
+   npm install @l8b/cli --save-dev
+   ```
+
+2. **Create a new project**:
+
+   ```bash
+   l8b new my-game
+   ```
+
+3. **Start development server**:
+
+   ```bash
+   l8b dev
+   ```
+
+4. **Write your game** in LootiScript (`.loot` files)
+
+See the [Quick Start Guide](/fundamentals/quick-start) for detailed instructions.
+
+## Documentation
+
+- **[Quick Start](/fundamentals/quick-start)** - Get started with your first L8B project
+- **[LootiScript Programming](/fundamentals/looti-script-programming)** - Learn the LootiScript language
+- **[API Reference](/fundamentals/api-reference)** - Complete API documentation
+- **[Quick Reference](/quick-reference/)** - Cheatsheets and quick references
+
+## Architecture
+
+L8B is built as a modular monorepo:
+
+- **Core Packages** (`@l8b/core/*`): Core APIs (screen, audio, input, sprites, etc.)
+- **Engine Packages** (`@l8b/enggine/*`): Runtime, VM, and engine infrastructure
+- **Framework Packages** (`@l8b/framework/*`): CLI, compiler, and build tools
+- **Tooling Packages** (`@l8b/tooling/*`): Language server, diagnostics, VSCode extension
+- **LootiScript** (`@l8b/lootiscript`): Parser and language implementation
+
+## License
+
+MIT License - see LICENSE file for details.

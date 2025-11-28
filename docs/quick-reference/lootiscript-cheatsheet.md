@@ -1,6 +1,6 @@
 # LootiScript Cheatsheet
 
-Quick reference untuk LootiScript 2.0
+Quick reference for LootiScript 2.0
 
 ## Variables
 
@@ -15,18 +15,18 @@ f = function()
 end // visibility of local variable stops here
 ```
 
-**Aliases:** `var` dan `let` juga dapat digunakan sebagai alias untuk `local`
+**Aliases:** `var` and `let` can also be used as aliases for `local`
 
 ```lua
 var x = 10
 let y = 20
-local z = 30  // semua sama
+local z = 30  // all the same
 ```
 
 **Tips:**
 
-- Gunakan local variables untuk temporary values dalam functions
-- Hindari mixing local dan global variables dengan nama sama
+- Use local variables for temporary values in functions
+- Avoid mixing local and global variables with the same name
 
 ### Global
 
@@ -48,7 +48,7 @@ player = object
 end
 ```
 
-- Global variables dapat diakses dengan prefix `global.`
+- Global variables can be accessed with the `global.` prefix
 
 ```lua
 player = object

@@ -1,31 +1,31 @@
 # LootiScript Programming
 
-LootiScript adalah bahasa scripting ringan yang terinspirasi oleh Lua dan dirancang agar mudah dipelajari, ekspresif, serta nyaman digunakan di ekosistem L8B. LootiScript dilengkapi dengan **bytecode compiler**, **inline cache optimization**, dan **scheduler blocks** untuk performa dan produktivitas yang lebih baik. Panduan ini merangkum dasar-dasar bahasa beserta idiom yang paling sering dipakai saat membangun game atau mini-app Web3 dengan L8B.
+LootiScript is a lightweight scripting language inspired by Lua, designed to be easy to learn, expressive, and comfortable to use in the L8B ecosystem. LootiScript is equipped with a **bytecode compiler**, **inline cache optimization**, and **scheduler blocks** for better performance and productivity. This guide summarizes the language fundamentals along with the most commonly used idioms when building games or Web3 mini-apps with L8B.
 
-## Prinsip Dasar
+## Basic Principles
 
-- Variabel bersifat global secara default; gunakan `local` untuk membuat variabel lokal di dalam fungsi.
-- Newline diperlakukan seperti spasi; penulisan kode bisa fleksibel.
-- Tidak ada nilai `null`, `nil`, atau `undefined`. Variabel yang belum pernah diisi bernilai `0`.
-- Tidak ada tipe boolean khusus. `0` dianggap *false*, selain itu *true*.
-- Tidak ada runtime error karena variabel tak terdefinisi; memanggil nilai non-fungsi sebagai fungsi akan mengembalikan nilai itu sendiri.
-- **LootiScript dikompilasi ke bytecode** untuk eksekusi yang lebih cepat dibanding interpretasi langsung.
+- Variables are global by default; use `local` to create local variables within functions.
+- Newlines are treated like spaces; code writing can be flexible.
+- There is no `null`, `nil`, or `undefined` value. Variables that have never been assigned have a value of `0`.
+- There is no special boolean type. `0` is considered *false*, everything else is *true*.
+- There are no runtime errors for undefined variables; calling a non-function value as a function will return the value itself.
+- **LootiScript is compiled to bytecode** for faster execution compared to direct interpretation.
 
 ## Variables
 
-Variabel adalah identifier yang menyimpan nilai. Anda tidak perlu mendeklarasikan variabel sebelumnya; begitu diberikan nilai, variabel tersebut langsung tersedia.
+Variables are identifiers that store values. You don't need to declare variables beforehand; once assigned a value, the variable is immediately available.
 
-### Deklarasi & Penugasan
+### Declaration & Assignment
 
 ```lua
 x = 1
 ```
 
-Nilai `x` kini 1. Semua variabel yang belum pernah dipakai otomatis bernilai `0`, jadi Anda tidak akan menemukan error “undefined”.
+The value of `x` is now 1. All variables that have never been used automatically have a value of `0`, so you won't encounter "undefined" errors.
 
-### Variabel Lokal
+### Local Variables
 
-Secara default, penugasan akan membuat variabel global. Gunakan `local` di dalam fungsi untuk membatasi scope:
+By default, assignment creates a global variable. Use `local` inside functions to limit scope:
 
 ```lua
 init = function()
@@ -33,15 +33,15 @@ init = function()
 end
 ```
 
-### Rekap
+### Summary
 
-- Tidak diperlukan kata kunci khusus untuk membuat variabel global.
-- Variabel yang belum diinisialisasi bernilai `0`.
-- `local` hanya berlaku pada blok fungsi tempat ia didefinisikan.
+- No special keyword needed to create global variables.
+- Uninitialized variables have a value of `0`.
+- `local` only applies to the function block where it's defined.
 
 ## Types of Values
 
-LootiScript mengenal lima tipe utama: **Number**, **String**, **List**, **Object**, dan **Function**. Mengelola tipe ini adalah inti dari memprogram gameplay maupun logika aplikasi.
+LootiScript recognizes five main types: **Number**, **String**, **List**, **Object**, and **Function**. Managing these types is the core of programming gameplay and application logic.
 
 ### Number
 
@@ -65,9 +65,9 @@ empty = []
 primes = [2,3,5,7,11]
 mixed = [1,"cat",[1,2,3]]
 
-print(primes[0]) // akses berdasarkan indeks dari 0
+print(primes[0])  // access by index from 0
 
-for value in primes
+for value in primes do
   print(value)
 end
 ```
@@ -84,7 +84,7 @@ end
 player.x = 10
 player["y"] = 20
 
-for field in player
+for field in player do
   print(field + " = " + player[field])
 end
 ```
@@ -112,29 +112,29 @@ end
 print(nextNumber(10))
 ```
 
-Fungsi didefinisikan dengan kata kunci `function` dan diakhiri `end`. Anda dapat memecah program menjadi banyak fungsi kecil tanpa harus mendefinisikan semuanya sekaligus—pemanggilan terhadap nilai yang belum menjadi fungsi hanya akan mengembalikan `0`, sehingga tidak menimbulkan error.
+Functions are defined with the `function` keyword and ended with `end`. You can break your program into many small functions without having to define them all at once—calling a value that isn't a function will just return `0`, so it won't cause an error.
 
 ### Local Variables
 
-Variabel yang dideklarasikan dengan `local` di dalam fungsi hanya hidup selama fungsi berjalan. Gunakan ini untuk menghentikan efek samping variabel global.
+Variables declared with `local` inside a function only live while the function runs. Use this to prevent side effects on global variables.
 
-### Memanggil Nilai Non-Fungsi
+### Calling Non-Function Values
 
-Memanggil nilai non-fungsi sebagai fungsi hanya mengembalikan nilainya (tanpa error):
+Calling a non-function value as a function just returns its value (without error):
 
 ```lua
 x = 1
-print(x(0)) // hasil 1
+print(x(0))  // result: 1
 ```
 
-Ini memungkinkan Anda merancang kerangka fungsi sejak awal meski implementasi belum ada.
+This allows you to design function frameworks from the start even if the implementation doesn't exist yet.
 
 ## Arrow Functions
 
-LootiScript mendukung syntax arrow function modern untuk menulis fungsi secara lebih ringkas:
+LootiScript supports modern arrow function syntax for writing functions more concisely:
 
 ```lua
-// Single parameter (tanpa tanda kurung)
+// Single parameter (without parentheses)
 double = x => x * 2
 
 // Multiple parameters
@@ -150,23 +150,23 @@ calculate = (x, y) => {
 }
 ```
 
-Arrow function sangat berguna untuk callback dan operasi list:
+Arrow functions are very useful for callbacks and list operations:
 
 ```lua
 numbers = [1, 2, 3, 4, 5]
 
-// Gunakan dengan map/filter (jika tersedia di API)
+// Use with map/filter (if available in API)
 doubled = numbers.map(x => x * 2)
 
-// Sebagai callback untuk event handler
+// As callback for event handler
 button.onClick = () => print("Clicked!")
 ```
 
-### Perbedaan dengan Function Biasa
+### Differences from Regular Functions
 
-- Syntax lebih ringkas untuk fungsi sederhana
-- Cocok untuk callback dan functional programming
-- Tetap mendukung `local`, `return`, dan semua fitur fungsi normal
+- More concise syntax for simple functions
+- Suitable for callbacks and functional programming
+- Still supports `local`, `return`, and all normal function features
 
 ## Conditions
 
@@ -178,7 +178,7 @@ else
 end
 ```
 
-Gunakan `elsif` untuk cabang tambahan:
+Use `elsif` for additional branches:
 
 ```lua
 if age < 10 then
@@ -192,21 +192,21 @@ else
 end
 ```
 
-Operator perbandingan (==, !=, <, >, <=, >=) dan operator boolean (`and`, `or`, `not`) mengikuti aturan standar dan dijelaskan lebih rinci di bagian **Operators**.
+Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`) and boolean operators (`and`, `or`, `not`) follow standard rules and are explained in more detail in the **Operators** section.
 
 ## Loops
 
 ```lua
-for i = 1 to 10
+for i = 1 to 10 do
   print(i)
 end
 
-for i = 0 to 10 by 2
+for i = 0 to 10 by 2 do
   print(i)
 end
 
 list = [2,3,5]
-for value in list
+for value in list do
   print(value)
 end
 ```
@@ -215,16 +215,16 @@ end
 
 ```lua
 x = 1
-while x * x < 100
+while x * x < 100 do
   print(x * x)
   x += 1
 end
 ```
 
-Gunakan `break` untuk keluar lebih awal, `continue` untuk lompat ke iterasi berikut:
+Use `break` to exit early, `continue` to jump to the next iteration:
 
 ```lua
-while true
+while true do
   x += 1
   if x >= 100 then break end
 end
@@ -232,21 +232,21 @@ end
 
 ## Time & Scheduler Blocks
 
-LootiScript punya konstruksi khusus untuk menjadwalkan kode tanpa repot mengelola timer manual. Fitur ini memudahkan pembuatan animasi, spawn system, dan delayed actions.
+LootiScript has special constructs for scheduling code without the hassle of managing manual timers. This feature makes it easy to create animations, spawn systems, and delayed actions.
 
 ### `after`
 
-Jalankan blok satu kali setelah delay. Mendukung berbagai satuan waktu untuk kemudahan.
+Execute a block once after a delay. Supports various time units for convenience.
 
 ```lua
-// Delay dalam milidetik (default)
+// Delay in milliseconds (default)
 after 1000 do
   spawnEnemy()
 end
 
-// Gunakan satuan waktu yang lebih readable
+// Use more readable time units
 after 2 seconds do
-  showMessage("2 detik telah berlalu")
+  showMessage("2 seconds have passed")
 end
 
 after 5 minutes do
@@ -256,20 +256,20 @@ end
 
 ### `every`
 
-Jalankan blok berulang setiap interval. Cocok untuk spawn system, periodic checks, atau animations.
+Execute a block repeatedly at intervals. Suitable for spawn systems, periodic checks, or animations.
 
 ```lua
-// Spawn enemy setiap 3 detik
+// Spawn enemy every 3 seconds
 every 3 seconds do
   spawnEnemy()
 end
 
-// Update UI setiap 500ms
+// Update UI every 500ms
 every 500 do
   updateHealthBar()
 end
 
-// Periodic save setiap 10 menit
+// Periodic save every 10 minutes
 every 10 minutes do
   autoSave()
 end
@@ -277,7 +277,7 @@ end
 
 ### `sleep`
 
-Menjeda eksekusi di dalam fungsi aktif—berguna untuk coroutine sederhana atau animasi bertahap.
+Pause execution within an active function—useful for simple coroutines or step-by-step animations.
 
 ```lua
 animateSequence = function()
@@ -288,87 +288,89 @@ animateSequence = function()
   character.x = 100
 end
 
-// Cutscene dengan timing
+// Cutscene with timing
 playCutscene = function()
   showDialogue("Hello!")
   sleep 2 seconds
+  
   showDialogue("Welcome to the game")
   sleep 2 seconds
+  
   startGame()
 end
 ```
 
 ### Time Multipliers
 
-Semua scheduler mendukung satuan waktu berikut:
+All schedulers support the following time units:
 
-| Satuan | Nilai (ms) | Contoh |
-|--------|-----------|---------|
+| Unit | Value (ms) | Example |
+|------|-----------|---------|
 | `millisecond(s)` | 1 | `after 500 milliseconds` |
 | `second(s)` | 1000 | `every 2 seconds` |
 | `minute(s)` | 60000 | `after 5 minutes` |
 | `hour(s)` | 3600000 | `every 1 hour` |
 | `day(s)` | 86400000 | `after 1 day` |
 
-Jika tidak ada satuan, nilai dianggap dalam milidetik.
+If no unit is specified, the value is assumed to be in milliseconds.
 
-### Catatan Penting
+### Important Notes
 
-- Semua scheduler terintegrasi dengan runtime loop, aman digunakan bersamaan dengan `update`/`draw`
-- `sleep` hanya bekerja di dalam fungsi yang dipanggil dari runtime
-- Scheduler berjalan di background thread terpisah untuk menghindari blocking
+- All schedulers are integrated with the runtime loop, safe to use alongside `update`/`draw`
+- `sleep` only works inside functions called from the runtime
+- Schedulers run in a separate background thread to avoid blocking
 
 ## Operators
 
 ### Comparison Operators
 
-| Operator | Makna                                  |
-| -------- | -------------------------------------- |
-| `==`     | Sama dengan                            |
-| `!=`     | Tidak sama                             |
-| `<`      | Kurang dari                            |
-| `>`      | Lebih dari                             |
-| `<=`     | Kurang dari atau sama dengan           |
-| `>=`     | Lebih dari atau sama dengan            |
+| Operator | Meaning |
+|----------|---------|
+| `==` | Equal to |
+| `!=` | Not equal |
+| `<` | Less than |
+| `>` | Greater than |
+| `<=` | Less than or equal to |
+| `>=` | Greater than or equal to |
 
 ### Boolean Operators
 
-- `and`: true hanya jika kedua operand true
-- `or`: true jika salah satu operand true
-- `not`: membalik nilai kebenaran
+- `and`: true only if both operands are true
+- `or`: true if either operand is true
+- `not`: inverts truth value
 
-LootiScript tidak memiliki tipe boolean khusus; `0` bernilai false dan nilai lain bernilai true. Tersedia konstanta `true` (1) dan `false` (0).
+LootiScript doesn't have a special boolean type; `0` is false and other values are true. Constants `true` (1) and `false` (0) are available.
 
 ### Arithmetic Operators
 
-| Operator | Makna                                         |
-| -------- | --------------------------------------------- |
-| `+`      | Penjumlahan                                   |
-| `-`      | Pengurangan                                   |
-| `*`      | Perkalian                                     |
-| `/`      | Pembagian                                     |
-| `%`      | Modulo (sisa bagi)                            |
-| `^`      | Pangkat (`x ^ y` setara dengan `pow(x, y)`)   |
+| Operator | Meaning |
+|----------|---------|
+| `+` | Addition |
+| `-` | Subtraction |
+| `*` | Multiplication |
+| `/` | Division |
+| `%` | Modulo (remainder) |
+| `^` | Power (`x ^ y` is equivalent to `pow(x, y)`) |
 
 ## Built-ins
 
 ### Math & Constants
 
 - `max`, `min`, `round`, `floor`, `ceil`, `abs`, `sqrt`, `pow`, `log`, `exp`, `PI`
-- Trigonometri radian: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`
-- Trigonometri derajat: `sind`, `cosd`, `tand`, `asind`, `acosd`, `atand`, `atan2d`
+- Radian trigonometry: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`
+- Degree trigonometry: `sind`, `cosd`, `tand`, `asind`, `acosd`, `atand`, `atan2d`
 
 ### Random
 
 ```lua
 random.seed(42)
 random.next()     // 0..1
-random.nextInt(6) // 0..5
+random.nextInt(6)  // 0..5
 ```
 
 ### String Operations
 
-- `a + b` gabungkan string
+- `a + b` concatenate strings
 - `str.length`
 - `str.substring(i1, i2)`
 - `str.startsWith(s)`, `str.endsWith(s)`
@@ -381,7 +383,7 @@ random.nextInt(6) // 0..5
 
 - `list.length`
 - `list.push(value)`
-- `list.insert(value)` (di awal)
+- `list.insert(value)` (at beginning)
 - `list.insertAt(value, index)`
 - `list.indexOf(value)`
 - `list.contains(value)`
@@ -399,25 +401,25 @@ end
 points.sortList(compare)
 ```
 
-Jika tanpa fungsi pembanding, list disortir alfabetis.
+If no comparison function is provided, the list is sorted alphabetically.
 
-## Komentar
+## Comments
 
-Gunakan `//` hingga akhir baris:
+Use `//` until the end of the line:
 
 ```lua
 update = function()
-  // hitung delta waktu
+  // calculate delta time
 end
 ```
 
 ## Classes
 
-Class adalah cetak biru (blueprint) untuk membuat objek di LootiScript. Sebuah class dapat menyimpan properti default serta fungsi yang akan dibawa oleh setiap instance. Gunakan class saat Anda ingin banyak objek berbagi perilaku dasar (musuh, proyektil, NPC, dsb.).
+Classes are blueprints for creating objects in LootiScript. A class can store default properties and functions that will be carried by each instance. Use classes when you want many objects to share basic behavior (enemies, projectiles, NPCs, etc.).
 
 ### Define a Class
 
-Contoh `Enemy` yang menyimpan posisi, HP, dan kecepatan lalu menyediakan fungsi `move` dan `hit`:
+Example `Enemy` that stores position, HP, and speed, then provides `move` and `hit` functions:
 
 ```lua
 Enemy = class
@@ -438,8 +440,8 @@ Enemy = class
 end
 ```
 
-- `constructor` dipanggil otomatis saat instance baru dibuat.
-- Gunakan `this` untuk mengakses properti milik objek yang sedang berjalan.
+- `constructor` is called automatically when a new instance is created.
+- Use `this` to access properties belonging to the currently running object.
 
 ### Create Instances
 
@@ -453,11 +455,11 @@ enemy1.move()
 enemy2.move()
 ```
 
-Operator `new` membuat instance baru berdasarkan class yang dituju. Setiap instance membawa properti/fungsi default dari class, tapi Anda tetap bisa mengubah nilainya secara individual (`enemy2.velocity = 2`).
+The `new` operator creates a new instance based on the target class. Each instance carries default properties/functions from the class, but you can still change their values individually (`enemy2.velocity = 2`).
 
 ### Inheritance
 
-Gunakan `extends` untuk membuat variasi class sambil mewarisi perilaku default.
+Use `extends` to create class variations while inheriting default behavior.
 
 ```lua
 Boss = class extends Enemy
@@ -475,129 +477,129 @@ end
 finalBoss = new Boss(120)
 ```
 
-- `super()` memanggil fungsi dengan nama sama pada class induk. Di constructor, ini memastikan properti dasar tetap terinisialisasi.
-- Override perilaku dengan menulis ulang fungsi (mis. `move`). Panggil `super()` bila Anda ingin mempertahankan perilaku lama lalu menambahkan logika baru.
+- `super()` calls the function with the same name in the parent class. In the constructor, this ensures basic properties remain initialized.
+- Override behavior by rewriting the function (e.g., `move`). Call `super()` if you want to keep the old behavior and add new logic.
 
-### Catatan Cepat
+### Quick Notes
 
-- Fungsi yang dipanggil lewat instance (`enemy1.move()`) otomatis menggunakan properti instance tersebut—tidak perlu menulis `this` jika mengakses variabel yang sudah diberi nama sama.
-- Anda bebas menambah properti baru setelah instance dibuat (mis. `enemy1.state = "idle"`), sama seperti objek biasa.
+- Functions called via instances (`enemy1.move()`) automatically use that instance's properties—you don't need to write `this` if accessing a variable with the same name.
+- You're free to add new properties after an instance is created (e.g., `enemy1.state = "idle"`), just like regular objects.
 
 ## Performance & Optimizations
 
-LootiScript dirancang dengan performa sebagai prioritas utama. Berikut adalah optimisasi yang berjalan di balik layar:
+LootiScript is designed with performance as a top priority. Here are optimizations running behind the scenes:
 
 ### Bytecode Compilation
 
-**LootiScript dikompilasi ke bytecode** sebelum dieksekusi:
+**LootiScript is compiled to bytecode** before execution:
 
-1. **Parser** mengubah kode menjadi Abstract Syntax Tree (AST)
-2. **Compiler** mengubah AST menjadi bytecode dengan optimisasi
-3. **VM Processor** mengeksekusi bytecode dengan performa tinggi
+1. **Parser** converts code into Abstract Syntax Tree (AST)
+2. **Compiler** converts AST into bytecode with optimizations
+3. **VM Processor** executes bytecode with high performance
 
-Proses ini memberikan performa yang sangat baik untuk game dan aplikasi interaktif.
+This process provides excellent performance for games and interactive applications.
 
 ### Inline Cache
 
-Property access dioptimisasi menggunakan **inline cache** yang meng-cache object shapes:
+Property access is optimized using **inline cache** that caches object shapes:
 
 ```lua
-// Akses pertama: cache object shape
+// First access: cache object shape
 player.x = 10  // O(n) hash lookup
 
-// Akses berikutnya: gunakan cached shape
+// Subsequent accesses: use cached shape
 player.x = 20  // O(1) direct access
 player.y = 30  // O(1) direct access
 ```
 
-Cache memiliki 3 state:
+Cache has 3 states:
 
-- **Monomorphic**: Single object shape (tercepat, O(1))
-- **Polymorphic**: 2-4 object shapes berbeda (cepat)
-- **Megamorphic**: Banyak shapes (fallback ke hash lookup)
+- **Monomorphic**: Single object shape (fastest, O(1))
+- **Polymorphic**: 2-4 different object shapes (fast)
+- **Megamorphic**: Many shapes (fallback to hash lookup)
 
 ### Compiler Optimizations
 
-Compiler melakukan beberapa optimisasi otomatis:
+The compiler performs several automatic optimizations:
 
 **1. Peephole Optimization (Opcode Fusion)**
 
 ```lua
-// Kode Anda:
+// Your code:
 x = getValue()
 x()
 
-// Compiler menggabungkan opcode:
-// LOAD_VARIABLE + FUNCTION_CALL → LOAD_VAR_CALL (lebih cepat)
+// Compiler combines opcodes:
+// LOAD_VARIABLE + FUNCTION_CALL → LOAD_VAR_CALL (faster)
 ```
 
 **2. Constant Folding**
 
 ```lua
-// Kode Anda:
+// Your code:
 x = 2 + 3 * 4
 
-// Compiler menghitung di compile-time:
-x = 14  // Tidak ada operasi runtime
+// Compiler calculates at compile-time:
+x = 14  // No runtime operation
 ```
 
 **3. Dead Code Elimination**
 
 ```lua
-// Kode Anda:
+// Your code:
 if false then
-  expensiveOperation()  // Tidak akan pernah dieksekusi
+  expensiveOperation()  // Will never execute
 end
 
-// Compiler menghapus kode yang tidak akan pernah dijalankan
+// Compiler removes code that will never run
 ```
 
 ### Object Pooling
 
-Runtime menggunakan **object pooling** untuk mengurangi garbage collection:
+The runtime uses **object pooling** to reduce garbage collection:
 
-- Array dan object sederhana di-recycle
-- Mengurangi allocation overhead
-- Performa lebih stabil, terutama di game loop
+- Arrays and simple objects are recycled
+- Reduces allocation overhead
+- More stable performance, especially in game loops
 
-### Best Practices untuk Performa
+### Best Practices for Performance
 
-1. **Gunakan local variables** untuk variabel yang sering diakses:
+1. **Use local variables** for frequently accessed variables:
 
 ```lua
 update = function()
-  local px = player.x  // Cache ke local
+  local px = player.x  // Cache to local
   local py = player.y
   
-  // Gunakan local variables
+  // Use local variables
   if px > 100 and py > 100 then
     // ...
   end
 end
 ```
 
-2. **Hindari property access berulang** dalam loop:
+2. **Avoid repeated property access** in loops:
 
 ```lua
-// ❌ Buruk
-for i = 0 to 100
+// ❌ Bad
+for i = 0 to 100 do
   doSomething(player.position.x, player.position.y)
 end
 
-// ✅ Baik
+// ✅ Good
 local pos = player.position
-for i = 0 to 100
+for i = 0 to 100 do
   doSomething(pos.x, pos.y)
 end
 ```
 
-3. **Gunakan arrow functions** untuk callback sederhana:
+3. **Use arrow functions** for simple callbacks:
 
 ```lua
-// Lebih efisien untuk fungsi kecil
+// More efficient for small functions
 enemies.forEach(e => e.update())
 ```
 
-## Ringkasan
+## Summary
 
-LootiScript mempertahankan kesederhanaan bahasa scripting minimalis sambil membawa identitas yang selaras dengan ekosistem L8B. Bahasa ini memudahkan Anda menulis gameplay loop, integrasi Web3, dan logika interaktif tanpa perlu berurusan dengan error runtime yang kompleks. Mulailah dari ide sederhana, pecah menjadi fungsi-fungsi kecil, dan kembangkan game atau mini-app Anda secara iteratif. Selamat berkarya!
+LootiScript maintains the simplicity of a minimalist scripting language while bringing an identity aligned with the L8B ecosystem. This language makes it easy to write gameplay loops, Web3 integration, and interactive logic without dealing with complex runtime errors. Start from a simple idea, break it into small functions, and develop your game or mini-app iteratively. Happy coding!

@@ -1,30 +1,39 @@
 # Quick Start
 
-Panduan ini akan membantu Anda memulai project game pertama Anda dengan L8B. Untuk gambaran umum tentang L8B, lihat [Apa itu L8B?](/).
+This guide will help you get started with your first L8B game project. For an overview of L8B, see [What is L8B?](/).
 
-## Setup Project
+## Project Setup
 
-### Instalasi
+### Installation
 
-Install L8B CLI sebagai dev dependency:
+Install L8B CLI as a dev dependency:
 
 ```bash
 npm install @l8b/cli --save-dev
 ```
 
-**Catatan:** Runtime tidak perlu di-install secara terpisah. CLI akan otomatis menggunakan runtime dari workspace (jika menggunakan monorepo) atau akan di-bundle saat build.
+**Note:** The runtime doesn't need to be installed separately. The CLI will automatically use the runtime from the workspace (if using a monorepo) or bundle it during build.
 
-### Struktur Project
+Alternatively, use npx:
 
-L8B menggunakan struktur project yang standar:
+```bash
+npx @l8b/cli init my-game
+cd my-game
+npm install
+npx @l8b/cli dev
+```
+
+### Project Structure
+
+L8B uses a standard project structure:
 
 ```text
 my-game/
-├── scripts/              # File LootiScript (.loot)
+├── src/                   # LootiScript files (.loot)
 │   └── main.loot         # Main game code
-├── public/               # Static assets
+├── public/                # Static assets
 │   ├── sprites/          # Sprite images (.png, .jpg, .webp)
-│   ├── maps/             # Map files (.json, .tmj)
+│   ├── maps/             # Map files (.json)
 │   ├── sounds/           # Sound effects (.mp3, .wav, .ogg)
 │   ├── music/            # Music files (.mp3, .wav, .ogg)
 │   └── fonts/            # Font files (.ttf)
@@ -33,19 +42,21 @@ my-game/
 └── .l8b/                 # Build output (generated)
 ```
 
-**Catatan:** File `.loot` juga bisa ditempatkan di `src/l8b/ls/` sebagai alternatif.
+**Note:** All `.loot` files in the `src/` directory are automatically compiled and loaded.
 
 ### Configuration
 
-File `l8b.config.json` di root project digunakan untuk mengatur metadata dan behavior:
+The `l8b.config.json` file in the project root is used to configure metadata and behavior:
 
 ```json
 {
   "name": "my-game",
   "orientation": "any",
   "aspect": "free",
+  "width": 1920,
+  "height": 1080,
   "dev": {
-    "port": 5173,
+    "port": 3000,
     "host": "localhost"
   },
   "logging": {
@@ -57,16 +68,17 @@ File `l8b.config.json` di root project digunakan untuk mengatur metadata dan beh
 
 **Options:**
 
-- `name`: Nama project (identifier)
-- `orientation`: Orientasi layar (`any`, `portrait`, `landscape`)
-- `aspect`: Rasio aspek layar (`free`, `16:9`, `4:3`, dll)
-- `dev.port`: Port untuk development server (default: 5173)
-- `dev.host`: Host untuk development server (default: "localhost")
-- `logging`: Konfigurasi output debug di browser dan terminal
+- `name`: Project name (identifier)
+- `orientation`: Screen orientation (`any`, `portrait`, `landscape`)
+- `aspect`: Aspect ratio (`free`, `16x9`, `4x3`, `1x1`, `2x1`, or with `>` prefix for minimum)
+- `width` / `height`: Canvas dimensions (auto-calculated from aspect if not specified)
+- `dev.port`: Port for development server (default: 3000)
+- `dev.host`: Host for development server (default: "localhost", use `"0.0.0.0"` to expose)
+- `logging`: Configuration for debug output in browser and terminal
 
 ### Package.json
 
-Tambahkan scripts untuk development dan build di `package.json`:
+Add scripts for development and build in `package.json`:
 
 ```json
 {
@@ -83,13 +95,13 @@ Tambahkan scripts untuk development dan build di `package.json`:
 }
 ```
 
-**Catatan:** Untuk workspace/monorepo, gunakan `workspace:*`. Untuk npm registry, gunakan versi yang sesuai seperti `"@l8b/cli": "^0.0.1"`.
+**Note:** For workspace/monorepo, use `workspace:*`. For npm registry, use the appropriate version like `"@l8b/cli": "^0.0.1"`.
 
 **Commands:**
 
-- `npm run dev` atau `l8b dev`: Menjalankan development server dengan HMR (Hot Module Replacement)
-- `npm run build` atau `l8b build`: Build project untuk production (output ke `.l8b/`)
-- `npm run start` atau `l8b start`: Preview hasil build production
+- `npm run dev` or `l8b dev`: Run development server with HMR (Hot Module Replacement)
+- `npm run build` or `l8b build`: Build project for production (output to `.l8b/`)
+- `npm run start` or `l8b start`: Preview production build
 
 **Development Server Options:**
 
@@ -99,28 +111,28 @@ l8b dev --port 3000         # Custom port
 l8b dev --host 0.0.0.0      # Expose to network
 ```
 
-### Integrasi dengan Code Editor
+### Code Editor Integration
 
 #### VSCode
 
-Untuk pengalaman development yang optimal, install **LootiScript extension** untuk VSCode:
+For optimal development experience, install the **LootiScript extension** for VSCode:
 
-1. Buka VSCode
-2. Tekan `Ctrl+Shift+X` (atau `Cmd+Shift+X` di Mac) untuk membuka Extensions
-3. Cari "LootiScript"
-4. Klik **Install**
+1. Open VSCode
+2. Press `Ctrl+Shift+X` (or `Cmd+Shift+X` on Mac) to open Extensions
+3. Search for "LootiScript"
+4. Click **Install**
 
-**Fitur extension:**
+**Extension Features:**
 
-- ✅ Syntax highlighting untuk file `.loot`
-- ✅ Code completion dan IntelliSense
-- ✅ Error detection dan diagnostics
-- ✅ Code snippets untuk pattern umum
+- ✅ Syntax highlighting for `.loot` files
+- ✅ Code completion and IntelliSense
+- ✅ Error detection and diagnostics
+- ✅ Code snippets for common patterns
 - ✅ Formatting support
 
 ## First Program
 
-Buat file `scripts/main.loot` dan mulai dengan program sederhana:
+Create a file `src/main.loot` and start with a simple program:
 
 ```lua
 init = function()
@@ -129,25 +141,25 @@ init = function()
 end
 
 update = function()
-  if keyboard.LEFT then x -= 1 end
-  if keyboard.RIGHT then x += 1 end
-  if keyboard.UP then y += 1 end
-  if keyboard.DOWN then y -= 1 end
+  if keyboard.LEFT == 1 then x -= 1 end
+  if keyboard.RIGHT == 1 then x += 1 end
+  if keyboard.UP == 1 then y += 1 end
+  if keyboard.DOWN == 1 then y -= 1 end
 end
 
 draw = function()
-  screen.fillRect(0, 0, screen.width, screen.height, "#000")
-  screen.drawSprite("player", x, y, 32, 32)
+  screen.clear("#000")
+  screen.fillRect(x, y, 32, 32, "#FFF")
 end
 ```
 
 ## Lifecycle Functions
 
-l8b menggunakan 3 fungsi utama untuk game loop:
+L8B uses 3 main functions for the game loop:
 
 ### `init()`
 
-Dipanggil **sekali** saat program dimulai. Gunakan untuk inisialisasi variabel dan state awal.
+Called **once** when the program starts. Use for initializing variables and initial state.
 
 ```lua
 init = function()
@@ -161,21 +173,21 @@ end
 
 ### `update()`
 
-Dipanggil **60 kali per detik**. Tempat terbaik untuk:
+Called **60 times per second**. Best place for:
 
-- Game logic dan physics
-- Movement dan collision detection
+- Game logic and physics
+- Movement and collision detection
 - Input handling (keyboard, mouse, gamepad)
 - State changes
 
 ```lua
 update = function()
   // Update player position
-  if keyboard.UP then player_y += 1 end
-  if keyboard.DOWN then player_y -= 1 end
+  if keyboard.UP == 1 then player_y -= 2 end
+  if keyboard.DOWN == 1 then player_y += 2 end
   
   // Update enemies
-  for enemy in enemies
+  for enemy in enemies do
     enemy.update()
   end
   
@@ -186,44 +198,45 @@ end
 
 ### `draw()`
 
-Dipanggil **setiap frame** (biasanya 60 FPS, tapi bisa berbeda tergantung device). Gunakan untuk rendering:
+Called **every frame** (usually 60 FPS, but may vary by device). Use for rendering:
 
 ```lua
 draw = function()
   // Clear screen
-  screen.fillRect(0, 0, screen.width, screen.height, "#000")
+  screen.clear("#000")
   
   // Draw player
-  screen.drawSprite("player", player_x, player_y, 32, 32)
+  screen.fillRect(player_x, player_y, 32, 32, "#FFF")
   
   // Draw enemies
-  for enemy in enemies
-    screen.drawSprite("enemy", enemy.x, enemy.y, 32, 32)
+  for enemy in enemies do
+    screen.fillRect(enemy.x, enemy.y, 32, 32, "#F00")
   end
   
   // Draw UI
-  screen.drawText("Score: " + score, -screen.width/2 + 10, screen.height/2 - 20, 16, "#FFF")
+  screen.setColor("#FFF")
+  screen.drawText("Score: " + score, 10, 10, 16)
 end
 ```
 
-**Penting:** `update()` selalu dipanggil 60x/detik, sedangkan `draw()` dipanggil sesuai refresh rate device.
+**Important:** `update()` is always called 60x/second, while `draw()` is called according to the device's refresh rate.
 
 ### Execution Order
 
-Urutan eksekusi dalam satu frame:
+Execution order within one frame:
 
-1. **Input Update** - Input devices (keyboard, mouse, touch, gamepad) diupdate
-2. **Scene Update** - Jika ada scene aktif, `scene.update()` dipanggil, jika tidak `update()` global dipanggil
-3. **Scene Draw** - Jika ada scene aktif, `scene.draw()` dipanggil, jika tidak `draw()` global dipanggil
+1. **Input Update** - Input devices (keyboard, mouse, touch, gamepad) are updated
+2. **Scene Update** - If there's an active scene, `scene.update()` is called, otherwise global `update()` is called
+3. **Scene Draw** - If there's an active scene, `scene.draw()` is called, otherwise global `draw()` is called
 
 ```lua
 // Execution flow per frame:
 // 1. Input update
-// 2. update() atau scene.update()
-// 3. draw() atau scene.draw()
+// 2. update() or scene.update()
+// 3. draw() or scene.draw()
 ```
 
-**Catatan:** Jika menggunakan Scene Management, lifecycle scene (`init`, `onEnter`, `onLeave`, `update`, `draw`) akan dipanggil sesuai dengan scene yang aktif.
+**Note:** If using Scene Management, scene lifecycle methods (`init`, `onEnter`, `onLeave`, `update`, `draw`) will be called according to the active scene.
 
 ## Input Handling
 
@@ -231,12 +244,12 @@ Urutan eksekusi dalam satu frame:
 
 ```lua
 update = function()
-  if keyboard.LEFT then x -= 2 end
-  if keyboard.RIGHT then x += 2 end
-  if keyboard.UP then y += 2 end
-  if keyboard.DOWN then y -= 2 end
+  if keyboard.LEFT == 1 then x -= 2 end
+  if keyboard.RIGHT == 1 then x += 2 end
+  if keyboard.UP == 1 then y += 2 end
+  if keyboard.DOWN == 1 then y -= 2 end
   
-  if keyboard.SPACE then shoot() end
+  if keyboard.SPACE == 1 then shoot() end
 end
 ```
 
@@ -249,7 +262,7 @@ update = function()
   player_y = mouse.y
   
   // Mouse click
-  if mouse.press then
+  if mouse.press == 1 then
     shoot(mouse.x, mouse.y)
   end
 end
@@ -259,7 +272,7 @@ end
 
 ```lua
 update = function()
-  if touch.touching then
+  if touch.touching == 1 then
     player_x = touch.x
     player_y = touch.y
   end
@@ -268,7 +281,7 @@ end
 
 ## Scheduler Blocks
 
-l8b menyediakan fitur scheduler yang powerful untuk time-based operations:
+L8B provides powerful scheduler features for time-based operations:
 
 ### `after` - Delayed Execution
 
@@ -315,9 +328,11 @@ end
 
 ### Load Sprite
 
+Sprites are automatically loaded from `public/sprites/` directory. Access them by name:
+
 ```lua
 init = function()
-  // Sprites loaded automatically from assets/sprites/
+  // Sprites loaded automatically from public/sprites/
   player_sprite = sprites.player
 end
 ```
@@ -328,15 +343,12 @@ end
 draw = function()
   // drawSprite(name, x, y, width, height)
   screen.drawSprite("player", x, y, 32, 32)
-  
-  // With rotation
-  screen.drawSprite("player", x, y, 32, 32, rotation)
 end
 ```
 
 ## Classes & Objects
 
-Gunakan classes untuk mengorganisir code:
+Use classes to organize code:
 
 ```lua
 Enemy = class
@@ -376,7 +388,7 @@ end
 
 ## Arrow Functions
 
-Gunakan arrow functions untuk code yang lebih ringkas:
+Use arrow functions for more concise code:
 
 ```lua
 // Traditional function
@@ -396,7 +408,7 @@ bullets.forEach((b, i) => {
 
 ### Print to Console
 
-Fungsi `print()` mengirim output ke browser console dan terminal:
+The `print()` function sends output to both browser console and terminal:
 
 ```lua
 update = function()
@@ -410,19 +422,19 @@ end
 
 **Output:**
 
-- Browser: Lihat di Developer Tools Console (F12)
-- Terminal: Output muncul di terminal tempat dev server berjalan
+- Browser: View in Developer Tools Console (F12)
+- Terminal: Output appears in the terminal where the dev server is running
 
 ### Interactive Console
 
-L8B menyediakan interactive console untuk debugging saat development. Anda bisa:
+L8B provides an interactive console for debugging during development. You can:
 
-1. **Inspect Variables** - Ketik nama variable untuk melihat nilainya
-2. **Execute Commands** - Jalankan kode LootiScript langsung dari console
-3. **Call Functions** - Panggil fungsi yang sudah didefinisikan
+1. **Inspect Variables** - Type variable name to see its value
+2. **Execute Commands** - Run LootiScript code directly from console
+3. **Call Functions** - Call functions that have been defined
 
 ```lua
-// Di browser console atau terminal:
+// In browser console or terminal:
 > player_x
 150
 
@@ -445,13 +457,13 @@ L8B menyediakan interactive console untuk debugging saat development. Anda bisa:
 
 ### Error Handling & Stack Trace
 
-Ketika terjadi error, L8B akan menampilkan stack trace yang detail:
+When an error occurs, L8B displays a detailed stack trace:
 
 ```lua
-// Contoh error
+// Example error
 update = function()
   local enemy = enemies[0]
-  enemy.hp -= damage  // Error jika enemies kosong!
+  enemy.hp -= damage  // Error if enemies is empty!
 end
 ```
 
@@ -468,7 +480,7 @@ Stack trace:
 
 ### Debugging Tips
 
-#### 1. Gunakan print() untuk tracing
+#### 1. Use print() for tracing
 
 ```lua
 update = function()
@@ -481,7 +493,7 @@ end
 #### 2. Check variable values
 
 ```lua
-// Di console, ketik:
+// In console, type:
 > player_x
 > enemies
 > GameState.current
@@ -490,7 +502,7 @@ end
 #### 3. Test functions
 
 ```lua
-// Di console, panggil fungsi:
+// In console, call function:
 > calculateDistance(0, 0, 10, 10)
 > spawnEnemy(100, 100)
 ```
@@ -498,7 +510,7 @@ end
 #### 4. Inspect objects
 
 ```lua
-// Di console:
+// In console:
 > player
 { x: 0, y: 0, hp: 100, speed: 2 }
 
@@ -538,8 +550,8 @@ Player = class
   end
   
   handleInput = function()
-    if keyboard.LEFT then this.x -= 2 end
-    if keyboard.RIGHT then this.x += 2 end
+    if keyboard.LEFT == 1 then this.x -= 2 end
+    if keyboard.RIGHT == 1 then this.x += 2 end
   end
 end
 ```
@@ -593,10 +605,10 @@ end
 
 ## Next Steps
 
-Sekarang Anda sudah memahami dasar-dasar l8b! Selanjutnya:
+Now you understand the basics of L8B! Next:
 
-1. **Explore LootiScript** - Pelajari lebih dalam tentang bahasa LootiScript di [LootiScript Programming](/fundamentals/looti-script-programming)
-2. **API Reference** - Lihat semua API yang tersedia di [API Reference](/fundamentals/api-reference)
-3. **Cheatsheet** - Gunakan [LootiScript Cheatsheet](/quick-reference/lootiscript-cheatsheet) sebagai quick reference
+1. **Explore LootiScript** - Learn more about the LootiScript language in [LootiScript Programming](/fundamentals/looti-script-programming)
+2. **API Reference** - See all available APIs in [API Reference](/fundamentals/api-reference)
+3. **Cheatsheet** - Use [LootiScript Cheatsheet](/quick-reference/lootiscript-cheatsheet) as a quick reference
 
-Selamat membuat game! 🎮
+Happy game making! 🎮
