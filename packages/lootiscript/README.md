@@ -247,10 +247,10 @@ items[1] = 15
 local count = #items     // 5
 
 // Add element
-table.insert(items, 60)
+List.push(items, 60)
 
 // Remove element
-table.remove(items, 1)   // Removes first element
+List.remove(items, 1)   // Removes element at index 1
 ```
 
 ### String Operations
@@ -344,18 +344,16 @@ end)
 ### Random
 
 ```lua
-// Random number generator
-local rng = Random()
-
 // Random integer
-local dice = rng.int(1, 6)  // 1 to 6
+local dice = random.nextInt(6) + 1  // 1 to 6
 
 // Random float
-local chance = rng.float()  // 0.0 to 1.0
+local chance = random.next()  // 0.0 to 1.0
 
 // Random from array
 local items = {"sword", "shield", "potion"}
-local item = rng.choice(items)
+local index = random.nextInt(#items) + 1
+local item = items[index]
 ```
 
 ### Console
