@@ -13,6 +13,7 @@ import { loadConfig } from "../config";
 import { detectResources } from "../loader/auto-detect";
 import { loadSources } from "../loader/source-loader";
 import { generateHTML } from "../generator/html-generator";
+import { generateFarcasterManifestJSON } from "../generator/farcaster-manifest";
 import { compileSources, saveCompiled } from "../build";
 import { bundleRuntime } from "../bundler/runtime-bundler";
 import {
@@ -185,9 +186,30 @@ export async function build(
 		console.warn(pc.gray("  (Font may still work if cached)"));
 	}
 
+	// Generate Farcaster manifest if configured
+	if (config.farcaster?.manifest) {
+		console.log(pc.gray("  Generating Farcaster manifest..."));
+		const manifestJson = generateFarcasterManifestJSON(config);
+		if (manifestJson) {
+			const manifestDir = path.join(distDir, ".well-known");
+			await fs.ensureDir(manifestDir);
+			await fs.writeFile(
+				path.join(manifestDir, "farcaster.json"),
+				manifestJson,
+			);
+			console.log(pc.green("  ✓ Generated /.well-known/farcaster.json"));
+		}
+	}
+
 	// Generate HTML for production (using pre-compiled routines)
 	console.log(pc.gray("  Generating HTML..."));
-	const html = generateHTML(config, {}, resources, compileResult.compiled);
+	const html = generateHTML(
+		config,
+		{},
+		resources,
+		compileResult.compiled,
+		"/", // routePath for root
+	);
 
 	// Write index.html
 	await fs.writeFile(path.join(distDir, DEFAULT_FILES.INDEX_HTML), html);

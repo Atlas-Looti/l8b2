@@ -10,6 +10,7 @@ import { getCanvasSize } from "../config";
 import { INTERNAL_ENDPOINTS } from "../utils/constants";
 import type { Resources } from "@l8b/runtime";
 import type { CompiledModule } from "../build";
+import { generateFarcasterEmbedTag } from "./farcaster-embed";
 
 /**
  * Generate variable name from module name (sanitized for JavaScript)
@@ -316,6 +317,7 @@ import { Runtime } from '@l8b/runtime';`
  * @param sources - Map of module names to source file paths (for development)
  * @param resources - Detected resources (images, maps, sounds, music)
  * @param compiledModules - Pre-compiled modules (for production)
+ * @param routePath - Current route path for generating per-route embeds (default: "/")
  * @returns Complete HTML string
  */
 export function generateHTML(
@@ -323,6 +325,7 @@ export function generateHTML(
 	sources: Record<string, string>,
 	resources: Resources,
 	compiledModules?: CompiledModule[],
+	routePath: string = "/",
 ): string {
 	const canvasId = config.canvas?.id || "game";
 
@@ -386,13 +389,16 @@ export function generateHTML(
 		compiledRoutinesMap,
 	);
 
+	// Generate Farcaster embed meta tag for this route
+	const embedTag = generateFarcasterEmbedTag(config, routePath);
+
 	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapedName}</title>
-    <style>${styles}</style>
+${embedTag ? embedTag + "\n" : ""}    <style>${styles}</style>
   </head>
   <body>
     <canvas id="${canvasId}"></canvas>

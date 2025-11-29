@@ -15,6 +15,7 @@ import { loadConfig } from "../config";
 import { detectResources } from "../loader/auto-detect";
 import { loadSources } from "../loader/source-loader";
 import { generateHTML } from "../generator/html-generator";
+import { generateFarcasterManifestJSON } from "../generator/farcaster-manifest";
 import { lootiScriptPlugin } from "../plugin/vite-plugin-lootiscript";
 import {
 	getCliPackageRoot,
@@ -97,6 +98,30 @@ export async function dev(
 								return;
 							}
 
+							// Serve Farcaster manifest at /.well-known/farcaster.json
+							if (req.url === "/.well-known/farcaster.json") {
+								try {
+									const manifestJson = generateFarcasterManifestJSON(config);
+									if (manifestJson) {
+										res.statusCode = 200;
+										res.setHeader("Content-Type", "application/json");
+										res.setHeader("Cache-Control", "public, max-age=3600");
+										res.end(manifestJson);
+										return;
+									} else {
+										// No manifest configured - return 404
+										res.statusCode = 404;
+										res.end("Not Found");
+										return;
+									}
+								} catch (error) {
+									console.error("Error generating manifest:", error);
+									res.statusCode = 500;
+									res.end("Error generating manifest: " + String(error));
+									return;
+								}
+							}
+
 							// Serve BitCell font from CLI package
 							const fontUrl = `/fonts/${DEFAULT_FILES.BITCELL_FONT}`;
 							if (
@@ -129,11 +154,18 @@ export async function dev(
 								}
 							}
 
-							// Only handle root/index.html requests
-							if (
-								req.url === "/" ||
-								req.url === `/${DEFAULT_FILES.INDEX_HTML}`
-							) {
+							// Handle all HTML requests (for per-route embeds)
+							// Extract route path from URL
+							const url = req.url || "/";
+							const routePath = url.split("?")[0]; // Remove query params
+							
+							// Only handle root/index.html or paths that don't have file extensions
+							const isHtmlRequest =
+								url === "/" ||
+								url === `/${DEFAULT_FILES.INDEX_HTML}` ||
+								(!path.extname(routePath) && !url.startsWith("/compiled/") && !url.startsWith("/runtime.js"));
+
+							if (isHtmlRequest) {
 								try {
 									// Load sources and resources
 									const [currentSources, currentResources] = await Promise.all([
@@ -145,6 +177,8 @@ export async function dev(
 										config,
 										currentSources,
 										currentResources,
+										undefined, // compiledModules (dev mode)
+										routePath, // routePath for per-route embeds
 									);
 
 									res.statusCode = 200;
