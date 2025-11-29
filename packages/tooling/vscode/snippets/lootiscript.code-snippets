@@ -88,7 +88,7 @@
 	"Input Check": {
 		"prefix": "input",
 		"body": [
-			"if input.keyboard.pressed(\"${1:key}\") then",
+			"if keyboard.${1:SPACE} == 1 then",
 			"\t${2:// handle input}",
 			"end"
 		],
@@ -265,5 +265,119 @@
 			"end"
 		],
 		"description": "For loop with range and step"
+	},
+	"HTTP GET Request": {
+		"prefix": "httpget",
+		"body": [
+			"local response = await http.get(\"${1:url}\")",
+			"if response.ok() == 1 then",
+			"\tlocal data = response.json()",
+			"\t${2:// handle data}",
+			"else",
+			"\tprint(\"Error: \" .. response.status)",
+			"end"
+		],
+		"description": "Make HTTP GET request"
+	},
+	"HTTP POST Request": {
+		"prefix": "httppost",
+		"body": [
+			"local response = await http.post(\"${1:url}\", {",
+			"\t${2:key} = ${3:value}",
+			"})",
+			"if response.ok() == 1 then",
+			"\tlocal result = response.json()",
+			"\t${4:// handle result}",
+			"end"
+		],
+		"description": "Make HTTP POST request"
+	},
+	"Actions Ready": {
+		"prefix": "actionsready",
+		"body": ["await actions.ready(${1:false})"],
+		"description": "Hide splash screen and display app"
+	},
+	"Actions Sign In": {
+		"prefix": "actionssignin",
+		"body": [
+			"local result = await actions.signIn({",
+			"\tnonce = \"${1:nonce}\",",
+			"\tacceptAuthAddress = ${2:true}",
+			"})",
+			"${3:// result.signature, result.message}"
+		],
+		"description": "Sign in with Farcaster credential"
+	},
+	"Actions Compose Cast": {
+		"prefix": "actionscast",
+		"body": [
+			"await actions.composeCast({",
+			"\ttext = \"${1:text}\",",
+			"\tembeds = {\"${2:url}\"}",
+			"})"
+		],
+		"description": "Open cast composer"
+	},
+	"Wallet Connect": {
+		"prefix": "walletconnect",
+		"body": [
+			"await wallet.connect()",
+			"if wallet.isConnected() then",
+			"\tlocal address = await wallet.getAddress()",
+			"\t${1:// handle connected wallet}",
+			"end"
+		],
+		"description": "Connect to wallet"
+	},
+	"Wallet Send Transaction": {
+		"prefix": "walletsend",
+		"body": [
+			"local txHash = await wallet.sendTransaction({",
+			"\tto = \"${1:address}\",",
+			"\tvalue = \"${2:amount}\"",
+			"})",
+			"${3:// handle transaction hash}"
+		],
+		"description": "Send transaction"
+	},
+	"EVM Read Contract": {
+		"prefix": "evmread",
+		"body": [
+			"local result = await evm.read(",
+			"\t\"${1:contractAddress}\",",
+			"\t${2:abi},",
+			"\t\"${3:functionName}\"",
+			")",
+			"${4:// handle result}"
+		],
+		"description": "Read from smart contract"
+	},
+	"EVM Write Contract": {
+		"prefix": "evmwrite",
+		"body": [
+			"local txHash = await evm.write(",
+			"\t\"${1:contractAddress}\",",
+			"\t${2:abi},",
+			"\t\"${3:functionName}\"",
+			")",
+			"${4:// handle transaction hash}"
+		],
+		"description": "Write to smart contract"
+	},
+	"Player Context": {
+		"prefix": "player",
+		"body": [
+			"if player.isInMiniApp() then",
+			"\tlocal fid = player.getFid()",
+			"\tlocal username = player.getUsername()",
+			"\t${1:// handle player info}",
+			"end"
+		],
+		"description": "Get player context"
+	},
+	"Await Expression": {
+		"prefix": "await",
+		"body": ["local ${1:result} = await ${2:promise}"],
+		"description": "Await Promise-based operation"
 	}
 }

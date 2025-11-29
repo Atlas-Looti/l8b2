@@ -134,25 +134,10 @@ function validateApiUsage(
 		// that the root object exists in the API
 		if (isNested) {
 			const api = GLOBAL_API[rootObjectName];
+			// If root object is not a known global API or runtime object,
+			// it's likely a user-defined object - skip validation
 			if (!api && !knownRuntimeObjects.has(rootObjectName)) {
-				// Root object not found in API definitions
-				const propertyStart = matchIndex + fullPath.length + 1;
-				const startPos = textDocument.positionAt(propertyStart);
-
-				const diagnosticData = createDiagnostic("E7100", {
-					file: textDocument.uri,
-					line: startPos.line + 1,
-					column: startPos.character + 1,
-					length: propertyName.length,
-					data: {
-						propertyName,
-						objectName: rootObjectName,
-						suggestion: undefined,
-					},
-				});
-
-				const lspDiagnostic = formatForLSP(diagnosticData);
-				diagnostics.push(lspDiagnostic as Diagnostic);
+				// Skip validation for user-defined objects
 				continue;
 			}
 

@@ -76,11 +76,15 @@
 				},
 				{
 					"name": "keyword.other.lootiscript",
-					"match": "\\b(function|local|global|var|let|object|class|extends|new|delete)\\b"
+					"match": "\\b(function|local|global|var|let|object|class|extends|new|delete|await)\\b"
 				},
 				{
 					"name": "keyword.operator.logical.lootiscript",
 					"match": "\\b(and|or|not)\\b"
+				},
+				{
+					"name": "keyword.other.special.lootiscript",
+					"match": "\\b(this|super)\\b"
 				}
 			]
 		},
@@ -88,7 +92,7 @@
 			"patterns": [
 				{
 					"name": "constant.language.lootiscript",
-					"match": "\\b(true|false|nil)\\b"
+					"match": "\\b(true|false|nil|null)\\b"
 				}
 			]
 		},
@@ -229,11 +233,15 @@
 			"patterns": [
 				{
 					"name": "support.class.lootiscript",
-					"match": "\\b(screen|audio|input|system|sprite|map|List|Math|String|JSON|Object)\\b"
+					"match": "\\b(screen|audio|input|system|sprite|map|List|Math|String|JSON|Object|Number|Function|Console|Random|Image|Sprite|Map|Sound|Palette|ObjectPool|player|wallet|evm|actions|http|keyboard|mouse|touch|gamepad|sprites|maps|sounds|music|assets|scene|route|router)\\b"
 				},
 				{
 					"name": "support.function.lootiscript",
-					"match": "\\b(print|type|typeof|assert|error|require)\\b"
+					"match": "\\b(print|type|typeof|assert|error|require|round|floor|ceil|abs|sqrt|sin|cos|tan|asin|acos|atan|sind|cosd|tand|asind|acosd|atand|log|exp|min|max|pow|atan2|atan2d)\\b"
+				},
+				{
+					"name": "support.constant.lootiscript",
+					"match": "\\b(PI)\\b"
 				}
 			]
 		},
