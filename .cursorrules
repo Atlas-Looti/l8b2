@@ -252,4 +252,3 @@ import { helper } from "./helper";
 - Review VitePress documentation in `docs/` for user-facing docs
 - Look at examples in `examples/` directory for usage patterns
 - See `AGENTS.md` and `DEVELOPMENT.md` for more context
-
