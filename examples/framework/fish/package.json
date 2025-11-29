@@ -12,6 +12,6 @@
 		"@l8b/runtime": "workspace:*"
 	},
 	"devDependencies": {
-		"@l8b/cli": "workspace:*"
+		"l8b": "workspace:*"
 	}
 }

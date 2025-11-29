@@ -32,7 +32,9 @@ For internal packages, use `workspace:*` protocol:
 
 - Core packages: `@l8b/core/<name>`
 - Engine packages: `@l8b/<name>` (e.g., `@l8b/runtime`, `@l8b/vm`)
-- Framework packages: `@l8b/framework/<name>`
+- Framework packages:
+  - CLI: `l8b` (product name, not scoped)
+  - Compiler: `@l8b/compiler` (internal package)
 - Tooling packages: `@l8b/tooling/<name>`
 
 ## Turbo Configuration

@@ -99,7 +99,7 @@ class OPCODES_CLASS {
 
 	/**
 	 * Fused opcodes - Performance optimization
-	 * 
+	 *
 	 * Combines common operation pairs into single opcodes to reduce
 	 * instruction dispatch overhead and improve cache locality.
 	 * Typical performance gain: 15-30% for hot paths.
@@ -211,7 +211,7 @@ export class Routine {
 
 	/**
 	 * Inline caches mapped by opcode index
-	 * 
+	 *
 	 * Caches property lookups and method calls to avoid repeated
 	 * hash table lookups. Significantly improves performance for
 	 * hot code paths with stable object shapes.

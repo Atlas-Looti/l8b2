@@ -155,7 +155,7 @@ function registerCommands(
 		vscode.commands.registerCommand("lootiscript.runScript", async () => {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && editor.document.languageId === "lootiscript") {
-				// Try to find and run with @l8b/cli if available
+				// Try to find and run with l8b if available
 				const terminal = vscode.window.createTerminal("L8B Run");
 				terminal.show();
 
@@ -163,7 +163,7 @@ function registerCommands(
 				const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 				if (workspaceFolder) {
 					terminal.sendText(`cd "${workspaceFolder.uri.fsPath}"`);
-					terminal.sendText(`npx @l8b/cli dev`);
+					terminal.sendText(`npx l8b dev`);
 				} else {
 					vscode.window.showWarningMessage(
 						"No workspace folder found. Please open a L8B project.",

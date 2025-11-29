@@ -77,7 +77,8 @@ export async function build(
 			{
 				totalErrors: compileResult.errors.length,
 				errors: compileResult.errors,
-				suggestion: "Check the syntax errors above and fix them in your source files.",
+				suggestion:
+					"Check the syntax errors above and fix them in your source files.",
 			},
 		);
 	}

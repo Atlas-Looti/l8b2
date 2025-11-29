@@ -10,7 +10,6 @@
         src: url("/fonts/BitCell.ttf") format("truetype");
         font-display: swap;
       }
-      
       :root {
         color-scheme: dark;
       }
@@ -36,6 +35,9 @@
         height: 100%;
         display: block;
         background: #000;
+      }
+      #game {
+        image-rendering: pixelated; /* Ensure crisp pixels */
       }
     </style>
   </head>
@@ -92,6 +94,8 @@ import { Runtime, Routine } from '/runtime.js';
       const shouldLogCanvasTerminal = false;
       const mirrorListenerLogs = true;
       const mirrorListenerErrors = true;
+      
+      // Terminal logging helper
       const sendTerminalLog = (entry) => {
         const payload = JSON.stringify({
           ...entry,
@@ -104,9 +108,7 @@ import { Runtime, Routine } from '/runtime.js';
         } else {
           fetch('/__l8b/log', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: payload,
             keepalive: true,
           }).catch(() => {});
@@ -114,35 +116,20 @@ import { Runtime, Routine } from '/runtime.js';
       };
 
       const logLifecycle = (message) => {
-        if (!shouldLogLifecycleBrowser && !shouldLogLifecycleTerminal) {
-          return;
-        }
-        if (shouldLogLifecycleBrowser) {
-          console.log(message);
-        }
+        if (!shouldLogLifecycleBrowser && !shouldLogLifecycleTerminal) return;
+        if (shouldLogLifecycleBrowser) console.log(message);
         if (shouldLogLifecycleTerminal) {
-          sendTerminalLog({
-            level: 'info',
-            scope: 'runtime',
-            message,
-          });
+          sendTerminalLog({ level: 'info', scope: 'runtime', message });
         }
       };
 
       const logCanvasSize = () => {
-        if (!shouldLogCanvasBrowser && !shouldLogCanvasTerminal) {
-          return;
-        }
-        const message = 'Canvas internal size: ' + canvas.width + 'x' + canvas.height + ', display size: ' + canvas.clientWidth + 'x' + canvas.clientHeight;
-        if (shouldLogCanvasBrowser) {
-          console.log(message);
-        }
+        if (!shouldLogCanvasBrowser && !shouldLogCanvasTerminal) return;
+        const message = 'Canvas internal size: ' + canvas.width + 'x' + canvas.height + 
+                       ', display size: ' + canvas.clientWidth + 'x' + canvas.clientHeight;
+        if (shouldLogCanvasBrowser) console.log(message);
         if (shouldLogCanvasTerminal) {
-          sendTerminalLog({
-            level: 'info',
-            scope: 'runtime',
-            message,
-          });
+          sendTerminalLog({ level: 'info', scope: 'runtime', message });
         }
       };
 
@@ -156,36 +143,24 @@ import { Runtime, Routine } from '/runtime.js';
           log: (message) => {
             console.log('[GAME]', message);
             if (mirrorListenerLogs) {
-              sendTerminalLog({
-                level: 'info',
-                scope: 'game',
-                message: String(message),
-              });
+              sendTerminalLog({ level: 'info', scope: 'game', message: String(message) });
             }
           },
           reportError: (error) => {
-            // Format error dengan enhanced information
             let errorMessage = '';
-            if (error.code) {
-              errorMessage += '[' + error.code + '] ';
-            }
+            if (error.code) errorMessage += '[' + error.code + '] ';
             errorMessage += error?.error || error?.message || error?.formatted || 'Runtime error';
             
             if (error.file) {
               errorMessage += '\n  at ' + error.file;
               if (error.line !== undefined) {
                 errorMessage += ':' + error.line;
-                if (error.column !== undefined) {
-                  errorMessage += ':' + error.column;
-                }
+                if (error.column !== undefined) errorMessage += ':' + error.column;
               }
             }
             
             console.error('[GAME ERROR]', errorMessage);
-            
-            if (error.context) {
-              console.error(error.context);
-            }
+            if (error.context) console.error(error.context);
             
             if (error.suggestions && error.suggestions.length > 0) {
               console.error('\nSuggestions:');
@@ -221,32 +196,25 @@ import { Runtime, Routine } from '/runtime.js';
 
       const runtime = new Runtime(runtimeOptions);
 
-      // Handle window resize - make canvas responsive (with debounce)
+      // Handle window resize
       let resizeTimeout = null;
       const handleResize = () => {
-        if (resizeTimeout) {
-          clearTimeout(resizeTimeout);
-        }
-        
+        if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
           if (isFreeAspect) {
             const newSize = getWindowSize();
             const ratio = getRatio();
             
-            // Set canvas internal size with devicePixelRatio
             canvas.width = newSize.width * ratio;
             canvas.height = newSize.height * ratio;
-            
-            // Set canvas display size 
             canvas.style.width = Math.round(newSize.width) + 'px';
             canvas.style.height = Math.round(newSize.height) + 'px';
             
-            // Resize the screen in runtime (this will update screen.width and screen.height)
             if (runtime.screen) {
               runtime.screen.resize(canvas.width, canvas.height);
             }
           }
-        }, 100); // Debounce 100ms
+        }, 100);
       };
 
       // Start the game
@@ -260,11 +228,8 @@ import { Runtime, Routine } from '/runtime.js';
         console.error(err);
       }
 
-      // Make runtime accessible from console for debugging
       window.runtime = runtime;
       logLifecycle('Runtime available as window.runtime');
-
-      // Add resize listener for responsive canvas
       window.addEventListener('resize', handleResize);
     </script>
   </body>

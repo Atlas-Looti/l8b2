@@ -9,7 +9,7 @@ This guide will help you get started with your first L8B game project. For an ov
 Install L8B CLI as a dev dependency:
 
 ```bash
-npm install @l8b/cli --save-dev
+npm install l8b --save-dev
 ```
 
 **Note:** The runtime doesn't need to be installed separately. The CLI will automatically use the runtime from the workspace (if using a monorepo) or bundle it during build.
@@ -17,10 +17,10 @@ npm install @l8b/cli --save-dev
 Alternatively, use npx:
 
 ```bash
-npx @l8b/cli init my-game
+npx l8b init my-game
 cd my-game
 npm install
-npx @l8b/cli dev
+npx l8b dev
 ```
 
 ### Project Structure
@@ -90,12 +90,12 @@ Add scripts for development and build in `package.json`:
     "start": "l8b start"
   },
   "devDependencies": {
-    "@l8b/cli": "workspace:*"
+    "l8b": "workspace:*"
   }
 }
 ```
 
-**Note:** For workspace/monorepo, use `workspace:*`. For npm registry, use the appropriate version like `"@l8b/cli": "^0.0.1"`.
+**Note:** For workspace/monorepo, use `workspace:*`. For npm registry, use the appropriate version like `"l8b": "^0.0.1"`.
 
 **Commands:**
 

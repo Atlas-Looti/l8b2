@@ -19,8 +19,6 @@ export const INTERNAL_ENDPOINTS = {
 	LOGGER: "/__l8b/log",
 } as const;
 
-
-
 /**
  * Font serving configuration
  */
@@ -36,5 +34,3 @@ export const BUILD = {
 	/** Maximum depth to traverse when finding workspace root */
 	MAX_WORKSPACE_DEPTH: 10,
 } as const;
-
-

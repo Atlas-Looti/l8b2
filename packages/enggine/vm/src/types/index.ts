@@ -58,6 +58,10 @@ export interface GlobalAPI {
 	Map?: any;
 	Palette?: any;
 	Random?: any;
+	// Farcaster Mini Apps APIs
+	player?: any;
+	wallet?: any;
+	evm?: any;
 }
 
 /**

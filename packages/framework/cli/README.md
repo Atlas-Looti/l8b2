@@ -1,4 +1,4 @@
-# @l8b/cli
+# l8b
 
 **Command-Line Interface** - Development tools for LootiScript game projects.
 
@@ -13,16 +13,16 @@ The L8B CLI provides a complete development workflow for LootiScript games:
 ## Installation
 
 ```bash
-npm install -g @l8b/cli
+npm install -g l8b
 ```
 
 Or use with npx:
 
 ```bash
-npx @l8b/cli init my-game
+npx l8b init my-game
 cd my-game
 npm install
-npx @l8b/cli dev
+npx l8b dev
 ```
 
 ## Commands
@@ -309,7 +309,7 @@ The CLI provides detailed error messages:
 Use the CLI programmatically:
 
 ```typescript
-import { dev, build, start } from '@l8b/cli';
+import { dev, build, start } from 'l8b';
 
 // Start dev server
 await dev('/path/to/project', {

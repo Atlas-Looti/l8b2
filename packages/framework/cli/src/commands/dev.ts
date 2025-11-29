@@ -26,7 +26,6 @@ import { DEFAULT_SERVER, FONT } from "../utils/constants";
 import { handleRuntimeLogRequest } from "../utils/runtime-logs";
 import { ServerError } from "../utils/errors";
 
-
 /**
  * Development server options
  */

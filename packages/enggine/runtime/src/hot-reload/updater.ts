@@ -12,7 +12,7 @@ export class SourceUpdater {
 	constructor(
 		private vm: L8BVM,
 		private listener: RuntimeListener,
-	) { }
+	) {}
 
 	/**
 	 * Update source code (hot reload)

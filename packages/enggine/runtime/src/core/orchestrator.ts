@@ -30,6 +30,9 @@ import { System } from "../system";
 import { ObjectPool } from "../utils/object-pool";
 import { SceneManager } from "@l8b/scene";
 import { Palette } from "@l8b/palette";
+import { PlayerService } from "@l8b/player";
+import { WalletService } from "@l8b/wallet";
+import { EVMService } from "@l8b/evm";
 import type {
 	RuntimeDebugOptions,
 	RuntimeListener,
@@ -63,6 +66,9 @@ export class RuntimeOrchestrator {
 	public input: InputManager;
 	public system: System;
 	public sceneManager: SceneManager;
+	public player: PlayerService;
+	public wallet: WalletService;
+	public evm: EVMService;
 	public vm: L8BVM | null = null;
 
 	// Asset collections (populated by AssetLoader)
@@ -113,6 +119,11 @@ export class RuntimeOrchestrator {
 
 		// Scene manager for routing and scene lifecycle
 		this.sceneManager = new SceneManager();
+
+		// Farcaster Mini Apps integration
+		this.player = new PlayerService();
+		this.wallet = new WalletService();
+		this.evm = new EVMService();
 
 		// Asset loader for sprites, maps, sounds, and other resources
 		this.assetLoader = new AssetLoader(
@@ -331,6 +342,10 @@ export class RuntimeOrchestrator {
 			Palette: Palette,
 			Random: Random,
 			ObjectPool: ObjectPool,
+			// Farcaster Mini Apps APIs
+			player: this.player.getInterface(),
+			wallet: this.wallet.getInterface(),
+			evm: this.evm.getInterface(),
 		};
 
 		// Initialize VM with meta functions and global API

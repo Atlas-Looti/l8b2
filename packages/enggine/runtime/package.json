@@ -26,7 +26,10 @@
 		"@l8b/sprites": "workspace:*",
 		"@l8b/map": "workspace:*",
 		"@l8b/scene": "workspace:*",
-		"@l8b/diagnostics": "workspace:*"
+		"@l8b/diagnostics": "workspace:*",
+		"@l8b/player": "workspace:*",
+		"@l8b/wallet": "workspace:*",
+		"@l8b/evm": "workspace:*"
 	},
 	"keywords": [
 		"runtime",

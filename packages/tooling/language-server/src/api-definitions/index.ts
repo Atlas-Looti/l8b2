@@ -14,6 +14,9 @@ import { mapApi } from "./map";
 import { timeApi } from "./time";
 import { assetsApi } from "./assets";
 import { paletteApi } from "./palette";
+import { playerApi } from "./player";
+import { walletApi } from "./wallet";
+import { evmApi } from "./evm";
 
 /**
  * Global API list for suggestions and hover info
@@ -30,6 +33,9 @@ export const GLOBAL_API: GlobalApi = {
 	...timeApi,
 	...assetsApi,
 	...paletteApi,
+	...playerApi,
+	...walletApi,
+	...evmApi,
 } as GlobalApi;
 
 /**

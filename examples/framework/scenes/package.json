@@ -7,7 +7,7 @@
 		"build": "l8b build",
 		"start": "l8b start"
 	},
-	"dependencies": {
-		"@l8b/cli": "workspace:*"
+	"devDependencies": {
+		"l8b": "workspace:*"
 	}
 }

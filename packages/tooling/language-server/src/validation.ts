@@ -63,11 +63,11 @@ export async function validateTextDocument(
 				suggestions: err.suggestions,
 				related: err.related
 					? {
-						file: textDocument.uri,
-						line: err.related.line,
-						column: err.related.column,
-						message: err.related.message || "Related location",
-					}
+							file: textDocument.uri,
+							line: err.related.line,
+							column: err.related.column,
+							message: err.related.message || "Related location",
+						}
 					: undefined,
 				data: {
 					error: err.error,
