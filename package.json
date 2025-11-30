@@ -45,7 +45,8 @@
 		"apps/**/*",
 		"!next/**/*",
 		"!dist/**/*",
-		"!l8b/**/*"
+		"!l8b/**/*",
+		"!**/.vscode-test/**/*"
 	],
 	"dependencies": {
 		"@swc/core": "^1.15.0",

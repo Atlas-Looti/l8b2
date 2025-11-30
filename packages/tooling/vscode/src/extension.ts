@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { existsSync } from "fs";
 import {
 	LanguageClient,
 	LanguageClientOptions,
@@ -45,9 +46,13 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	// The server is implemented in node
-	const serverModule = context.asAbsolutePath(
-		path.join("..", "language-server", "dist", "server.js"),
-	);
+	// In packaged extension, server is bundled in ./server directory
+	// In development, it's in ../language-server/dist
+	const bundledServerPath = context.asAbsolutePath(path.join("server", "server.js"));
+	const devServerPath = context.asAbsolutePath(path.join("..", "language-server", "dist", "server.js"));
+	
+	// Use bundled server if it exists (packaged), otherwise use dev path
+	const serverModule = existsSync(bundledServerPath) ? bundledServerPath : devServerPath;
 
 	// The debug options for the server
 	const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
