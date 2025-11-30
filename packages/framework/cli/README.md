@@ -327,7 +327,7 @@ The CLI provides detailed error messages:
 Use the CLI programmatically:
 
 ```typescript
-import { dev, build, start } from 'l8b';
+import { dev, build, start } from '@l8b/cli';
 
 // Start dev server
 await dev('/path/to/project', {

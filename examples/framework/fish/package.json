@@ -1,7 +1,7 @@
 {
 	"name": "fish",
 	"private": true,
-	"version": "1.0.2",
+	"version": "0.0.0-canary-20251130212449",
 	"type": "module",
 	"scripts": {
 		"dev": "l8b dev",
@@ -11,6 +11,6 @@
 		"@l8b/runtime": "workspace:*"
 	},
 	"devDependencies": {
-		"l8b": "workspace:*"
+		"@l8b/cli": "workspace:*"
 	}
 }

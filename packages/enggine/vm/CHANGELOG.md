@@ -1,5 +1,18 @@
 # @l8b/vm
 
+## 0.0.0-canary-20251130212449
+
+### Minor Changes
+
+- be2995e: v1
+
+### Patch Changes
+
+- Updated dependencies [be2995e]
+  - @l8b/lootiscript@0.0.0-canary-20251130212449
+  - @l8b/scene@0.0.0-canary-20251130212449
+  - @l8b/io@0.0.0-canary-20251130212449
+
 ## 1.0.2
 
 ### Patch Changes

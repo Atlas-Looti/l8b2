@@ -1,5 +1,32 @@
 # @l8b/runtime
 
+## 0.0.0-canary-20251130212449
+
+### Minor Changes
+
+- be2995e: v1
+
+### Patch Changes
+
+- Updated dependencies [be2995e]
+  - @l8b/diagnostics@0.0.0-canary-20251130212449
+  - @l8b/actions@0.0.0-canary-20251130212449
+  - @l8b/palette@0.0.0-canary-20251130212449
+  - @l8b/sprites@0.0.0-canary-20251130212449
+  - @l8b/player@0.0.0-canary-20251130212449
+  - @l8b/screen@0.0.0-canary-20251130212449
+  - @l8b/wallet@0.0.0-canary-20251130212449
+  - @l8b/lootiscript@0.0.0-canary-20251130212449
+  - @l8b/audio@0.0.0-canary-20251130212449
+  - @l8b/input@0.0.0-canary-20251130212449
+  - @l8b/scene@0.0.0-canary-20251130212449
+  - @l8b/io@0.0.0-canary-20251130212449
+  - @l8b/vm@0.0.0-canary-20251130212449
+  - @l8b/http@0.0.0-canary-20251130212449
+  - @l8b/time@0.0.0-canary-20251130212449
+  - @l8b/evm@0.0.0-canary-20251130212449
+  - @l8b/map@0.0.0-canary-20251130212449
+
 ## 1.0.2
 
 ### Patch Changes
