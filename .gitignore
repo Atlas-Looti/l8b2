@@ -41,7 +41,7 @@ yarn-error.log*
 
 # Package Manager
 bun.lock
-pnpm-lock.yaml
+# pnpm-lock.yaml should be committed
 
 # Misc
 .DS_Store
