@@ -70,4 +70,4 @@ Finds the index of the color closest to the given hex color.
 - `palette.getAll()`: Get all colors as array
 - `Palette.rgbToHex(r, g, b)`: Static method to convert RGB to hex string
 
-For complete Palette API documentation, see [@l8b/palette README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/palette/README.md).
+For complete Palette API documentation, see [@l8b/palette README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/palette/README.md).

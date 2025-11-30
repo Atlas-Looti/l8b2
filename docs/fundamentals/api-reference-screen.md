@@ -66,7 +66,7 @@ Sets how subsequent drawing operations will be composited with existing graphics
 - `"multiply"`: Multiplies colors.
 - `"screen"`: Screen blend mode.
 
-See [Screen API](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/screen/README.md) for all available blending modes.
+See [Screen API](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/screen/README.md) for all available blending modes.
 
 ### `screen.setPixelated(enable)`
 
@@ -353,4 +353,4 @@ screen.setCursorVisible(false)  // Hide cursor
 screen.setCursorVisible(true)   // Show cursor
 ```
 
-For complete Screen API documentation, see [@l8b/screen README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/screen/README.md).
+For complete Screen API documentation, see [@l8b/screen README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/screen/README.md).

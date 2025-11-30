@@ -45,7 +45,7 @@ if context.location and context.location.type == "cast_embed" then
 end
 ```
 
-See [Player API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/player/README.md) for complete documentation.
+See [Player API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/player/README.md) for complete documentation.
 
 ## Wallet API
 
@@ -86,7 +86,7 @@ async function sign()
 end
 ```
 
-See [Wallet API Reference](https://github.com/Atlas-Looti/l8b2/blob/mainhttps://github.com/Atlas-Looti/l8b2/blob/main/packages/core/wallet/README.md) for complete documentation.
+See [Wallet API Reference](https://github.com/Atlas-Looti/l8b/blob/mainhttps://github.com/Atlas-Looti/l8b/blob/main/packages/core/wallet/README.md) for complete documentation.
 
 ### New Wallet Methods
 
@@ -174,7 +174,7 @@ await actions.swapToken({
 })
 ```
 
-See [Actions API Reference](https://github.com/Atlas-Looti/l8b2/blob/mainhttps://github.com/Atlas-Looti/l8b2/blob/main/packages/core/actions/README.md) for complete documentation.
+See [Actions API Reference](https://github.com/Atlas-Looti/l8b/blob/mainhttps://github.com/Atlas-Looti/l8b/blob/main/packages/core/actions/README.md) for complete documentation.
 
 ## HTTP API
 
@@ -213,7 +213,7 @@ if data then
 end
 ```
 
-See [HTTP API Reference](https://github.com/Atlas-Looti/l8b2/blob/mainhttps://github.com/Atlas-Looti/l8b2/blob/main/packages/core/http/README.md) for complete documentation.
+See [HTTP API Reference](https://github.com/Atlas-Looti/l8b/blob/mainhttps://github.com/Atlas-Looti/l8b/blob/main/packages/core/http/README.md) for complete documentation.
 
 ## EVM API
 
@@ -252,7 +252,7 @@ async function checkBalance()
 end
 ```
 
-See [EVM API Reference](https://github.com/Atlas-Looti/l8b2/blob/mainhttps://github.com/Atlas-Looti/l8b2/blob/main/packages/core/evm/README.md) for complete documentation.
+See [EVM API Reference](https://github.com/Atlas-Looti/l8b/blob/mainhttps://github.com/Atlas-Looti/l8b/blob/main/packages/core/evm/README.md) for complete documentation.
 
 ### Smart Contract Bindings
 
@@ -281,7 +281,7 @@ local balance = await MyToken.balanceOf("0x...")
 local hash = await MyToken.transfer("0x...", "1000000")
 ```
 
-See [CLI Documentation](https://github.com/Atlas-Looti/l8b2/blob/main/packages/framework/cli/README.md) for complete contract import documentation.
+See [CLI Documentation](https://github.com/Atlas-Looti/l8b/blob/main/packages/framework/cli/README.md) for complete contract import documentation.
 
 ## Publishing Your Mini App
 
@@ -491,8 +491,8 @@ Each embed configuration supports:
 
 - [Farcaster Mini Apps Documentation](https://miniapps.farcaster.xyz)
 - [Farcaster Mini App Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest)
-- [Player API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/player/README.md)
-- [Wallet API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/wallet/README.md)
-- [EVM API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/evm/README.md)
-- [Actions API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/actions/README.md)
-- [HTTP API Reference](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/http/README.md)
+- [Player API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/player/README.md)
+- [Wallet API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/wallet/README.md)
+- [EVM API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/evm/README.md)
+- [Actions API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/actions/README.md)
+- [HTTP API Reference](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/http/README.md)

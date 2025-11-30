@@ -24,4 +24,4 @@ map = Map(20, 15, 16, 16)  // 20x15 tiles, 16x16 pixels per tile
 - `updateMap(map, data, sprites?)`: Update existing map with new data
 - `saveMap(map)`: Save map data to JSON string
 
-For complete Map API documentation, see [@l8b/map README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/map/README.md).
+For complete Map API documentation, see [@l8b/map README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/map/README.md).

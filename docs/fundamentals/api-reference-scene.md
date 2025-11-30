@@ -61,4 +61,4 @@ Called every frame while the scene is active. Use this for game logic.
 
 Called every frame while the scene is active. Use this for rendering.
 
-For complete Scene API documentation, see [@l8b/scene README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/scene/README.md).
+For complete Scene API documentation, see [@l8b/scene README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/scene/README.md).

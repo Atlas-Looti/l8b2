@@ -30,4 +30,4 @@ Images support the same drawing API as screen:
 - `image.fillRect()`, `image.drawRect()`, `image.drawLine()`, etc.
 - `image.drawSprite()`, `image.drawText()`, `image.drawMap()`
 
-For complete Image API documentation, see [@l8b/sprites README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/sprites/README.md).
+For complete Image API documentation, see [@l8b/sprites README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/sprites/README.md).

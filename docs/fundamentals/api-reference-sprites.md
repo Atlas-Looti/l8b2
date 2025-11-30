@@ -20,4 +20,4 @@ sprite = Sprite(32, 32)  // Create a new 32x32 sprite
 - `sprite.getFrame()`: Get current animation frame
 - `sprite.getCurrentFrameCanvas()`: Get canvas of current frame
 
-For complete Sprites API documentation, see [@l8b/sprites README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/sprites/README.md).
+For complete Sprites API documentation, see [@l8b/sprites README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/sprites/README.md).

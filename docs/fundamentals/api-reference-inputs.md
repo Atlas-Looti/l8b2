@@ -89,4 +89,4 @@ if gamepad.press.A == 1 then jump() end
 - Stick buttons: `LS`, `RS`
 - Menu buttons: `START`, `SELECT`
 
-For complete Input API documentation, see [@l8b/input README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/input/README.md).
+For complete Input API documentation, see [@l8b/input README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/input/README.md).

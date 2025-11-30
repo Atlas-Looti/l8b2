@@ -59,4 +59,4 @@ end
 - `router.params`: Current route parameters (object)
 - `router.sceneName`: Current scene name
 
-For complete Router API documentation, see [@l8b/scene README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/scene/README.md).
+For complete Router API documentation, see [@l8b/scene README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/scene/README.md).

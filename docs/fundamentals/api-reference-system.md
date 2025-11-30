@@ -56,4 +56,4 @@ Exits the program.
 - `system.disable_autofullscreen`: Set to `1` to disable automatic fullscreen.
 - `system.preemptive`: Set to `1` to enable preemptive threading (default: `1`).
 
-For complete System API documentation, see [@l8b/time README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/time/README.md).
+For complete System API documentation, see [@l8b/time README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/time/README.md).

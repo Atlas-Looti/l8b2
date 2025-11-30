@@ -86,4 +86,4 @@ Audio.beep("tempo 120 C4 D4 E4 F4")
 
 Stops all currently playing beeps and sounds.
 
-For complete Audio API documentation, see [@l8b/audio README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/audio/README.md).
+For complete Audio API documentation, see [@l8b/audio README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/audio/README.md).

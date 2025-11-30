@@ -90,4 +90,4 @@ Loads a custom font file (.ttf).
 Assets.loadFont("myfont")  // Loads assets/myfont.ttf
 ```
 
-For complete Assets API documentation, see [@l8b/assets README](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/assets/README.md).
+For complete Assets API documentation, see [@l8b/assets README](https://github.com/Atlas-Looti/l8b/blob/main/packages/core/assets/README.md).
