@@ -23,6 +23,17 @@ export default defineConfig({
 	platform: "node",
 	minify: process.env.NODE_ENV === "production",
 	external: externalDeps,
+	outExtension({ format }) {
+		// For ESM format, use .js extension (Node.js supports ESM in .js files)
+		if (format === "esm") {
+			return {
+				js: ".js",
+			};
+		}
+		return {
+			js: `.${format}.js`,
+		};
+	},
 	onSuccess: async () => {
 		const distAssetsDir = join(process.cwd(), "dist", "assets", "fonts");
 		mkdirSync(distAssetsDir, {

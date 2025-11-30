@@ -37,14 +37,15 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
           npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
 
-      - name: Build packages
-        run: pnpm build
-
       - name: Version snapshot packages
         run: |
           echo "📝 Versioning packages with snapshot tag: ${{ steps.snapshot-tag.outputs.tag }}"
           pnpm changeset version --no-git-tag --snapshot ${{ steps.snapshot-tag.outputs.tag }}
-          pnpm install --frozen-lockfile
+
+      - name: Reinstall dependencies after versioning
+        run: |
+          echo "📦 Reinstalling dependencies with updated versions..."
+          pnpm install
 
       - name: Prepare for publishing
         run: pnpm changeset:prepublish

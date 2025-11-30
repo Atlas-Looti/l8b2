@@ -68,9 +68,9 @@ jobs:
 
           echo "📦 Publishing canary prerelease..."
           git reset --hard origin/main
-          pnpm build
-          pnpm install --frozen-lockfile
           pnpm changeset version --no-git-tag --snapshot canary
+          echo "📦 Reinstalling dependencies with updated versions..."
+          pnpm install
           pnpm changeset:prepublish
 
           pnpm changeset publish --no-git-tag --snapshot canary --tag canary || {
