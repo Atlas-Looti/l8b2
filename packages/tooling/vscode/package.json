@@ -1,5 +1,6 @@
 {
 	"name": "@l8b/vscode",
+	"private": true,
 	"displayName": "LootiScript",
 	"description": "Language support for LootiScript - L8B Game Framework",
 	"version": "0.0.0-canary-20251130212449",
@@ -174,8 +175,5 @@
 	},
 	"dependencies": {
 		"vscode-languageclient": "^9.0.1"
-	},
-	"publishConfig": {
-		"access": "public"
 	}
 }
