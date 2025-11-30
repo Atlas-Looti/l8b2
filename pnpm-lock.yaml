@@ -290,6 +290,9 @@ importers:
       '@l8b/map':
         specifier: workspace:*
         version: link:../../core/map
+      '@l8b/palette':
+        specifier: workspace:*
+        version: link:../../core/palette
       '@l8b/player':
         specifier: workspace:*
         version: link:../../core/player
