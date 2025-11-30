@@ -55,8 +55,6 @@ jobs:
         run: |
           npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
           git reset --hard origin/main
-          pnpm clean
-          pnpm install
           pnpm changeset version --no-git-tag --snapshot canary
           pnpm changeset:prepublish
           pnpm changeset publish --no-git-tag --snapshot canary --tag canary
