@@ -1,5 +1,7 @@
 # @l8b/player
 
+## 1.0.3
+
 ## 0.0.0-canary-20251130212449
 
 ### Minor Changes

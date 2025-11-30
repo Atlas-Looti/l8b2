@@ -1,5 +1,29 @@
 # @l8b/runtime
 
+## 1.0.3
+
+### Patch Changes
+
+- 5e5b50e: v1
+- Updated dependencies [5e5b50e]
+  - @l8b/diagnostics@1.0.3
+  - @l8b/sprites@1.0.3
+  - @l8b/screen@1.0.3
+  - @l8b/wallet@1.0.3
+  - @l8b/lootiscript@1.0.3
+  - @l8b/audio@1.0.3
+  - @l8b/input@1.0.3
+  - @l8b/scene@1.0.3
+  - @l8b/io@1.0.3
+  - @l8b/vm@1.0.3
+  - @l8b/http@1.0.3
+  - @l8b/time@1.0.3
+  - @l8b/map@1.0.3
+  - @l8b/palette@1.0.3
+  - @l8b/actions@1.0.3
+  - @l8b/evm@1.0.3
+  - @l8b/player@1.0.3
+
 ## 0.0.0-canary-20251130212449
 
 ### Minor Changes

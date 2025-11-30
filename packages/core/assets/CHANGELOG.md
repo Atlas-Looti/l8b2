@@ -1,5 +1,13 @@
 # @l8b/assets
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies [5e5b50e]
+  - @l8b/diagnostics@1.0.3
+  - @l8b/sprites@1.0.3
+
 ## 0.0.0-canary-20251130212449
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @l8b/vm
 
+## 1.0.3
+
+### Patch Changes
+
+- 5e5b50e: v1
+- Updated dependencies [5e5b50e]
+  - @l8b/lootiscript@1.0.3
+  - @l8b/scene@1.0.3
+  - @l8b/io@1.0.3
+
 ## 0.0.0-canary-20251130212449
 
 ### Minor Changes

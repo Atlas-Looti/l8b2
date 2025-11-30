@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.0.3
+
+### Patch Changes
+
+- 5e5b50e: v1
+
 ## 0.0.0-canary-20251130212449
 
 ### Minor Changes
