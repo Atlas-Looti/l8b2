@@ -23,7 +23,7 @@
 		"changeset": "changeset",
 		"changeset:version": "pnpm install --lockfile-only && changeset version",
 		"changeset:publish": "pnpm changeset:prepublish && changeset publish",
-		"changeset:prepublish": "turbo run build --filter='./packages/*'",
+		"changeset:prepublish": "pnpm --filter './packages/**' run build",
 		"publish-packages": "turbo run build && changeset version && changeset publish"
 	},
 	"devDependencies": {
