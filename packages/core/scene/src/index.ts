@@ -30,19 +30,19 @@
  * ```
  */
 
-export { SceneManager } from "./scene-manager";
-export { Router } from "./router";
 export { RouteManager } from "./route-manager";
+export { Router } from "./router";
+export { SceneManager } from "./scene-manager";
 export { SceneRegistry } from "./scene-registry";
 export type {
-	SceneDefinition,
-	RouteDefinition,
-	RouterState,
-	SceneManagerOptions,
-	SceneStatus,
-	SceneTransitionOptions,
-	SceneInterface,
-	SceneData,
-	SceneEvents,
-	SceneConfig,
+      RouteDefinition,
+      RouterState,
+      SceneConfig,
+      SceneData,
+      SceneDefinition,
+      SceneEvents,
+      SceneInterface,
+      SceneManagerOptions,
+      SceneStatus,
+      SceneTransitionOptions,
 } from "./types";

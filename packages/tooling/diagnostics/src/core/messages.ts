@@ -5,8 +5,8 @@
  */
 
 export {
-	MESSAGES,
-	getMessageTemplate,
-	formatMessage,
-	getSuggestions,
+      formatMessage,
+      getMessageTemplate,
+      getSuggestions,
+      MESSAGES,
 } from "./messages/index";

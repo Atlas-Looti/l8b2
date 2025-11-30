@@ -3,43 +3,43 @@
  */
 
 import type { GlobalApi } from "../types";
-import { coreApi } from "./core";
-import { screenApi } from "./screen";
-import { audioApi } from "./audio";
-import { inputApi } from "./input";
-import { systemApi } from "./system";
-import { sceneApi } from "./scene";
-import { spritesApi } from "./sprites";
-import { mapApi } from "./map";
-import { timeApi } from "./time";
+import { actionsApi } from "./actions";
 import { assetsApi } from "./assets";
+import { audioApi } from "./audio";
+import { coreApi } from "./core";
+import { evmApi } from "./evm";
+import { httpApi } from "./http";
+import { inputApi } from "./input";
+import { mapApi } from "./map";
 import { paletteApi } from "./palette";
 import { playerApi } from "./player";
+import { sceneApi } from "./scene";
+import { screenApi } from "./screen";
+import { spritesApi } from "./sprites";
+import { systemApi } from "./system";
+import { timeApi } from "./time";
 import { walletApi } from "./wallet";
-import { evmApi } from "./evm";
-import { actionsApi } from "./actions";
-import { httpApi } from "./http";
 
 /**
  * Global API list for suggestions and hover info
  */
 export const GLOBAL_API: GlobalApi = {
-	...coreApi,
-	...screenApi,
-	...audioApi,
-	...inputApi,
-	...systemApi,
-	...sceneApi,
-	...spritesApi,
-	...mapApi,
-	...timeApi,
-	...assetsApi,
-	...paletteApi,
-	...playerApi,
-	...walletApi,
-	...evmApi,
-	...actionsApi,
-	...httpApi,
+      ...coreApi,
+      ...screenApi,
+      ...audioApi,
+      ...inputApi,
+      ...systemApi,
+      ...sceneApi,
+      ...spritesApi,
+      ...mapApi,
+      ...timeApi,
+      ...assetsApi,
+      ...paletteApi,
+      ...playerApi,
+      ...walletApi,
+      ...evmApi,
+      ...actionsApi,
+      ...httpApi,
 } as GlobalApi;
 
 /**
@@ -47,5 +47,4 @@ export const GLOBAL_API: GlobalApi = {
  * - Single level: "screen.drawSprite", "Math.abs"
  * - Nested: "sprites.player.x", "map.level1.width"
  */
-export const API_ACCESS_REGEX =
-	/\b([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.([A-Za-z_][A-Za-z0-9_]*)\b/g;
+export const API_ACCESS_REGEX = /\b([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.([A-Za-z_][A-Za-z0-9_]*)\b/g;

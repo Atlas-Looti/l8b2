@@ -4,10 +4,10 @@
  * Provides wallet operations for Farcaster Mini Apps
  */
 
-export { WalletService } from "./wallet-service";
 export type {
-	WalletAPI,
-	TransactionRequest,
-	BatchCall,
-	BatchTransactionResult,
+      BatchCall,
+      BatchTransactionResult,
+      TransactionRequest,
+      WalletAPI,
 } from "./types";
+export { WalletService } from "./wallet-service";

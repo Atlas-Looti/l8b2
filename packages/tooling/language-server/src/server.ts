@@ -1,38 +1,30 @@
 import {
-	createConnection,
-	TextDocuments,
-	ProposedFeatures,
-	InitializeParams,
-	DidChangeConfigurationNotification,
-	TextDocumentSyncKind,
-	InitializeResult,
-	CodeActionKind,
+      CodeActionKind,
+      createConnection,
+      DidChangeConfigurationNotification,
+      type InitializeParams,
+      type InitializeResult,
+      ProposedFeatures,
+      TextDocumentSyncKind,
+      TextDocuments,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { LanguageModes, DocumentRegionsCache } from "./embedded/mode-manager";
-import { getJSONMode, createJSONLanguageService } from "./embedded/json-mode";
 import { GLOBAL_API } from "./api-definitions/index";
-import { updateDocumentState, deleteDocumentState } from "./document-state";
-import { validateTextDocument } from "./validation";
-import { setupCompletionHandlers } from "./handlers/completion";
-import { setupHoverHandler } from "./handlers/hover";
-import { setupSignatureHelpHandler } from "./handlers/signature-help";
-import { setupSymbolHandlers } from "./handlers/symbols";
-import { setupFormattingHandler } from "./handlers/formatting";
+import { deleteDocumentState, updateDocumentState } from "./document-state";
+import { createJSONLanguageService, getJSONMode } from "./embedded/json-mode";
+import { DocumentRegionsCache, LanguageModes } from "./embedded/mode-manager";
 import { setupCodeActionsHandler } from "./handlers/code-actions";
+import { setupCompletionHandlers } from "./handlers/completion";
 import { setupDefinitionHandler } from "./handlers/definition";
+import { setupFormattingHandler } from "./handlers/formatting";
+import { setupHoverHandler } from "./handlers/hover";
 import { setupReferencesHandler } from "./handlers/references";
 import { setupRenameHandler } from "./handlers/rename";
-import {
-	setupSemanticTokensHandler,
-	TOKEN_TYPES,
-	TOKEN_MODIFIERS,
-} from "./handlers/semantic-tokens";
-import {
-	clearDocumentSettings,
-	setGlobalSettings,
-	sanitizeSettings,
-} from "./settings";
+import { setupSemanticTokensHandler, TOKEN_MODIFIERS, TOKEN_TYPES } from "./handlers/semantic-tokens";
+import { setupSignatureHelpHandler } from "./handlers/signature-help";
+import { setupSymbolHandlers } from "./handlers/symbols";
+import { clearDocumentSettings, sanitizeSettings, setGlobalSettings } from "./settings";
+import { validateTextDocument } from "./validation";
 
 // Create LSP connection with all proposed protocol features enabled
 const connection = createConnection(ProposedFeatures.all);
@@ -46,9 +38,7 @@ const languageModes = new LanguageModes(documentRegionsCache);
 
 // Register JSON language mode for embedded JSON validation and completion
 const jsonLanguageService = createJSONLanguageService();
-languageModes.registerMode(
-	getJSONMode(jsonLanguageService, documentRegionsCache),
-);
+languageModes.registerMode(getJSONMode(jsonLanguageService, documentRegionsCache));
 
 const GLOBAL_API_REQUEST = "lootiscript/globalApi";
 connection.onRequest(GLOBAL_API_REQUEST, () => GLOBAL_API);
@@ -57,133 +47,121 @@ let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 
 connection.onInitialize((params: InitializeParams) => {
-	const capabilities = params.capabilities;
+      const capabilities = params.capabilities;
 
-	// Check if client supports workspace/configuration requests
-	// If not supported, fall back to global settings
-	hasConfigurationCapability = !!(
-		capabilities.workspace && !!capabilities.workspace.configuration
-	);
-	hasWorkspaceFolderCapability = !!(
-		capabilities.workspace && !!capabilities.workspace.workspaceFolders
-	);
+      // Check if client supports workspace/configuration requests
+      // If not supported, fall back to global settings
+      hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
+      hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
 
-	const result: InitializeResult = {
-		capabilities: {
-			textDocumentSync: TextDocumentSyncKind.Incremental,
-			// Declare all LSP features this server implements
-			completionProvider: {
-				resolveProvider: true,
-				triggerCharacters: ["."],
-			},
-			signatureHelpProvider: {
-				triggerCharacters: ["(", ","],
-			},
-			hoverProvider: true,
-			definitionProvider: true,
-			documentSymbolProvider: true,
-			workspaceSymbolProvider: true,
-			referencesProvider: true,
-			documentFormattingProvider: true,
-			renameProvider: {
-				prepareProvider: true,
-			},
-			codeActionProvider: {
-				codeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.Refactor],
-			},
-			semanticTokensProvider: {
-				legend: {
-					tokenTypes: TOKEN_TYPES,
-					tokenModifiers: TOKEN_MODIFIERS,
-				},
-				full: true,
-			},
-		},
-	};
-	if (hasWorkspaceFolderCapability) {
-		result.capabilities.workspace = {
-			workspaceFolders: {
-				supported: true,
-			},
-		};
-	}
-	return result;
+      const result: InitializeResult = {
+            capabilities: {
+                  textDocumentSync: TextDocumentSyncKind.Incremental,
+                  // Declare all LSP features this server implements
+                  completionProvider: {
+                        resolveProvider: true,
+                        triggerCharacters: ["."],
+                  },
+                  signatureHelpProvider: {
+                        triggerCharacters: ["(", ","],
+                  },
+                  hoverProvider: true,
+                  definitionProvider: true,
+                  documentSymbolProvider: true,
+                  workspaceSymbolProvider: true,
+                  referencesProvider: true,
+                  documentFormattingProvider: true,
+                  renameProvider: {
+                        prepareProvider: true,
+                  },
+                  codeActionProvider: {
+                        codeActionKinds: [CodeActionKind.QuickFix, CodeActionKind.Refactor],
+                  },
+                  semanticTokensProvider: {
+                        legend: {
+                              tokenTypes: TOKEN_TYPES,
+                              tokenModifiers: TOKEN_MODIFIERS,
+                        },
+                        full: true,
+                  },
+            },
+      };
+      if (hasWorkspaceFolderCapability) {
+            result.capabilities.workspace = {
+                  workspaceFolders: {
+                        supported: true,
+                  },
+            };
+      }
+      return result;
 });
 
 connection.onInitialized(() => {
-	if (hasConfigurationCapability) {
-		// Subscribe to configuration change notifications from the client
-		connection.client.register(
-			DidChangeConfigurationNotification.type,
-			undefined,
-		);
-	}
-	if (hasWorkspaceFolderCapability) {
-		connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-			connection.console.log("Workspace folder change event received.");
-		});
-	}
+      if (hasConfigurationCapability) {
+            // Subscribe to configuration change notifications from the client
+            connection.client.register(DidChangeConfigurationNotification.type, undefined);
+      }
+      if (hasWorkspaceFolderCapability) {
+            connection.workspace.onDidChangeWorkspaceFolders((_event) => {
+                  connection.console.log("Workspace folder change event received.");
+            });
+      }
 });
 
 connection.onDidChangeConfiguration(async (change) => {
-	if (hasConfigurationCapability) {
-		clearDocumentSettings();
-	} else {
-		setGlobalSettings(sanitizeSettings(change.settings?.lootiscript));
-	}
+      if (hasConfigurationCapability) {
+            clearDocumentSettings();
+      } else {
+            setGlobalSettings(sanitizeSettings(change.settings?.lootiscript));
+      }
 
-	for (const doc of documents.all()) {
-		await validateTextDocument(
-			doc,
-			connection,
-			hasConfigurationCapability,
-			languageModes,
-			documentRegionsCache,
-		);
-	}
+      for (const doc of documents.all()) {
+            await validateTextDocument(
+                  doc,
+                  connection,
+                  hasConfigurationCapability,
+                  languageModes,
+                  documentRegionsCache,
+            );
+      }
 });
 
 // Triggered when document content changes (typing, paste, etc.)
 documents.onDidChangeContent((change) => {
-	updateDocumentState(change.document, connection);
-	validateTextDocument(
-		change.document,
-		connection,
-		hasConfigurationCapability,
-		languageModes,
-		documentRegionsCache,
-	);
+      updateDocumentState(change.document, connection);
+      validateTextDocument(
+            change.document,
+            connection,
+            hasConfigurationCapability,
+            languageModes,
+            documentRegionsCache,
+      );
 });
 
 documents.onDidOpen((change) => {
-	updateDocumentState(change.document, connection);
-	validateTextDocument(
-		change.document,
-		connection,
-		hasConfigurationCapability,
-		languageModes,
-		documentRegionsCache,
-	);
+      updateDocumentState(change.document, connection);
+      validateTextDocument(
+            change.document,
+            connection,
+            hasConfigurationCapability,
+            languageModes,
+            documentRegionsCache,
+      );
 });
 
 documents.onDidClose((change) => {
-	deleteDocumentState(change.document.uri);
-	connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
+      deleteDocumentState(change.document.uri);
+      connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
 
 connection.onDidChangeWatchedFiles((_change) => {
-	// React to file system changes for watched files (e.g., .loot files)
-	connection.console.log("We received an file change event");
+      // React to file system changes for watched files (e.g., .loot files)
+      connection.console.log("We received an file change event");
 });
 
 // Register all LSP feature handlers
 // Provides IDE features: autocomplete, hover tooltips, go-to-definition, etc.
-setupCompletionHandlers(
-	connection,
-	documents,
-	languageModes,
-	hasConfigurationCapability,
-);
+setupCompletionHandlers(connection, documents, languageModes, hasConfigurationCapability);
 setupHoverHandler(connection, documents, languageModes);
 setupSignatureHelpHandler(connection, documents, hasConfigurationCapability);
 setupSymbolHandlers(connection);
