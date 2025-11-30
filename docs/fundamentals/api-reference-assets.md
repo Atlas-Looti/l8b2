@@ -4,6 +4,17 @@ The asset manager allows you to load external files. Loading is **asynchronous**
 
 ## Methods
 
+### `Image(width, height)`
+
+Creates a new blank image.
+
+```lua
+local canvas = Image(64, 64)
+// Draw to image context
+canvas.context.fillStyle = "#FF0000"
+canvas.context.fillRect(0, 0, 64, 64)
+```
+
 ### `Assets.loadImage(path, callback?)`
 
 Loads an image file.

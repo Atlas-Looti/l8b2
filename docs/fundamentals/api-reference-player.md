@@ -69,6 +69,12 @@ if context.location then
     print("Opened from cast: " .. cast.text)
   end
 end
+
+if context.features then
+  if context.features.haptics then
+    print("Haptics supported")
+  end
+end
 ```
 
 ### `player.isInMiniApp()`

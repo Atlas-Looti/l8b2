@@ -68,6 +68,43 @@ Sets how subsequent drawing operations will be composited with existing graphics
 
 See [Screen API](https://github.com/Atlas-Looti/l8b2/blob/main/packages/core/screen/README.md) for all available blending modes.
 
+### `screen.setPixelated(enable)`
+
+Enable or disable pixelated rendering (nearest-neighbor interpolation).
+
+- `1`: Enable pixelated rendering (default for pixel art).
+- `0`: Disable (smooth interpolation).
+
+```lua
+screen.setPixelated(0) // Smooth scaling
+```
+
+### `screen.setLinearGradient(x1, y1, x2, y2, color1, color2)`
+
+Sets a linear gradient for subsequent drawing operations.
+
+- `x1, y1`: Start point.
+- `x2, y2`: End point.
+- `color1, color2`: Start and end colors.
+
+```lua
+screen.setLinearGradient(0, -100, 0, 100, "#00F", "#000")
+screen.fillRect(-100, -100, 200, 200) // Gradient background
+```
+
+### `screen.setRadialGradient(x, y, radius, color1, color2)`
+
+Sets a radial gradient for subsequent drawing operations.
+
+- `x, y`: Center point.
+- `radius`: Radius of the gradient.
+- `color1, color2`: Center and outer colors.
+
+```lua
+screen.setRadialGradient(0, 0, 50, "#FFF", "#000")
+screen.fillRound(0, 0, 100, 100) // Glowing sphere
+```
+
 ## Drawing Primitives
 
 ### `screen.fillRect(x, y, width, height, color?)`

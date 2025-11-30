@@ -146,4 +146,28 @@ end
 await(sendAndWait())
 ```
 
+### `wallet.onAccountsChanged(callback)`
+
+Listen for account changes (e.g., user switches wallet).
+
+```lua
+wallet.onAccountsChanged(function(accounts)
+  if #accounts > 0 then
+    print("Account changed to: " .. accounts[1])
+  else
+    print("Wallet disconnected")
+  end
+end)
+```
+
+### `wallet.onChainChanged(callback)`
+
+Listen for chain changes.
+
+```lua
+wallet.onChainChanged(function(chainId)
+  print("Chain changed to: " .. chainId)
+end)
+```
+
 For complete Wallet API documentation, see [@l8b/wallet README](https://github.com/Atlas-Looti/l8b2/blob/mainhttps://github.com/Atlas-Looti/l8b2/blob/main/packages/core/wallet/README.md).

@@ -53,6 +53,10 @@ export class PlayerService {
 					clientFid: fcContext.client.clientFid,
 					added: fcContext.client.added,
 				},
+				features: {
+					haptics: fcContext.features?.haptics ?? false,
+					cameraAndMicrophoneAccess: fcContext.features?.cameraAndMicrophoneAccess,
+				},
 			};
 		} catch (err) {
 			// Not in Mini App environment or SDK not available

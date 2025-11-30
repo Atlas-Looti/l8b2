@@ -160,6 +160,46 @@ export class ActionsService {
 					channelKey: options.channelKey,
 				});
 			},
+
+			haptics: {
+				impact: async (style) => {
+					await service.initialize();
+					await sdk.haptics.impactOccurred(style);
+				},
+				notification: async (type) => {
+					await service.initialize();
+					await sdk.haptics.notificationOccurred(type);
+				},
+				selection: async () => {
+					await service.initialize();
+					await sdk.haptics.selectionChanged();
+				},
+			},
+
+			back: {
+				enableWebNavigation: async () => {
+					await service.initialize();
+					await sdk.back.enableWebNavigation();
+				},
+				disableWebNavigation: async () => {
+					await service.initialize();
+					await sdk.back.disableWebNavigation();
+				},
+				show: async () => {
+					await service.initialize();
+					await sdk.back.show();
+				},
+				hide: async () => {
+					await service.initialize();
+					await sdk.back.hide();
+				},
+				onBack: (callback: () => void) => {
+					// We need to initialize to ensure SDK is ready, but we can't await here
+					// so we fire and forget the initialization
+					service.initialize().catch(() => { });
+					sdk.back.onback = callback;
+				},
+			},
 		};
 	}
 

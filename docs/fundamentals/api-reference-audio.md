@@ -4,6 +4,15 @@ L8B allows you to play sound effects and music.
 
 ## Methods
 
+### `Sound(name)`
+
+Creates a new Sound object for advanced control.
+
+```lua
+local laser = Sound("laser")
+laser.play()
+```
+
 ### `Audio.playSound(name, volume?, pitch?, pan?, loop?)`
 
 Plays a sound effect (SFX).

@@ -206,7 +206,80 @@ local result = await actions.composeCast({
   - `type` (string): "cast" or "channel"
   - `hash` (string): Cast hash (if type is "cast")
 - `close` (boolean, optional): Close app after composing, defaults to false
+- `close` (boolean, optional): Close app after composing, defaults to false
 - `channelKey` (string, optional): Channel key
+
+## Hardware & System
+
+### `actions.haptics.impact(style)`
+
+Trigger impact haptic feedback.
+
+```lua
+await actions.haptics.impact("medium")
+```
+
+**Style:** "light", "medium", "heavy", "rigid", "soft"
+
+### `actions.haptics.notification(type)`
+
+Trigger notification haptic feedback.
+
+```lua
+await actions.haptics.notification("success")
+```
+
+**Type:** "success", "warning", "error"
+
+### `actions.haptics.selection()`
+
+Trigger selection haptic feedback.
+
+```lua
+await actions.haptics.selection()
+```
+
+### `actions.back.enableWebNavigation()`
+
+Enable automatic web navigation integration for the back button.
+
+```lua
+await actions.back.enableWebNavigation()
+```
+
+### `actions.back.disableWebNavigation()`
+
+Disable automatic web navigation integration.
+
+```lua
+await actions.back.disableWebNavigation()
+```
+
+### `actions.back.show()`
+
+Show the back button manually.
+
+```lua
+await actions.back.show()
+```
+
+### `actions.back.hide()`
+
+Hide the back button manually.
+
+```lua
+await actions.back.hide()
+```
+
+### `actions.back.onBack(callback)`
+
+Register a callback for the back button.
+
+```lua
+actions.back.onBack(function()
+  print("Back button pressed")
+end)
+```
 
 ## Examples
 

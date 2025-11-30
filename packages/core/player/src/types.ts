@@ -9,12 +9,12 @@ export interface PlayerContext {
 	pfpUrl?: string;
 	location?: {
 		type:
-			| "cast_embed"
-			| "cast_share"
-			| "notification"
-			| "launcher"
-			| "channel"
-			| "open_miniapp";
+		| "cast_embed"
+		| "cast_share"
+		| "notification"
+		| "launcher"
+		| "channel"
+		| "open_miniapp";
 		cast?: {
 			author: {
 				fid: number;
@@ -44,6 +44,10 @@ export interface PlayerContext {
 		platformType?: "web" | "mobile";
 		clientFid: number;
 		added: boolean;
+	};
+	features?: {
+		haptics: boolean;
+		cameraAndMicrophoneAccess?: boolean;
 	};
 }
 

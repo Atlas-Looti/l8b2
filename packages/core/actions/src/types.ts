@@ -57,6 +57,23 @@ export interface OpenMiniAppOptions {
 	url: string;
 }
 
+export type HapticStyle = "light" | "medium" | "heavy" | "rigid" | "soft";
+export type HapticNotificationType = "success" | "warning" | "error";
+
+export interface HapticsAPI {
+	impact(style: HapticStyle): Promise<void>;
+	notification(type: HapticNotificationType): Promise<void>;
+	selection(): Promise<void>;
+}
+
+export interface BackAPI {
+	enableWebNavigation(): Promise<void>;
+	disableWebNavigation(): Promise<void>;
+	show(): Promise<void>;
+	hide(): Promise<void>;
+	onBack(callback: () => void): void;
+}
+
 /**
  * Actions API interface exposed to LootiScript
  */
@@ -89,4 +106,8 @@ export interface ActionsAPI {
 
 	// Social
 	composeCast(options: ComposeCastOptions): Promise<any>;
+
+	// Hardware & System
+	haptics: HapticsAPI;
+	back: BackAPI;
 }
