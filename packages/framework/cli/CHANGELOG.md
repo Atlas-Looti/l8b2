@@ -1,5 +1,14 @@
 # l8b
 
+## 1.0.5
+
+### Patch Changes
+
+- 8168f4d: fix init
+  - @l8b/runtime@1.0.5
+  - @l8b/compiler@1.0.5
+  - @l8b/diagnostics@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes

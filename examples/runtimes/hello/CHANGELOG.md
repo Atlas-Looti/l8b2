@@ -1,5 +1,11 @@
 # hello
 
+## 1.0.5
+
+### Patch Changes
+
+- @l8b/runtime@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes

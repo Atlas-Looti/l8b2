@@ -1,5 +1,13 @@
 # @l8b/screen
 
+## 1.0.5
+
+### Patch Changes
+
+- @l8b/map@1.0.5
+- @l8b/sprites@1.0.5
+- @l8b/diagnostics@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes
