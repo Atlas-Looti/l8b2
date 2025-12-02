@@ -1,0 +1,267 @@
+# Configuration File
+
+L8B menggunakan file konfigurasi `l8b.config.json` di root project untuk mengatur berbagai pengaturan game dan development environment.
+
+## File Location
+
+Buat file `l8b.config.json` di root directory project Anda:
+
+```
+my-game/
+├── src/
+├── public/
+└── l8b.config.json  ← File konfigurasi
+```
+
+## Basic Configuration
+
+Konfigurasi minimal:
+
+```json
+{
+  "name": "My Game",
+  "orientation": "landscape",
+  "aspect": "16x9"
+}
+```
+
+## Configuration Options
+
+### `name`
+
+Nama game yang akan digunakan di berbagai tempat (default: "LootiScript Game").
+
+```json
+{
+  "name": "My Awesome Game"
+}
+```
+
+### `orientation`
+
+Orientasi layar game. Pilihan:
+- `"portrait"` - Portrait mode (vertikal)
+- `"landscape"` - Landscape mode (horizontal)
+- `"any"` - Bebas (default)
+
+```json
+{
+  "orientation": "landscape"
+}
+```
+
+### `aspect`
+
+Aspect ratio layar. Pilihan:
+- `"16x9"` - Widescreen (16:9)
+- `"4x3"` - Classic (4:3)
+- `"1x1"` - Square (1:1)
+- `"2x1"` - Ultra-wide (2:1)
+- `"free"` - Bebas (default)
+- `">16x9"` - Minimum 16:9 (prefix `>` untuk minimum)
+
+```json
+{
+  "aspect": "16x9"
+}
+```
+
+### `width` / `height`
+
+Dimensi canvas dalam pixels. Jika tidak ditentukan, akan dihitung otomatis berdasarkan aspect ratio.
+
+```json
+{
+  "width": 1920,
+  "height": 1080
+}
+```
+
+**Note:** Jika `aspect` sudah ditentukan, `width` dan `height` akan dihitung otomatis. Hanya perlu menentukan jika ingin ukuran custom.
+
+### `canvas`
+
+Konfigurasi canvas element.
+
+```json
+{
+  "canvas": {
+    "id": "game",
+    "width": 1920,
+    "height": 1080
+  }
+}
+```
+
+- `id` - ID element canvas di HTML (default: "game")
+- `width` - Lebar canvas (optional, override dari `width` root)
+- `height` - Tinggi canvas (optional, override dari `height` root)
+
+### `dev`
+
+Konfigurasi development server.
+
+```json
+{
+  "dev": {
+    "port": 3000,
+    "host": "localhost",
+    "watch": true,
+    "hotReload": true
+  }
+}
+```
+
+- `port` - Port untuk dev server (default: 3000)
+- `host` - Host untuk dev server (default: "localhost", gunakan `"0.0.0.0"` untuk expose ke network)
+- `watch` - Enable file watching (default: true)
+- `hotReload` - Enable hot module replacement (default: true)
+
+### `logging`
+
+Kontrol output logging ke browser console dan terminal.
+
+```json
+{
+  "logging": {
+    "browser": {
+      "lifecycle": false,
+      "canvas": false
+    },
+    "terminal": {
+      "lifecycle": false,
+      "canvas": false,
+      "listener": false,
+      "errors": true
+    }
+  }
+}
+```
+
+**Browser logging:**
+- `lifecycle` - Log lifecycle events (init, update, draw)
+- `canvas` - Log canvas operations
+
+**Terminal logging:**
+- `lifecycle` - Log lifecycle events
+- `canvas` - Log canvas operations
+- `listener` - Log event listener registrations
+- `errors` - Log errors (default: true)
+
+### `farcaster`
+
+Konfigurasi untuk Farcaster Mini Apps.
+
+```json
+{
+  "farcaster": {
+    "manifest": {
+      "name": "My Mini App",
+      "iconUrl": "https://example.com/icon.png",
+      "splashImageUrl": "https://example.com/splash.png",
+      "splashBackgroundColor": "#000000",
+      "homeUrl": "https://example.com",
+      "ogImageUrl": "https://example.com/og.png"
+    },
+    "embeds": {
+      "/game": {
+        "imageUrl": "https://example.com/game-preview.png",
+        "title": "Play Game",
+        "description": "An awesome game"
+      }
+    }
+  }
+}
+```
+
+**Manifest options:**
+- `name` - Nama Mini App
+- `iconUrl` - URL icon (120x120px)
+- `splashImageUrl` - URL splash screen (1200x630px)
+- `splashBackgroundColor` - Background color untuk splash (hex)
+- `homeUrl` - Home URL Mini App
+- `ogImageUrl` - OpenGraph image URL
+
+**Embeds options:**
+- Key adalah route path (e.g., "/game")
+- `imageUrl` - Preview image untuk embed
+- `title` - Title untuk embed
+- `description` - Description untuk embed
+
+## Complete Example
+
+```json
+{
+  "name": "My Awesome Game",
+  "orientation": "landscape",
+  "aspect": "16x9",
+  "width": 1920,
+  "height": 1080,
+  "canvas": {
+    "id": "game"
+  },
+  "dev": {
+    "port": 3000,
+    "host": "localhost",
+    "watch": true,
+    "hotReload": true
+  },
+  "logging": {
+    "browser": {
+      "lifecycle": false,
+      "canvas": false
+    },
+    "terminal": {
+      "lifecycle": false,
+      "canvas": false,
+      "listener": false,
+      "errors": true
+    }
+  },
+  "farcaster": {
+    "manifest": {
+      "name": "My Mini App",
+      "iconUrl": "https://example.com/icon.png",
+      "splashImageUrl": "https://example.com/splash.png",
+      "splashBackgroundColor": "#000000",
+      "homeUrl": "https://example.com"
+    }
+  }
+}
+```
+
+## Default Values
+
+Jika tidak ditentukan, L8B akan menggunakan default values:
+
+```json
+{
+  "name": "LootiScript Game",
+  "orientation": "any",
+  "aspect": "free",
+  "canvas": {
+    "id": "game"
+  },
+  "logging": {
+    "browser": {
+      "lifecycle": false,
+      "canvas": false
+    },
+    "terminal": {
+      "lifecycle": false,
+      "canvas": false,
+      "listener": false,
+      "errors": true
+    }
+  }
+}
+```
+
+## Validation
+
+L8B akan memvalidasi konfigurasi saat:
+- Development server start (`l8b dev`)
+- Production build (`l8b build`)
+
+Jika ada error, akan ditampilkan pesan error yang jelas.
+

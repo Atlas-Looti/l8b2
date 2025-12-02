@@ -113,11 +113,11 @@ local result = 2 ^ 8  // Exponentiation: 256
 
 ```lua
 if score > 100 then
-  Console.log("High score!")
+  print("High score!")
 elseif score > 50 then
-  Console.log("Good score")
+  print("Good score")
 else
-  Console.log("Try again")
+  print("Try again")
 end
 ```
 
@@ -126,7 +126,7 @@ end
 ```lua
 local i = 0
 while i < 10 do
-  Console.log(i)
+  print(i)
   i += 1
 end
 ```
@@ -134,19 +134,19 @@ end
 #### For Loops
 
 ```lua
-// Numeric for loop
-for i = 1, 10 do
-  Console.log(i)
+// Numeric for loop (using 'to' keyword)
+for i = 1 to 10 do
+  print(i)
 end
 
 // For loop with step (using 'to' and 'by')
 for i = 0 to 100 by 10 do
-  Console.log(i)  // 0, 10, 20, ..., 100
+  print(i)  // 0, 10, 20, ..., 100
 end
 
 // For loop with negative step
 for i = 10 to 0 by -1 do
-  Console.log(i)  // 10, 9, 8, ..., 0
+  print(i)  // 10, 9, 8, ..., 0
 end
 ```
 
@@ -155,9 +155,9 @@ end
 ```lua
 local items = {1, 2, 3, 4, 5}
 
-// Iterate over array (1-indexed)
+// Iterate over array (0-indexed)
 for value in items do
-  Console.log("Value: " .. value)
+  print("Value: " .. value)
 end
 
 // Iterate over object keys
@@ -168,7 +168,7 @@ local player = object
 end
 
 for key in player do
-  Console.log(key .. " = " .. player[key])
+  print(key .. " = " .. player[key])
 end
 ```
 
@@ -250,14 +250,14 @@ local player = object
   end,
   
   die = function(self)
-    Console.log("Player died!")
+    print("Player died!")
   end
 end
 
 // Use object
 player.move(10, 0)
 player.takeDamage(25)
-Console.log(player.health)  // 75
+print(player.health)  // 75
 ```
 
 ### Classes
@@ -301,7 +301,7 @@ class Enemy extends Entity
   end,
   
   die = function(self)
-    Console.log("Enemy died!")
+    print("Enemy died!")
   end
 end
 
@@ -324,18 +324,19 @@ end
 
 ### Arrays/Lists
 
-Arrays are 1-indexed like Lua:
+Arrays are 0-indexed (first element at index 0):
 
 ```lua
 // Create array
 local items = {10, 20, 30, 40, 50}
 
 // Access elements
-local first = items[1]   // 10
-local last = items[5]    // 50
+local first = items[0]   // 10 (first element)
+local second = items[1]  // 20 (second element)
+local last = items[4]    // 50 (fifth element)
 
 // Modify elements
-items[1] = 15
+items[0] = 15
 
 // Array length
 local count = #items     // 5
@@ -344,8 +345,10 @@ local count = #items     // 5
 List.push(items, 60)
 
 // Remove element
-List.remove(items, 1)   // Removes element at index 1
+List.remove(items, 0)   // Removes element at index 0
 ```
+
+**Note:** LootiScript uses 0-based indexing, unlike Lua which uses 1-based indexing.
 
 ### String Operations
 
@@ -369,16 +372,16 @@ Useful for long text blocks.
 """
 
 // String methods (via stdlib)
-local upper = String.upper("hello")      // "HELLO"
-local lower = String.lower("WORLD")      // "world"
-local sub = String.sub("Hello", 1, 3)    // "Hel"
+local upper = String.toUpperCase("hello")      // "HELLO"
+local lower = String.toLowerCase("WORLD")      // "world"
+local sub = String.substring("Hello", 1, 3)    // "el"
 ```
 
 ## Advanced Features
 
 ### Coroutines/Threads
 
-LootiScript supports cooperative multitasking:
+LootiScript supports cooperative multitasking through scheduler blocks (`after`, `every`, `sleep`, `do`). These blocks allow code to run concurrently without blocking the main game loop.
 
 ```lua
 function enemyAI()
@@ -395,21 +398,17 @@ function enemyAI()
   end
 end
 
-// Start as thread using 'do' keyword
-local thread = do
+// Start as background thread using 'do' block
+do
   enemyAI()
 end
 
-// Thread control
-thread.pause()   // Pause the thread
-thread.resume()  // Resume the thread
-thread.stop()    // Stop the thread
-
-// Check thread status
-if thread.status == "running" then
-  Console.log("Thread is active")
-end
+// The 'do' block executes immediately in the background
+// Main code continues without waiting
+print("This runs immediately, not waiting for enemyAI")
 ```
+
+**Note:** The `do` block creates a background execution context. There is no explicit thread control API (pause/resume/stop) - use control variables or flags to manage thread lifecycle.
 
 ### Timing Functions
 
@@ -423,21 +422,21 @@ sleep(500 milliseconds)  // Sleep for 500ms
 sleep(2 minutes)   // Sleep for 2 minutes
 sleep(1 hour)      // Sleep for 1 hour
 
-// Execute after delay
-after(2.0 seconds, function()
-  Console.log("2 seconds passed")
-end)
+// Execute after delay (scheduler block syntax)
+after 2 seconds do
+  print("2 seconds passed")
+end
 
-// Execute repeatedly
-every(0.5 seconds, function()
-  Console.log("Called every 500ms")
-end)
+// Execute repeatedly (scheduler block syntax)
+every 0.5 seconds do
+  print("Called every 500ms")
+end
 
 // Do block (executes immediately as thread)
 do
-  Console.log("This runs immediately")
+  print("This runs immediately")
   sleep(1 second)
-  Console.log("This runs after 1 second")
+  print("This runs after 1 second")
 end
 
 // Do-while pattern (not supported - use while loop instead)
@@ -490,22 +489,22 @@ random.seed(12345)
 // Clone random generator
 local rng2 = random.clone(67890)
 
-// Random from array
+// Random from array (0-indexed)
 local items = {"sword", "shield", "potion"}
-local index = random.nextInt(#items) + 1
+local index = random.nextInt(#items)  // 0 to 2
 local item = items[index]
 ```
 
-### Console
+### Console Output
 
 ```lua
 // Logging
-Console.log("Debug message")
-Console.log("Score: " .. score)
-
-// Print (alias for Console.log)
+print("Debug message")
+print("Score: " .. score)
 print("Hello World")
 ```
+
+The `print()` function outputs text to the console. It accepts any value and converts it to a string for display.
 
 ### Delete Operator
 
@@ -553,7 +552,7 @@ local value = global.myGlobalVar
 // 'null' represents absence of value
 local empty = null
 if value == null then
-  Console.log("Value is null")
+  print("Value is null")
 end
 ```
 
@@ -585,8 +584,8 @@ function example()
   local innerVar = 25
   
   // Can access outer scopes
-  Console.log(localVar)   // 50
-  Console.log(globalVar)  // 100
+  print(localVar)   // 50
+  print(globalVar)  // 100
 end
 
 // innerVar not accessible here
@@ -706,49 +705,54 @@ end
 
 ### Built-in Math Functions
 
-LootiScript provides mathematical functions through the global scope:
+LootiScript provides mathematical functions both as global functions and through the `Math` object. Global functions are available directly, while the `Math` object provides additional utilities.
 
-#### Unary Math Functions
+#### Global Math Functions
+
+These functions are available directly in the global scope:
 
 ```lua
+// Rounding and basic operations
 round(x)    // Round to nearest integer
 floor(x)    // Round down
 ceil(x)     // Round up
 abs(x)      // Absolute value
 sqrt(x)     // Square root
-sin(x)      // Sine (radians)
-cos(x)      // Cosine (radians)
-tan(x)      // Tangent (radians)
-asin(x)     // Arc sine (radians)
-acos(x)     // Arc cosine (radians)
-atan(x)     // Arc tangent (radians)
+
+// Trigonometry (radians)
+sin(x)      // Sine
+cos(x)      // Cosine
+tan(x)      // Tangent
+asin(x)     // Arc sine
+acos(x)     // Arc cosine
+atan(x)     // Arc tangent
+atan2(y, x) // Arc tangent of y/x
+
+// Trigonometry (degrees)
 sind(x)     // Sine (degrees)
 cosd(x)     // Cosine (degrees)
 tand(x)     // Tangent (degrees)
 asind(x)    // Arc sine (degrees)
 acosd(x)    // Arc cosine (degrees)
 atand(x)    // Arc tangent (degrees)
+atan2d(y, x) // Arc tangent of y/x (degrees)
+
+// Logarithms and exponentials
 log(x)      // Natural logarithm
 exp(x)      // Exponential function
+
+// Min/Max and Power
+min(a, b)   // Minimum of two values
+max(a, b)   // Maximum of two values
+pow(a, b)   // a raised to power b (a^b)
+
+// Constants
+PI          // 3.141592653589793
+true        // 1
+false       // 0
 ```
 
-#### Binary Math Functions
-
-```lua
-min(a, b)      // Minimum of two values
-max(a, b)      // Maximum of two values
-pow(a, b)      // a raised to power b (a^b)
-atan2(y, x)    // Arc tangent of y/x (radians)
-atan2d(y, x)   // Arc tangent of y/x (degrees)
-```
-
-#### Math Constants
-
-```lua
-PI      // 3.141592653589793
-true    // 1
-false   // 0
-```
+**Note:** For additional math utilities (distance, lerp, clamp, etc.), use the `Math` object from the standard library.
 
 ### Built-in Libraries
 
@@ -768,10 +772,10 @@ Math.PI
 Access via `String` global object:
 
 ```lua
-String.upper(str)      // Convert to uppercase
-String.lower(str)      // Convert to lowercase
-String.sub(str, i, j)  // Substring from i to j
-String.fromCharCode(...)  // Create string from char codes
+String.toUpperCase(str)      // Convert to uppercase
+String.toLowerCase(str)      // Convert to lowercase
+String.substring(str, i, j)  // Substring from i to j
+String.fromCharCode(...)     // Create string from char codes
 // ... (see @l8b/stdlib for complete API)
 ```
 
@@ -780,11 +784,13 @@ String.fromCharCode(...)  // Create string from char codes
 Access via `List` global object:
 
 ```lua
-List.push(list, value)      // Add element to end
+List.push(list, ...items)    // Add elements to end
 List.pop(list)              // Remove and return last element
-List.remove(list, index)    // Remove element at index
-List.insert(list, index, value)  // Insert at index
-List.sort(list)             // Sort list
+List.shift(list)            // Remove and return first element
+List.unshift(list, ...items) // Add elements to start
+List.sort(list, compareFn?) // Sort list
+List.map(list, fn)          // Transform each element
+List.filter(list, fn)       // Filter elements
 // ... (see @l8b/stdlib for complete API)
 ```
 
@@ -793,8 +799,9 @@ List.sort(list)             // Sort list
 Access via `JSON` global object:
 
 ```lua
-JSON.stringify(obj)    // Convert object to JSON string
-JSON.parse(str)        // Parse JSON string to object
+JSON.encode(value)     // Convert value to JSON string
+JSON.decode(str)       // Parse JSON string to value
+JSON.pretty(value, indent?)  // Pretty-print JSON with indentation
 // ... (see @l8b/stdlib for complete API)
 ```
 
@@ -1196,18 +1203,18 @@ globalVar = 100
 function example()
   // Local variable shadows global
   local globalVar = 50
-  Console.log(globalVar)  // 50
+  print(globalVar)  // 50
   
   if true then
     // Another local shadows function local
     local globalVar = 25
-    Console.log(globalVar)  // 25
+    print(globalVar)  // 25
   end
   
-  Console.log(globalVar)  // 50
+  print(globalVar)  // 50
 end
 
-Console.log(globalVar)  // 100
+print(globalVar)  // 100
 ```
 
 ### Type Annotations (Optional)

@@ -36,7 +36,7 @@ const vm = new VM({
 // Load and run code
 const code = `
   function update() {
-    Console.log("Hello from LootiScript!")
+    print("Hello from LootiScript!")
   }
 `;
 
@@ -48,7 +48,7 @@ vm.start();
 
 ### Compilation Pipeline
 
-```
+```text
 LootiScript Source
       ↓
    Tokenizer (Lexical Analysis)
@@ -150,11 +150,17 @@ obj.property
 obj.property
 ```
 
-### JIT Compilation
+### Performance Optimizations
 
-Hot code paths are optimized through Just-In-Time compilation.
+The VM uses several optimization techniques:
+
+- **Inline Caching** - Property access is cached after first lookup
+- **Bytecode Optimization** - Common operation patterns are fused into single opcodes
+- **Efficient Stack Operations** - Minimized allocations in hot paths
 
 ### Memory Management
+
+The VM uses efficient memory management:
 
 - **Reference Counting** - Immediate cleanup of unused objects
 - **Mark-and-Sweep GC** - Periodic cleanup of circular references
@@ -162,19 +168,19 @@ Hot code paths are optimized through Just-In-Time compilation.
 
 ## Thread Management
 
-The VM supports cooperative multitasking:
+The VM supports cooperative multitasking through scheduler blocks (`after`, `every`, `sleep`, `do`). These blocks allow code to run concurrently without blocking the main game loop.
 
-```typescript
-// In LootiScript
-thread(function() {
+```lua
+// In LootiScript - using scheduler blocks
+do
   while true do
     doWork()
-    sleep(0.1)  // Yield to other threads
+    sleep(100)  // Yield to other threads
   end
-end)
+end
 ```
 
-Threads are managed by the `Runner` class and scheduled cooperatively.
+Scheduler blocks are managed by the `Runner` class and scheduled cooperatively. The `do` block executes code immediately as a background thread, while `after` and `every` schedule code for future execution.
 
 ## Error Handling
 
@@ -211,7 +217,7 @@ runtime.start();
 
 ## Package Structure
 
-```
+```text
 vm/
 ├── src/
 │   ├── compiler.ts      # AST to bytecode compiler

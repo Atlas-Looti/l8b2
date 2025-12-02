@@ -19,7 +19,7 @@ Route parameters are passed to the scene's `onEnter` method as an object:
 scene("player", object
   onEnter = function(self, params)
     playerId = params.id  // Get :id parameter from route
-    print("Viewing player: " + playerId)
+    print("Viewing player: " .. playerId)
   end
 end)
 ```

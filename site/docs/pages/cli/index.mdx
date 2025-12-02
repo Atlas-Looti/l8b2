@@ -1,0 +1,292 @@
+# CLI Commands
+
+L8B menyediakan Command-Line Interface (CLI) untuk development, build, dan deployment game LootiScript.
+
+## Installation
+
+Install L8B CLI secara global:
+
+```bash
+npm install -g l8b
+```
+
+Atau gunakan dengan npx (tanpa install):
+
+```bash
+npx l8b init my-game
+```
+
+## Commands Overview
+
+- [`init`](#init) - Initialize project baru
+- [`dev`](#dev) - Start development server dengan HMR
+- [`build`](#build) - Build project untuk production
+- [`start`](#start) - Serve production build
+
+## init
+
+Initialize project LootiScript baru.
+
+```bash
+l8b init <name>
+```
+
+### Options
+
+- `--force`, `-f` - Overwrite directory yang sudah ada
+
+### Examples
+
+```bash
+# Create new project
+l8b init my-game
+
+# Overwrite existing directory
+l8b init my-game --force
+```
+
+### What it creates
+
+```
+my-game/
+├── src/
+│   └── game.loot      # Example game file
+├── public/
+│   ├── sprites/
+│   ├── sounds/
+│   └── maps/
+└── l8b.config.json    # Configuration file
+```
+
+## dev
+
+Start development server dengan Hot Module Replacement (HMR).
+
+```bash
+l8b dev [root]
+```
+
+### Options
+
+- `root` - Path ke project root (default: current directory)
+- `--port <number>` - Port untuk dev server (default: 3000)
+- `--host <hostname>` - Expose ke network (gunakan `0.0.0.0` untuk expose)
+- `--tunnel` - Enable tunneling untuk Farcaster Mini Apps testing
+
+### Examples
+
+```bash
+# Start dev server di current directory
+l8b dev
+
+# Start di specific directory
+l8b dev ./my-game
+
+# Custom port
+l8b dev --port 8080
+
+# Expose ke network
+l8b dev --host 0.0.0.0
+
+# Custom port dan host
+l8b dev --port 8080 --host 0.0.0.0
+
+# Enable tunneling untuk Farcaster Mini Apps
+l8b dev --tunnel
+```
+
+### Features
+
+- **Hot Module Replacement** - Code changes otomatis recompile dan refresh
+- **Asset Reloading** - Asset changes otomatis reload
+- **Error Overlay** - Menampilkan compilation errors di browser
+- **Automatic Compilation** - Semua `.loot` files di `src/` otomatis di-compile
+
+### Tunneling untuk Farcaster Mini Apps
+
+Saat develop Farcaster Mini Apps, Anda perlu public HTTPS URL. Gunakan flag `--tunnel`:
+
+```bash
+l8b dev --tunnel
+```
+
+Ini akan:
+- Start cloudflared tunnel (requires cloudflared installed)
+- Update `/.well-known/farcaster.json` dengan tunnel URL
+- Display QR code untuk mobile testing
+- Automatically update manifest URLs untuk testing
+
+## build
+
+Build project untuk production.
+
+```bash
+l8b build [root]
+```
+
+### Options
+
+- `root` - Path ke project root (default: current directory)
+
+### Examples
+
+```bash
+# Build current directory
+l8b build
+
+# Build specific directory
+l8b build ./my-game
+```
+
+### Output
+
+Build process akan menghasilkan:
+
+```
+.l8b/
+├── index.html         # Production HTML
+├── runtime.js         # Embedded runtime
+├── modules/           # Compiled bytecode
+│   ├── game.l8b
+│   └── ...
+└── assets/            # Copied assets
+    ├── sprites/
+    ├── sounds/
+    └── maps/
+```
+
+**Features:**
+- Compiled LootiScript bytecode
+- Optimized runtime bundle
+- Copied assets
+- Production-ready HTML
+
+## start
+
+Serve production build.
+
+```bash
+l8b start [root]
+```
+
+### Options
+
+- `root` - Path ke project root (default: current directory)
+- `--port <number>` - Port untuk server (default: 3000)
+- `--host <hostname>` - Expose ke network
+
+### Examples
+
+```bash
+# Serve production build
+l8b start
+
+# Custom port
+l8b start --port 8080
+
+# Expose ke network
+l8b start --host 0.0.0.0
+```
+
+**Note:** Pastikan sudah run `l8b build` sebelum `l8b start`.
+
+## Project Structure
+
+CLI mengharapkan struktur project berikut:
+
+```
+my-game/
+├── src/                   # LootiScript files (semua .loot files di-load)
+│   ├── game.loot
+│   └── scenes/
+│       └── menu.loot
+├── public/                # Static assets
+│   ├── sprites/
+│   │   ├── player.png
+│   │   └── enemy.png
+│   ├── sounds/
+│   │   └── jump.wav
+│   └── maps/
+│       └── level1.json
+└── l8b.config.json        # Configuration (optional)
+```
+
+## Development Workflow
+
+### 1. Create Project
+
+```bash
+npx l8b init my-game
+cd my-game
+npm install
+```
+
+### 2. Start Development
+
+```bash
+l8b dev
+```
+
+Buka http://localhost:3000 di browser.
+
+### 3. Build for Production
+
+```bash
+l8b build
+```
+
+### 4. Serve Production Build
+
+```bash
+l8b start
+```
+
+## Asset Loading
+
+Assets otomatis di-detect dari `public/`:
+
+```
+public/
+├── sprites/          → Auto-loaded sebagai sprites
+├── sounds/           → Auto-loaded sebagai sounds
+├── music/            → Auto-loaded sebagai music
+├── maps/             → Auto-loaded sebagai maps
+└── fonts/            → Auto-loaded sebagai fonts
+```
+
+Access di LootiScript:
+
+```lua
+// Sprites auto-loaded
+screen.drawSprite("player", 100, 100)
+
+// Sounds auto-loaded
+Audio.playSound("jump.wav")
+
+// Maps auto-loaded
+screen.drawMap("level1", 0, 0, 800, 600)
+```
+
+## Error Handling
+
+CLI menyediakan detailed error messages:
+
+```
+✗ Compilation Error
+
+  File: src/game.loot:15:5
+  Error: Unexpected token 'end'
+  
+  Hint: Missing 'then' keyword
+```
+
+Semua errors ditampilkan dengan:
+- File location
+- Line dan column number
+- Error message
+- Helpful hints
+
+## Configuration
+
+Lihat [Configuration File](/configuration/config) untuk detail tentang `l8b.config.json`.
+

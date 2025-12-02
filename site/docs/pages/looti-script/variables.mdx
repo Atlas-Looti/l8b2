@@ -51,6 +51,19 @@ end
 // print(multiplier) -> would print 0
 ```
 
+#### Alternative Keywords
+LootiScript also supports `var` and `let` as aliases for `local`. These work exactly the same way:
+
+```lua
+function example()
+  var x = 10    // Same as: local x = 10
+  let y = 20    // Same as: local y = 20
+  local z = 30  // Standard way
+end
+```
+
+All three keywords (`local`, `var`, `let`) create local variables with the same behavior. Use whichever you prefer, though `local` is the most common.
+
 ## Variable Naming
 Variable names can contain letters, numbers, and underscores, but must not start with a number. They are case-sensitive.
 

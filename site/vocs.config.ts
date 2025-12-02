@@ -75,6 +75,24 @@ export default defineConfig({
 			],
 		},
 		{
+			text: 'CLI',
+			items: [
+				{
+					text: 'Commands',
+					link: '/cli',
+				},
+			],
+		},
+		{
+			text: 'Configuration',
+			items: [
+				{
+					text: 'Config File',
+					link: '/configuration/config',
+				},
+			],
+		},
+		{
 			text: 'API Reference',
 			items: [
 				{

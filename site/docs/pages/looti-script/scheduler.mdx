@@ -55,6 +55,42 @@ function playIntro()
 end
 ```
 
+## The `do` Block
+
+The `do` block executes code immediately as a separate thread (coroutine). This allows you to run code concurrently with the main game loop. The block runs in the background and can use `sleep` to pause execution.
+
+```lua
+// Execute code in background thread
+do
+  print("This runs immediately")
+  sleep 1 second
+  print("This runs after 1 second")
+  sleep 1 second
+  print("This runs after 2 seconds total")
+end
+
+// Main code continues immediately
+print("This runs right away, not waiting for do block")
+```
+
+The `do` block is useful for:
+- Running background tasks that don't need to block the main loop
+- Creating concurrent animations
+- Implementing AI behaviors that run independently
+- Handling long-running operations without freezing the game
+
+```lua
+// Example: Background enemy AI
+do
+  while enemy.alive do
+    enemy.moveTowardsPlayer()
+    sleep 100 milliseconds
+  end
+end
+
+// Game continues while enemy AI runs in background
+```
+
 ## Time Units
 
 LootiScript supports natural language time units for better readability.

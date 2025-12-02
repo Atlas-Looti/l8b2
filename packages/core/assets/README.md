@@ -122,8 +122,8 @@ Assets.loadJSON(path: string, callback?: function): JSONLoaderResult
 ```lua
 // Load JSON with callback
 Assets.loadJSON("config", function(data)
-  Console.log(data.level)
-  Console.log(data.score)
+  print(data.level)
+  print(data.score)
   gameConfig = data
 end)
 
@@ -172,7 +172,7 @@ Assets.loadText(path: string, callback?: function, ext?: string): TextLoaderResu
 ```lua
 // Load text file with callback
 Assets.loadText("story", function(text)
-  Console.log(text)
+  print(text)
   displayStory(text)
 end)
 
@@ -225,7 +225,7 @@ Assets.loadCSV("data", function(csvContent)
   // Parse CSV content
   local rows = parseCSV(csvContent)
   for i = 1, #rows do
-    Console.log(rows[i])
+    print(rows[i])
   end
 end)
 
@@ -376,8 +376,8 @@ end)
 // Load configuration
 Assets.loadJSON("config", function(data)
   config = data
-  Console.log("Level: " .. config.level)
-  Console.log("Difficulty: " .. config.difficulty)
+  print("Level: " .. config.level)
+  print("Difficulty: " .. config.difficulty)
 end)
 
 // Load story text

@@ -49,12 +49,28 @@ local s1 = "Double quotes"
 local s2 = 'Single quotes'
 ```
 
+#### String Concatenation
+Use the `..` operator to concatenate strings:
+
+```lua
+local greeting = "Hello" .. " " .. "World"  // "Hello World"
+local name = "Alice"
+local msg = "Hello, " .. name  // "Hello, Alice"
+```
+
 #### Template Strings
-Use backticks `` ` `` for string interpolation.
+Use backticks `` ` `` for string interpolation. Template strings allow you to embed expressions directly in the string.
 
 ```lua
 local name = "Alice"
-local msg = `Hello, ${name}!`
+local age = 30
+local msg = `Hello, ${name}! You are ${age} years old.`
+// Result: "Hello, Alice! You are 30 years old."
+
+// You can use any expression inside ${}
+local x = 10
+local y = 20
+local result = `Sum: ${x + y}`  // "Sum: 30"
 ```
 
 #### Multi-line Strings
@@ -69,13 +85,16 @@ string.
 ```
 
 ### Lists (Arrays)
-Lists are ordered collections of values. They are **1-indexed**, meaning the first element is at index 1.
+Lists are ordered collections of values. They are **0-indexed**, meaning the first element is at index 0.
 
 ```lua
 local items = {10, 20, 30}
-print(items[1])  // 10
-print(items[3])  // 30
+print(items[0])  // 10 (first element)
+print(items[1])  // 20 (second element)
+print(items[2])  // 30 (third element)
 ```
+
+**Note:** LootiScript uses 0-based indexing, unlike Lua which uses 1-based indexing. The first element is always at index 0.
 
 ### Objects
 Objects are collections of key-value pairs.

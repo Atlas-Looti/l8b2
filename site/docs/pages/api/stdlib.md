@@ -117,7 +117,7 @@ L8B provides standard library utilities accessible as global objects: `Math`, `S
 - `List.flat(arr, depth?)`: Flatten nested arrays
 - `List.flatMap(arr, fn)`: Map and flatten
 
-### Search
+### Search Operations
 
 - `List.indexOf(arr, item, fromIndex?)`: Find index of item
 - `List.lastIndexOf(arr, item, fromIndex?)`: Find last index of item
@@ -155,52 +155,29 @@ L8B provides standard library utilities accessible as global objects: `Math`, `S
 - `JSON.decode(json)`: Decode JSON string to value
 - `JSON.pretty(value, indent?)`: Pretty-print JSON with indentation
 
-## Random
+## Random Number Generator
 
-Seeded random number generator.
-
-### `Random(seed?)`
-
-Creates a new random number generator.
-
-```lua
-local rng = Random(12345)
-local val = rng.next()
-```
+Global `random` object provides seeded random number generation.
 
 ### Methods
 
-- `rng.next()`: Returns random number [0, 1)
-- `rng.nextInt(max)`: Returns random integer [0, max)
-- `rng.seed(value)`: Set new seed
-- `rng.clone()`: Create a copy of the generator state
-
-## ObjectPool
-
-Utility for reusing objects to improve performance.
-
-### `ObjectPool(factory, reset, maxSize?)`
-
-Creates a new object pool.
-
-- `factory`: Function that creates a new object
-- `reset`: Function that resets an object for reuse
-- `maxSize`: Maximum number of objects to keep (default: 100)
+- `random.next()`: Returns random number [0, 1)
+- `random.nextInt(max)`: Returns random integer [0, max)
+- `random.seed(value?)`: Set new seed (or random if not provided)
+- `random.clone(seed?)`: Create a copy of the generator state
 
 ```lua
-local pool = ObjectPool(
-  function() return {x=0, y=0} end,  // Factory
-  function(o) o.x=0; o.y=0 end,      // Reset
-  50                                 // Max size
-)
+// Use global random object
+local val = random.next()
+local dice = random.nextInt(6) + 1  // 1 to 6
+random.seed(12345)  // Set seed for deterministic randomness
 ```
 
-### Methods
+## ObjectPool (Advanced)
 
-- `pool.acquire()`: Get an object from the pool (or create new if empty)
-- `pool.release(obj)`: Return an object to the pool
-- `pool.clear()`: Remove all objects from pool
-- `pool.size()`: Get current number of pooled objects
+Utility for reusing objects to improve performance (advanced usage).
+
+**Note:** ObjectPool is typically used internally by the engine. For most use cases, creating objects directly is sufficient.
 
 ## Examples
 
@@ -213,14 +190,14 @@ randomNum = Math.randomInt(1, 10)
 
 // String examples
 parts = String.split("hello,world", ",")
-joined = String.join(["a", "b", "c"], "-")
+joined = String.join({"a", "b", "c"}, "-")
 formatted = String.format("Hello {0}, you have {1} points", "Player", 100)
 
 // List examples
-doubled = List.map([1, 2, 3], function(x) return x * 2 end)
-evens = List.filter([1, 2, 3, 4], function(x) return x % 2 == 0 end)
-sum = List.sum([1, 2, 3, 4, 5])
-shuffled = List.shuffle([1, 2, 3, 4, 5])
+doubled = List.map({1, 2, 3}, x => x * 2)
+evens = List.filter({1, 2, 3, 4}, x => x % 2 == 0)
+sum = List.sum({1, 2, 3, 4, 5})
+shuffled = List.shuffle({1, 2, 3, 4, 5})
 
 // JSON examples
 jsonStr = JSON.encode({name: "Player", score: 100})
