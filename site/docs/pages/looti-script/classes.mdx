@@ -1,0 +1,84 @@
+# Classes
+
+Classes provide a way to create reusable object templates with shared behavior. LootiScript supports class-based object-oriented programming with inheritance.
+
+## Defining a Class
+
+Use the `class` keyword to define a new class.
+
+```lua
+class Player
+  // Constructor is called when creating a new instance
+  constructor = function(self, name)
+    self.name = name
+    self.health = 100
+  end
+
+  // Method definition
+  takeDamage = function(self, amount)
+    self.health -= amount
+    print(self.name .. " took " .. amount .. " damage")
+  end
+end
+```
+
+## Creating Instances
+
+Use the `new` keyword to create an instance of a class.
+
+```lua
+local p1 = new Player("Hero")
+p1.takeDamage(10)
+// Output: Hero took 10 damage
+```
+
+## Inheritance
+
+Classes can inherit from other classes using the `extends` keyword.
+
+```lua
+class Enemy extends Player
+  constructor = function(self, name, type)
+    // Call parent constructor
+    super(name)
+    self.type = type
+  end
+
+  attack = function(self)
+    print(self.name .. " attacks!")
+  end
+end
+
+local goblin = new Enemy("Goblin", "Melee")
+goblin.takeDamage(5)  // Inherited method
+goblin.attack()       // New method
+```
+
+## `this` vs `self`
+
+In LootiScript methods, the first parameter is conventionally named `self`, which refers to the instance. However, you can also use `this` keyword inside methods to refer to the current instance, similar to other languages.
+
+```lua
+class Counter
+  count = 0
+
+  increment = function()
+    this.count += 1  // 'this' refers to the instance
+  end
+end
+```
+
+## Static Members
+
+You can define static members by adding them directly to the class object after definition.
+
+```lua
+class MathHelper
+  // ...
+end
+
+MathHelper.PI = 3.14159
+MathHelper.square = x => x * x
+
+print(MathHelper.square(5)) // 25
+```

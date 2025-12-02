@@ -4,9 +4,9 @@
 	"description": "Looti Engine",
 	"private": true,
 	"scripts": {
-		"docs:dev": "vitepress dev docs",
-		"docs:build": "vitepress build docs",
-		"docs:preview": "vitepress preview docs",
+		"docs:dev": "cd site && pnpm run dev",
+		"docs:build": "cd site && pnpm run build",
+		"docs:preview": "cd site && pnpm run preview",
 		"build": "turbo run build ",
 		"dev": "turbo run dev --concurrency=15",
 		"lint": " biome check --write .",

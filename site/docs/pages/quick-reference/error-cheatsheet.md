@@ -22,7 +22,7 @@ Example:
 
 | Code Range | Category | Description |
 |------------|----------|-------------|
-| E1xxx | Syntax Errors | LootiScript syntax errors |
+| E1xxx | Syntax Errors | [LootiScript Programming](/looti-script)s |
 | E2xxx | Runtime Errors | Errors during program execution |
 | E3xxx | Compilation Errors | Errors during compilation |
 | E5xxx | Scene Errors | Scene management errors |
@@ -450,7 +450,7 @@ end
 
 If the error is still unclear:
 
-1. **Check documentation** - See [API Reference](/fundamentals/api-reference)
+1. **Check documentation** - See [API Reference](/api)
 2. **Check examples** - See examples in `examples/` folder
 3. **Check console** - Open browser DevTools for more details
 4. **Check stack trace** - Use stack trace to understand program flow

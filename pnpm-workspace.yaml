@@ -3,6 +3,7 @@ packages:
   - 'packages/**/*'
   - 'scripts/**/*'
   - 'apps/**/*'
+  - 'site'
   - '!next/**/*'
   - '!dist/**/*'
   - '!l8b/**/*'
