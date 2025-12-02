@@ -20,14 +20,6 @@ export const INTERNAL_ENDPOINTS = {
 } as const;
 
 /**
- * Font serving configuration
- */
-export const FONT = {
-	CONTENT_TYPE: "font/ttf",
-	CACHE_CONTROL: "public, max-age=31536000", // 1 year
-} as const;
-
-/**
  * Build configuration
  */
 export const BUILD = {

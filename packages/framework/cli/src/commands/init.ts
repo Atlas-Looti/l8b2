@@ -4,9 +4,11 @@
  * Scaffolds a new project with standard directory structure and example files.
  */
 
+import { readFileSync } from "fs";
 import fs from "fs-extra";
 import path from "path";
 import pc from "picocolors";
+import { fileURLToPath } from "url";
 import { DEFAULT_DIRS, DEFAULT_FILES } from "../utils/paths";
 
 export interface InitOptions {
@@ -14,6 +16,28 @@ export interface InitOptions {
 	name: string;
 	/** Force overwrite existing directory */
 	force?: boolean;
+}
+
+/**
+ * Get CLI package version from package.json
+ *
+ * Reads the version dynamically from the CLI package's package.json file.
+ * Works both in development (src/) and production (dist/) builds.
+ *
+ * @returns CLI package version string
+ */
+function getCliVersion(): string {
+	try {
+		const __dirname = path.dirname(fileURLToPath(import.meta.url));
+		// From dist/commands/init.js, go up 2 levels to package.json
+		// From src/commands/init.ts (in dev), go up 2 levels to package.json
+		const packageJsonPath = path.join(__dirname, "../../package.json");
+		const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+		return packageJson.version || "1.0.0";
+	} catch {
+		// Fallback if package.json not found
+		return "1.0.0";
+	}
 }
 
 /**
@@ -48,33 +72,13 @@ export async function init(options: InitOptions): Promise<void> {
 	await fs.ensureDir(path.join(projectPath, DEFAULT_DIRS.PUBLIC, "sprites"));
 	await fs.ensureDir(path.join(projectPath, DEFAULT_DIRS.PUBLIC, "sounds"));
 	await fs.ensureDir(path.join(projectPath, DEFAULT_DIRS.PUBLIC, "maps"));
+	await fs.ensureDir(path.join(projectPath, DEFAULT_DIRS.PUBLIC, DEFAULT_DIRS.FONTS));
 
 	// Create l8b.config.json
 	const config = {
 		name: projectName,
-		orientation: "landscape",
-		aspect: "16x9",
-		width: 1920,
-		height: 1080,
-		canvas: {
-			id: "game",
-		},
-		dev: {
-			port: 3000,
-			host: "localhost",
-		},
-		logging: {
-			browser: {
-				lifecycle: false,
-				canvas: false,
-			},
-			terminal: {
-				lifecycle: false,
-				canvas: false,
-				listener: false,
-				errors: true,
-			},
-		},
+		orientation: "any",
+		aspect: "free",
 	};
 
 	await fs.writeJson(path.join(projectPath, DEFAULT_FILES.CONFIG), config, {
@@ -82,33 +86,33 @@ export async function init(options: InitOptions): Promise<void> {
 	});
 
 	// Create example script
-	const exampleScript = `// Initialize
-local player = object
-  x = 100,
-  y = 100
+	const exampleScript = `t = 0
+
+init = function()
+  // Initialize game
 end
 
-// Update loop
-function update()
-  if keyboard.UP == 1 then
-    player.y -= 2
-  end
-  if keyboard.DOWN == 1 then
-    player.y += 2
-  end
-  if keyboard.LEFT == 1 then
-    player.x -= 2
-  end
-  if keyboard.RIGHT == 1 then
-    player.x += 2
-  end
+update = function()
+  t = t + 1
 end
 
-// Draw loop
-function draw()
-  screen.clear("#000")
-  screen.fillRect(player.x, player.y, 16, 16, "#FFF")
-  screen.print(10, 10, "Hello LootiScript!", "#FFF")
+draw = function()
+  // Clear screen with dark blue background
+  screen.clear("#0c0c1c")
+  
+  // Draw animated text
+  x = 0
+  y = 0
+  text = "Hello, L8B!"
+  size = 8
+  color = "#ffffff"
+  screen.drawText(text, x, y, size, color)
+  
+  // Draw a simple animated circle
+  cx = 0
+  cy = 20
+  radius = 5 + sin(t / 10) * 2
+  screen.drawCircle(cx, cy, radius, "#00ff88")
 end
 `;
 
@@ -123,6 +127,9 @@ dist
 
 	await fs.writeFile(path.join(projectPath, ".gitignore"), gitignore);
 
+	// Get CLI version dynamically
+	const cliVersion = getCliVersion();
+
 	// Create package.json
 	const packageJson = {
 		name: projectName,
@@ -136,7 +143,7 @@ dist
 		},
 		dependencies: {},
 		devDependencies: {
-			"@l8b/cli": "workspace:*",
+			"@l8b/cli": `^${cliVersion}`,
 		},
 	};
 

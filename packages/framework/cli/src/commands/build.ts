@@ -16,9 +16,7 @@ import { generateHTML } from "../generator/html-generator";
 import { detectResources } from "../loader/auto-detect";
 import { loadSources } from "../loader/source-loader";
 import { CompilationError } from "../utils/errors";
-import { DEFAULT_DIRS, DEFAULT_FILES, getBitCellFontPaths, getCliPackageRoot } from "../utils/paths";
-
-const cliPackageRoot = getCliPackageRoot();
+import { DEFAULT_DIRS, DEFAULT_FILES } from "../utils/paths";
 
 /**
  * Build project for production
@@ -127,28 +125,8 @@ export async function build(projectPath: string = process.cwd()): Promise<void> 
 	}
 	console.log(pc.green("  ✓ Copied source files"));
 
-	// Copy BitCell font from CLI package to dist
-	const fontPaths = getBitCellFontPaths(cliPackageRoot);
-
-	let fontSourcePath: string | null = null;
-	if (await fs.pathExists(fontPaths.dist)) {
-		fontSourcePath = fontPaths.dist;
-	} else if (await fs.pathExists(fontPaths.assets)) {
-		fontSourcePath = fontPaths.assets;
-	}
-
-	const fontDistPath = path.join(distDir, DEFAULT_DIRS.FONTS, DEFAULT_FILES.BITCELL_FONT);
-
-	if (fontSourcePath) {
-		await fs.copy(fontSourcePath, fontDistPath);
-		console.log(pc.green("  ✓ Copied BitCell font"));
-	} else {
-		// Only warn, don't fail - font might work from browser cache
-		console.warn(pc.yellow("  ⚠ BitCell font not found. Tried:"));
-		console.warn(pc.yellow(`    ${fontPaths.dist}`));
-		console.warn(pc.yellow(`    ${fontPaths.assets}`));
-		console.warn(pc.gray("  (Font may still work if cached)"));
-	}
+	// Note: BitCell font is now embedded directly in HTML as data URI
+	// No need to copy font file separately
 
 	// Generate Farcaster manifest if configured
 	if (config.farcaster?.manifest) {

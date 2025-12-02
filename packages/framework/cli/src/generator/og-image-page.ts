@@ -117,8 +117,10 @@ export function generateOGImagePage(
           // This allows the page to be used as an image URL
           const dataUrl = canvas.toDataURL('image/png');
           
-          // Replace page content with image
-          document.body.innerHTML = '';
+          // Replace page content with image (safe DOM manipulation)
+          while (document.body.firstChild) {
+            document.body.removeChild(document.body.firstChild);
+          }
           const img = document.createElement('img');
           img.src = dataUrl;
           img.style.width = '100%';
@@ -132,7 +134,13 @@ export function generateOGImagePage(
           document.body.style.background = 'transparent';
         } catch (error) {
           console.error('Error generating OG image:', error);
-          document.body.innerHTML = '<p>Error generating OG image</p>';
+          // Safe error message display (no innerHTML)
+          while (document.body.firstChild) {
+            document.body.removeChild(document.body.firstChild);
+          }
+          const p = document.createElement('p');
+          p.textContent = 'Error generating OG image';
+          document.body.appendChild(p);
         }
       });
 

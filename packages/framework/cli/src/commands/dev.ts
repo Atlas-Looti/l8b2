@@ -6,7 +6,6 @@
  */
 
 import chokidar from "chokidar";
-import fs from "fs-extra";
 import path from "path";
 import pc from "picocolors";
 import type { ViteDevServer } from "vite";
@@ -18,9 +17,9 @@ import { generateOGImagePage } from "../generator/og-image-page";
 import { detectResources } from "../loader/auto-detect";
 import { loadSources } from "../loader/source-loader";
 import { lootiScriptPlugin } from "../plugin/vite-plugin-lootiscript";
-import { DEFAULT_SERVER, FONT } from "../utils/constants";
+import { DEFAULT_SERVER } from "../utils/constants";
 import { ServerError } from "../utils/errors";
-import { DEFAULT_DIRS, DEFAULT_FILES, getBitCellFontPaths, getCliPackageRoot } from "../utils/paths";
+import { DEFAULT_DIRS, DEFAULT_FILES } from "../utils/paths";
 import { findMatchingRoute } from "../utils/route-params";
 import { handleRuntimeLogRequest } from "../utils/runtime-logs";
 import { isCloudflaredAvailable, startCloudflaredTunnel, updateManifestForTunnel } from "../utils/tunnel";
@@ -36,8 +35,6 @@ export interface DevOptions {
 	/** Enable tunneling for Farcaster Mini Apps testing */
 	tunnel?: boolean;
 }
-
-const cliPackageRoot = getCliPackageRoot();
 
 /**
  * Start development server for LootiScript project
@@ -83,11 +80,6 @@ export async function dev(projectPath: string = process.cwd(), options: DevOptio
 				{
 					name: "l8b-html-generator",
 					configureServer(server) {
-						// Get font paths
-						const fontPaths = getBitCellFontPaths(cliPackageRoot);
-						const normalizedDistFontPath = path.normalize(fontPaths.dist);
-						const normalizedAssetsFontPath = path.normalize(fontPaths.assets);
-
 						// Place middleware BEFORE other middlewares to catch font requests early
 						server.middlewares.use(async (req, res, next) => {
 							if (handleRuntimeLogRequest(req, res)) {
@@ -159,32 +151,6 @@ export async function dev(projectPath: string = process.cwd(), options: DevOptio
 									res.statusCode = 500;
 									res.end("Error generating OG image: " + String(error));
 									return;
-								}
-							}
-
-							// Serve BitCell font from CLI package
-							const fontUrl = `/fonts/${DEFAULT_FILES.BITCELL_FONT}`;
-							if (req.url && (req.url === fontUrl || req.url.startsWith(fontUrl))) {
-								// Try dist first, then assets
-								let fontPath = normalizedDistFontPath;
-								if (!(await fs.pathExists(fontPath))) {
-									fontPath = normalizedAssetsFontPath;
-								}
-
-								if (await fs.pathExists(fontPath)) {
-									try {
-										const fontData = await fs.readFile(fontPath);
-										res.setHeader("Content-Type", FONT.CONTENT_TYPE);
-										res.setHeader("Cache-Control", FONT.CACHE_CONTROL);
-										res.end(fontData);
-										return;
-									} catch (error) {
-										console.error("[L8B CLI] Error serving BitCell font:", error);
-									}
-								} else {
-									console.warn(
-										`[L8B CLI] BitCell font not found. Tried:\n  ${normalizedDistFontPath}\n  ${normalizedAssetsFontPath}`,
-									);
 								}
 							}
 

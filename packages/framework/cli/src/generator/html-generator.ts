@@ -10,6 +10,7 @@ import type { CompiledModule } from "../build";
 import type { LootiConfig } from "../config";
 import { getCanvasSize } from "../config";
 import { INTERNAL_ENDPOINTS } from "../utils/constants";
+import { BITCELL_FONT_BASE64 } from "../utils/bitcell-font";
 import { generateFarcasterEmbedTag } from "./farcaster-embed";
 
 /**
@@ -26,7 +27,7 @@ function generateStyles(canvasId: string): string {
 	return `
       @font-face {
         font-family: "BitCell";
-        src: url("/fonts/BitCell.ttf") format("truetype");
+        src: url("data:font/truetype;charset=utf-8;base64,${BITCELL_FONT_BASE64}") format("truetype");
         font-display: swap;
       }
       :root {
@@ -203,8 +204,9 @@ import { Runtime } from '@l8b/runtime';`
         }
       };
 
-      // HTTP Logger for development
-      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+      // HTTP Logger for development (only in dev mode, not production)
+      ${!isProduction ? `
+      if (typeof window !== 'undefined') {
         window.__l8b_http_logger = {
           logRequest: function(method, url, status, time, size, error) {
             const methodColor = method === 'GET' ? 'color: #4A9EFF' : 
@@ -228,6 +230,7 @@ import { Runtime } from '@l8b/runtime';`
           }
         };
       }
+      ` : '// HTTP Logger disabled in production'}
 
       const runtimeOptions = {
         canvas: canvas,
@@ -367,7 +370,9 @@ export function generateHTML(
 		const compiledImports = compiledModules
 			.map((module) => {
 				const varName = sanitizeVarName(module.name);
-				return `import ${varName} from '/compiled/${module.name}.js';`;
+				// Escape module.name for safe use in import path
+				const safeModuleName = module.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+				return `import ${varName} from '/compiled/${safeModuleName}.js';`;
 			})
 			.join("\n      ");
 
@@ -376,7 +381,9 @@ export function generateHTML(
 		compiledRoutinesMap = compiledModules
 			.map((module) => {
 				const varName = sanitizeVarName(module.name);
-				return `'${module.name}': new Routine(0).import(${varName}.routine)`;
+				// Escape module.name for safe use in object key
+				const safeModuleName = JSON.stringify(module.name);
+				return `${safeModuleName}: new Routine(0).import(${varName}.routine)`;
 			})
 			.join(",\n          ");
 	} else {
@@ -392,7 +399,9 @@ export function generateHTML(
 		sourceMap = sourceEntries
 			.map(([name]) => {
 				const varName = sanitizeVarName(name);
-				return `'${name}': ${varName}`;
+				// Escape name for safe use in object key
+				const safeName = JSON.stringify(name);
+				return `${safeName}: ${varName}`;
 			})
 			.join(",\n          ");
 	}

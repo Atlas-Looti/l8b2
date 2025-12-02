@@ -112,12 +112,12 @@ export { Routine } from '${lootiscriptEntryPath.replace(/\\/g, "/")}';
 				platform: "browser",
 				target: "es2022",
 				splitting: false,
-				// Bundle all dependencies
+				// Bundle all dependencies including @l8b/* packages
 				external: [],
 				// Enhanced tree shaking
 				treeShaking: true,
-				// Mark packages as side-effect free for better tree-shaking
-				packages: "external",
+				// Bundle all packages (don't externalize them)
+				packages: "bundle",
 				// Minify for production
 				minify: true,
 				// Source maps for debugging (optional)

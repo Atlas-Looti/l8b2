@@ -59,6 +59,16 @@ export function lootiScriptPlugin(): Plugin {
 			// Normalize path
 			filePath = path.normalize(filePath);
 
+			// Security: Prevent path traversal attacks
+			const resolvedPath = path.resolve(filePath);
+			const resolvedRoot = path.resolve(root);
+			
+			if (!resolvedPath.startsWith(resolvedRoot)) {
+				// Path outside root directory - reject
+				console.error(`[L8B] Security: Blocked path traversal attempt: ${filePath}`);
+				return null;
+			}
+
 			// Check cache first
 			try {
 				const stat = await fs.stat(filePath);

@@ -29,7 +29,6 @@ export const DEFAULT_FILES = {
 	CONFIG: "l8b.config.json",
 	INDEX_HTML: "index.html",
 	RUNTIME_BUNDLE: "runtime.js",
-	BITCELL_FONT: "BitCell.ttf",
 	PACKAGE_JSON: "package.json",
 } as const;
 
@@ -122,18 +121,3 @@ export function resolveProjectPath(projectPath: string, filePath: string): strin
 	return path.join(projectPath, normalizedPath);
 }
 
-/**
- * Get BitCell font paths (dist and assets)
- *
- * @param cliPackageRoot - CLI package root directory
- * @returns Object with dist and assets font paths
- */
-export function getBitCellFontPaths(cliPackageRoot: string): {
-	dist: string;
-	assets: string;
-} {
-	return {
-		dist: path.join(cliPackageRoot, "dist", "assets", "fonts", DEFAULT_FILES.BITCELL_FONT),
-		assets: path.join(cliPackageRoot, "assets", "fonts", DEFAULT_FILES.BITCELL_FONT),
-	};
-}

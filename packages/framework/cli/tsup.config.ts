@@ -1,5 +1,4 @@
-import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "tsup";
 
 type PackageJson = {
@@ -35,12 +34,5 @@ export default defineConfig({
 		return {
 			js: `.${format}.js`,
 		};
-	},
-	onSuccess: async () => {
-		const distAssetsDir = join(process.cwd(), "dist", "assets", "fonts");
-		mkdirSync(distAssetsDir, {
-			recursive: true,
-		});
-		copyFileSync(join(process.cwd(), "assets", "fonts", "BitCell.ttf"), join(distAssetsDir, "BitCell.ttf"));
 	},
 });

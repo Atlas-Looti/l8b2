@@ -1,16 +1,16 @@
 # CLI Commands
 
-L8B menyediakan Command-Line Interface (CLI) untuk development, build, dan deployment game LootiScript.
+L8B provides a Command-Line Interface (CLI) for development, building, and deployment of LootiScript games.
 
 ## Installation
 
-Install L8B CLI secara global:
+Install L8B CLI globally:
 
 ```bash
 npm install -g l8b
 ```
 
-Atau gunakan dengan npx (tanpa install):
+Or use with npx (without installing):
 
 ```bash
 npx l8b init my-game
@@ -18,14 +18,14 @@ npx l8b init my-game
 
 ## Commands Overview
 
-- [`init`](#init) - Initialize project baru
-- [`dev`](#dev) - Start development server dengan HMR
-- [`build`](#build) - Build project untuk production
+- [`init`](#init) - Initialize a new project
+- [`dev`](#dev) - Start development server with HMR
+- [`build`](#build) - Build project for production
 - [`start`](#start) - Serve production build
 
 ## init
 
-Initialize project LootiScript baru.
+Initialize a new LootiScript project.
 
 ```bash
 l8b init <name>
@@ -33,7 +33,7 @@ l8b init <name>
 
 ### Options
 
-- `--force`, `-f` - Overwrite directory yang sudah ada
+- `--force`, `-f` - Overwrite existing directory
 
 ### Examples
 
@@ -50,17 +50,71 @@ l8b init my-game --force
 ```
 my-game/
 ├── src/
-│   └── game.loot      # Example game file
+│   └── main.loot      # Hello world example file
 ├── public/
 │   ├── sprites/
 │   ├── sounds/
 │   └── maps/
-└── l8b.config.json    # Configuration file
+├── l8b.config.json    # Configuration file
+├── package.json       # Package configuration
+└── .gitignore         # Git ignore file
 ```
+
+### Example Code Generated
+
+The `src/main.loot` file will contain a hello world example with wave text animation:
+
+```lua
+t = 0
+
+init = function()
+  // Initialize game
+end
+
+update = function()
+  t = t + 1
+end
+
+draw = function()
+  blink_phase = floor((t / 15) % 2)
+  if blink_phase == 0 then
+    screen.clear("#0c0c1c")
+  else
+    screen.clear("#0f102a")
+  end
+
+  drawWaveText = function(text, x, y, size, amp, speed, phase, hueShift)
+    len = text.length
+    total = screen.textWidth(text, size)
+    startX = x - total / 2
+    advance = 0
+    for i = 0 to len - 1 do
+      ch = text[i]
+      chw = screen.textWidth(ch, size)
+      yy = y + cos(t / speed + i * phase) * amp
+      xx = startX + advance + chw / 2
+      h = (hueShift + i * 18 + t * 2) % 360
+      col = "hsl(" + h + ", 85%, 70%)"
+      screen.drawText(ch, xx, yy, size, col)
+      advance = advance + chw
+    end
+  end
+
+  cx = 0
+  cy = 0
+  drawWaveText("this is l8b", cx, cy - 10, 10, 4, 10, 0.4, 0)
+  drawWaveText("nice to meet you", cx, cy + 6, 8, 3, 12, 0.38, 120)
+end
+```
+
+This example demonstrates:
+- Wave text animation with rainbow effect
+- Blinking background
+- Demonstration of functions, loops, and drawing API
 
 ## dev
 
-Start development server dengan Hot Module Replacement (HMR).
+Start development server with Hot Module Replacement (HMR).
 
 ```bash
 l8b dev [root]
@@ -68,57 +122,57 @@ l8b dev [root]
 
 ### Options
 
-- `root` - Path ke project root (default: current directory)
-- `--port <number>` - Port untuk dev server (default: 3000)
-- `--host <hostname>` - Expose ke network (gunakan `0.0.0.0` untuk expose)
-- `--tunnel` - Enable tunneling untuk Farcaster Mini Apps testing
+- `root` - Path to project root (default: current directory)
+- `--port <number>` - Port for dev server (default: 3000)
+- `--host <hostname>` - Expose to network (use `0.0.0.0` to expose)
+- `--tunnel` - Enable tunneling for Farcaster Mini Apps testing
 
 ### Examples
 
 ```bash
-# Start dev server di current directory
+# Start dev server in current directory
 l8b dev
 
-# Start di specific directory
+# Start in specific directory
 l8b dev ./my-game
 
 # Custom port
 l8b dev --port 8080
 
-# Expose ke network
+# Expose to network
 l8b dev --host 0.0.0.0
 
-# Custom port dan host
+# Custom port and host
 l8b dev --port 8080 --host 0.0.0.0
 
-# Enable tunneling untuk Farcaster Mini Apps
+# Enable tunneling for Farcaster Mini Apps
 l8b dev --tunnel
 ```
 
 ### Features
 
-- **Hot Module Replacement** - Code changes otomatis recompile dan refresh
-- **Asset Reloading** - Asset changes otomatis reload
-- **Error Overlay** - Menampilkan compilation errors di browser
-- **Automatic Compilation** - Semua `.loot` files di `src/` otomatis di-compile
+- **Hot Module Replacement** - Code changes automatically recompile and refresh
+- **Asset Reloading** - Asset changes automatically reload
+- **Error Overlay** - Displays compilation errors in browser
+- **Automatic Compilation** - All `.loot` files in `src/` are automatically compiled
 
-### Tunneling untuk Farcaster Mini Apps
+### Tunneling for Farcaster Mini Apps
 
-Saat develop Farcaster Mini Apps, Anda perlu public HTTPS URL. Gunakan flag `--tunnel`:
+When developing Farcaster Mini Apps, you need a public HTTPS URL. Use the `--tunnel` flag:
 
 ```bash
 l8b dev --tunnel
 ```
 
-Ini akan:
+This will:
 - Start cloudflared tunnel (requires cloudflared installed)
-- Update `/.well-known/farcaster.json` dengan tunnel URL
-- Display QR code untuk mobile testing
-- Automatically update manifest URLs untuk testing
+- Update `/.well-known/farcaster.json` with tunnel URL
+- Display QR code for mobile testing
+- Automatically update manifest URLs for testing
 
 ## build
 
-Build project untuk production.
+Build project for production.
 
 ```bash
 l8b build [root]
@@ -126,7 +180,7 @@ l8b build [root]
 
 ### Options
 
-- `root` - Path ke project root (default: current directory)
+- `root` - Path to project root (default: current directory)
 
 ### Examples
 
@@ -140,7 +194,7 @@ l8b build ./my-game
 
 ### Output
 
-Build process akan menghasilkan:
+Build process will generate:
 
 ```
 .l8b/
@@ -171,9 +225,9 @@ l8b start [root]
 
 ### Options
 
-- `root` - Path ke project root (default: current directory)
-- `--port <number>` - Port untuk server (default: 3000)
-- `--host <hostname>` - Expose ke network
+- `root` - Path to project root (default: current directory)
+- `--port <number>` - Port for server (default: 3000)
+- `--host <hostname>` - Expose to network
 
 ### Examples
 
@@ -184,19 +238,19 @@ l8b start
 # Custom port
 l8b start --port 8080
 
-# Expose ke network
+# Expose to network
 l8b start --host 0.0.0.0
 ```
 
-**Note:** Pastikan sudah run `l8b build` sebelum `l8b start`.
+**Note:** Make sure to run `l8b build` before `l8b start`.
 
 ## Project Structure
 
-CLI mengharapkan struktur project berikut:
+CLI expects the following project structure:
 
 ```
 my-game/
-├── src/                   # LootiScript files (semua .loot files di-load)
+├── src/                   # LootiScript files (all .loot files are loaded)
 │   ├── game.loot
 │   └── scenes/
 │       └── menu.loot
@@ -227,7 +281,7 @@ npm install
 l8b dev
 ```
 
-Buka http://localhost:3000 di browser.
+Open http://localhost:3000 in browser.
 
 ### 3. Build for Production
 
@@ -243,18 +297,18 @@ l8b start
 
 ## Asset Loading
 
-Assets otomatis di-detect dari `public/`:
+Assets are automatically detected from `public/`:
 
 ```
 public/
-├── sprites/          → Auto-loaded sebagai sprites
-├── sounds/           → Auto-loaded sebagai sounds
-├── music/            → Auto-loaded sebagai music
-├── maps/             → Auto-loaded sebagai maps
-└── fonts/            → Auto-loaded sebagai fonts
+├── sprites/          → Auto-loaded as sprites
+├── sounds/           → Auto-loaded as sounds
+├── music/            → Auto-loaded as music
+├── maps/             → Auto-loaded as maps
+└── fonts/            → Auto-loaded as fonts
 ```
 
-Access di LootiScript:
+Access in LootiScript:
 
 ```lua
 // Sprites auto-loaded
@@ -269,7 +323,7 @@ screen.drawMap("level1", 0, 0, 800, 600)
 
 ## Error Handling
 
-CLI menyediakan detailed error messages:
+CLI provides detailed error messages:
 
 ```
 ✗ Compilation Error
@@ -280,13 +334,13 @@ CLI menyediakan detailed error messages:
   Hint: Missing 'then' keyword
 ```
 
-Semua errors ditampilkan dengan:
+All errors are displayed with:
 - File location
-- Line dan column number
+- Line and column number
 - Error message
 - Helpful hints
 
 ## Configuration
 
-Lihat [Configuration File](/configuration/config) untuk detail tentang `l8b.config.json`.
+See [Configuration File](/configuration/config) for details about `l8b.config.json`.
 

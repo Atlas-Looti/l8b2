@@ -1,6 +1,6 @@
 # API Cheatsheet
 
-Quick reference untuk L8B API
+Quick reference for L8B API
 
 ## Drawing
 
@@ -181,12 +181,12 @@ gamepad[3].release.A  // (B, X, Y ...)
 
 ### Storage
 
-Persistent storage untuk menyimpan data yang tetap tersimpan meskipun browser ditutup. Menggunakan localStorage dengan batched writes dan caching.
+Persistent storage for saving data that remains stored even when the browser is closed. Uses localStorage with batched writes and caching.
 
 | Method | Description |
 |--------|-------------|
-| `storage.set(name, value)` | Menyimpan nilai secara permanen. Value bisa berupa number, string, list, atau object. Writes are batched for performance. |
-| `storage.get(name)` | Mengambil nilai yang tersimpan. Mengembalikan `null` jika data tidak ditemukan. |
+| `storage.set(name, value)` | Saves a value permanently. Value can be a number, string, list, or object. Writes are batched for performance. |
+| `storage.get(name)` | Retrieves a stored value. Returns `null` if data is not found. |
 
 **Example:**
 
