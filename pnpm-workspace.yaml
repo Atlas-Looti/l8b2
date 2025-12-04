@@ -1,11 +1,16 @@
 packages:
-  - 'examples/**/*'
-  - 'packages/**/*'
-  - 'scripts/**/*'
-  - 'apps/**/*'
-  - 'site'
+  - examples/**/*
+  - packages/**/*
+  - scripts/**/*
+  - apps/**/*
+  - site
   - '!next/**/*'
   - '!dist/**/*'
   - '!l8b/**/*'
   - '!**/.vscode-test/**/*'
 
+onlyBuiltDependencies:
+  - '@swc/core'
+  - bufferutil
+  - esbuild
+  - utf-8-validate
