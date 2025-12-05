@@ -86,6 +86,9 @@ export class L8BDevServer {
 		// Create file watcher
 		this.watcher = createWatcher(this.config.srcPath, this.config.publicPath, { initialScan: false });
 
+		// TODO: [P0] Fix memory leak - event listener never removed on server stop
+		// Store handler reference and remove in stop() method
+		// See: framework_audit_report.md #1
 		this.watcher.on((event) => {
 			this.handleFileChange(event);
 		});
@@ -95,8 +98,12 @@ export class L8BDevServer {
 
 		// Find available port using recursive approach (similar to Vite)
 		const startPort = this.options.port;
+		// TODO: [P2] Extract magic number to constant MAX_PORT_ATTEMPTS
+		// See: framework_audit_report.md #9
 		const maxPort = startPort + 100;
 
+		// TODO: [P0] Fix race condition - use temporary test server instead of reusing this.server
+		// See: framework_audit_report.md #3
 		const port = await this.findAvailablePort(startPort, maxPort);
 		this.options.port = port; // Update port in options
 
@@ -470,6 +477,8 @@ export class L8BDevServer {
 	/**
 	 * Open browser
 	 */
+	// TODO: [Security] Use spawn instead of exec to avoid command injection risks
+	// See: framework_audit_report.md #20
 	private openBrowser(url: string): void {
 		const { exec } = require("node:child_process");
 		const platform = process.platform;

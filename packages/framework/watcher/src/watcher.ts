@@ -135,6 +135,9 @@ export class L8BWatcher {
 			for (const handler of this.handlers) {
 				try {
 					const result = handler(event);
+					// TODO: [P0] Improve error handling - emit error event for monitoring
+					// Silent failures can cause HMR updates to fail
+					// See: framework_audit_report.md #2
 					if (result instanceof Promise) {
 						result.catch((err) => {
 							logger.error("Handler error:", err);

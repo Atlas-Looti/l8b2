@@ -13,6 +13,10 @@ const logger = createLogger("hmr");
  */
 /**
  * HMR Channel interface (inspired by Vite)
+ * 
+ * TODO: [P1] Add type safety with typed event map
+ * Current any[] reduces type safety for event listeners
+ * See: framework_audit_report.md #7
  */
 export interface HotChannel {
 	send(payload: HMRMessage): void;

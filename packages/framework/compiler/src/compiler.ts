@@ -100,6 +100,9 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
 			warnings,
 		};
 	} catch (error) {
+		// TODO: [P1] Preserve full error context including token and context
+		// Current type assertion may lose important debugging information
+		// See: framework_audit_report.md #6
 		const err = error as Error & {
 			line?: number;
 			column?: number;
@@ -252,6 +255,9 @@ export class IncrementalCompiler {
 	/**
 	 * Hash source code
 	 */
+	// TODO: [P2] Replace custom hash with crypto.createHash('md5')
+	// Current implementation is 10-100x slower for large files
+	// See: framework_audit_report.md #10
 	private hashSource(source: string): string {
 		// Simple hash for caching
 		let hash = 0;

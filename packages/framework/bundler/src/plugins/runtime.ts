@@ -29,6 +29,10 @@ export interface RuntimePluginOptions {
 
 /**
  * Build optimized runtime bundle for production
+ * 
+ * TODO: [P1] Add 60s timeout to prevent indefinite hangs
+ * esbuild can stall without timeout protection
+ * See: framework_audit_report.md #8
  */
 async function buildProductionRuntime(minify: boolean, sourcemap: boolean): Promise<string> {
 	// Check cache
@@ -76,6 +80,10 @@ async function buildProductionRuntime(minify: boolean, sourcemap: boolean): Prom
 
 /**
  * Generate the Player class (inspired by microstudio's player.coffee)
+ * 
+ * TODO: [Code Quality] Refactor 371-line function into smaller methods
+ * Consider moving to template file for better maintainability
+ * See: framework_audit_report.md #13
  */
 function generatePlayerClass(): string {
 	return `
@@ -486,6 +494,9 @@ function generateInitCode(): string {
 /**
  * Create runtime plugin
  */
+// TODO: [P2] Add buildEnd hook to clear cache in development mode
+// Prevents stale data in watch mode
+// See: framework_audit_report.md #12
 export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 	const { minify = false, sourcemap = false } = options;
 

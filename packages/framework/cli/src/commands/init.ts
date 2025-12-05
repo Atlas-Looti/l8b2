@@ -1,5 +1,8 @@
 /**
- * Init command - Create new L8B project
+ * Init command - Scaffolds a new L8B project
+ * 
+ * TODO: [P1] Replace console.log with logger for consistent logging
+ * See: framework_audit_report.md #5
  */
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

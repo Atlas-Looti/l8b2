@@ -1,6 +1,9 @@
 /**
- * Build command - Create production build
- *
+ * Build command - Creates production bundle
+ * 
+ * TODO: [P1] Replace all console.log/console.error with logger
+ * Makes it difficult to control logging levels and capture logs
+ * See: framework_audit_report.md #5
  * Uses the L8B bundler with plugin system for:
  * - LootiScript compilation
  * - Asset processing with hashing
