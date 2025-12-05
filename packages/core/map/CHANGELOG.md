@@ -1,5 +1,13 @@
 # @l8b/map
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [ce01b01]
+  - @l8b/sprites@1.0.7
+  - @l8b/diagnostics@1.0.7
+
 ## 1.0.6
 
 ### Patch Changes

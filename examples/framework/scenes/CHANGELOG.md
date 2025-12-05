@@ -1,5 +1,11 @@
 # example-scenes
 
+## 1.0.3
+
+### Patch Changes
+
+- ce01b01: better framework
+
 ## 1.0.1
 
 ### Patch Changes

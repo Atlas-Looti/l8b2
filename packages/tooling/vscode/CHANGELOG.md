@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.0.5
+
+### Patch Changes
+
+- ce01b01: better framework
+
 ## 1.0.4
 
 ### Patch Changes
