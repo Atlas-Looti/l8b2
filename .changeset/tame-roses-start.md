@@ -6,7 +6,7 @@
 "@l8b/runtime": patch
 "l8b-bird": patch
 "fish": patch
-"lootiscript-vscode": patch
+"@l8b/vscode": patch
 "@l8b/cli": patch
 "@l8b/actions": patch
 "@l8b/sprites": patch
