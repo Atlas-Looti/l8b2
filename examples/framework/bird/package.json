@@ -4,9 +4,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm -w exec l8b dev",
-		"build": "pnpm -w exec l8b build",
-		"preview": "pnpm -w exec l8b preview"
+		"dev": "node ../../../packages/framework/cli/dist/cli.mjs dev",
+		"build": "node ../../../packages/framework/cli/dist/cli.mjs build",
+		"preview": "node ../../../packages/framework/cli/dist/cli.mjs preview"
 	},
 	"dependencies": {},
 	"devDependencies": {

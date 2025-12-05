@@ -4,9 +4,9 @@
 	"version": "1.0.6",
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm -w exec l8b dev",
-		"preview": "pnpm -w exec l8b preview",
-		"build": "pnpm -w exec l8b build"
+		"dev": "node ../../../packages/framework/cli/dist/cli.mjs dev",
+		"preview": "node ../../../packages/framework/cli/dist/cli.mjs preview",
+		"build": "node ../../../packages/framework/cli/dist/cli.mjs build"
 	},
 	"devDependencies": {
 		"@l8b/cli": "workspace:*"
