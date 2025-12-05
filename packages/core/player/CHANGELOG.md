@@ -1,5 +1,11 @@
 # @l8b/player
 
+## 1.0.7
+
+### Patch Changes
+
+- ce01b01: better framework
+
 ## 1.0.6
 
 ## 1.0.5

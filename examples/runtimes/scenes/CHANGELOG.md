@@ -1,5 +1,13 @@
 # scenes-routing
 
+## 1.0.7
+
+### Patch Changes
+
+- ce01b01: better framework
+- Updated dependencies [ce01b01]
+  - @l8b/runtime@1.0.7
+
 ## 1.0.6
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @l8b/scene
 
+## 1.0.7
+
+### Patch Changes
+
+- ce01b01: better framework
+  - @l8b/diagnostics@1.0.7
+
 ## 1.0.6
 
 ### Patch Changes
