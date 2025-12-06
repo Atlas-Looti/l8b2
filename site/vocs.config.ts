@@ -17,8 +17,8 @@ export default defineConfig({
 					link: "/getting-started/quick-start",
 				},
 				{
-					text: "Farcaster Mini Apps",
-					link: "/getting-started/farcaster-miniapps",
+					text: "Framework",
+					link: "/getting-started/framework",
 				},
 			],
 		},
@@ -127,10 +127,6 @@ export default defineConfig({
 							text: "Storage",
 							link: "/api/storage",
 						},
-						{
-							text: "Env",
-							link: "/api/env",
-						},
 					],
 				},
 				{
@@ -173,31 +169,6 @@ export default defineConfig({
 						{
 							text: "Stdlib",
 							link: "/api/stdlib",
-						},
-					],
-				},
-				{
-					text: "Farcaster APIs",
-					items: [
-						{
-							text: "Player",
-							link: "/api/player",
-						},
-						{
-							text: "Wallet",
-							link: "/api/wallet",
-						},
-						{
-							text: "EVM",
-							link: "/api/evm",
-						},
-						{
-							text: "Actions",
-							link: "/api/actions",
-						},
-						{
-							text: "HTTP",
-							link: "/api/http",
 						},
 					],
 				},

@@ -60,14 +60,7 @@ export interface L8BBuildOptions extends BuildOptions {
 	minifier?: "esbuild" | "terser";
 	/** Externalize sources to sources.json (lazy loading) */
 	externalSources?: boolean;
-	/** Enable Wallet service */
-	enableWallet?: boolean;
-	/** Enable EVM service */
-	enableEVM?: boolean;
-	/** Enable Actions service */
-	enableActions?: boolean;
-	/** Enable Notifications service */
-	enableNotifications?: boolean;
+
 }
 
 /**
@@ -122,10 +115,7 @@ export class L8BBundler {
 				minify: this.options.minify ?? true,
 				sourcemap: this.options.sourcemap ?? false,
 				externalSources: this.options.externalSources ?? false,
-				enableWallet: this.options.enableWallet ?? false,
-				enableEVM: this.options.enableEVM ?? false,
-				enableActions: this.options.enableActions ?? false,
-				enableNotifications: this.options.enableNotifications ?? false,
+
 			}),
 		);
 

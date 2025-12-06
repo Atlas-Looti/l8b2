@@ -3,24 +3,17 @@
  */
 
 import type { GlobalApi } from "../types";
-import { actionsApi } from "./actions";
 import { assetsApi } from "./assets";
 import { audioApi } from "./audio";
 import { coreApi } from "./core";
-import { envApi } from "./env";
-import { evmApi } from "./evm";
-import { httpApi } from "./http";
 import { inputApi } from "./input";
 import { mapApi } from "./map";
-import { notificationsApi } from "./notifications";
 import { paletteApi } from "./palette";
-import { playerApi } from "./player";
 import { sceneApi } from "./scene";
 import { screenApi } from "./screen";
 import { spritesApi } from "./sprites";
 import { systemApi } from "./system";
 import { timeApi } from "./time";
-import { walletApi } from "./wallet";
 
 /**
  * Global API list for suggestions and hover info
@@ -37,13 +30,6 @@ export const GLOBAL_API: GlobalApi = {
 	...timeApi,
 	...assetsApi,
 	...paletteApi,
-	...playerApi,
-	...walletApi,
-	...evmApi,
-	...actionsApi,
-	...notificationsApi,
-	...httpApi,
-	...envApi,
 } as GlobalApi;
 
 /**

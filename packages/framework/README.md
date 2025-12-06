@@ -95,13 +95,17 @@ l8b init my-game
 ## Build Output
 
 ```text
-dist/
+.l8b/
 ├── index.html      # Entry HTML
-├── game.js         # Bundled runtime + compiled sources
-├── sprites/        # Sprite images
-├── maps/           # Map JSON files
-├── sounds/         # Sound effects
-└── music/          # Background music
+├── runtime.js      # Bundled runtime
+├── modules/        # Compiled bytecode
+│   ├── main.l8b
+│   └── ...
+└── assets/         # Copied assets
+    ├── sprites/    # Sprite images
+    ├── maps/       # Map JSON files
+    ├── sounds/     # Sound effects
+    └── music/      # Background music
 ```
 
 ## Configuration
@@ -110,14 +114,18 @@ Create `l8b.config.json` in project root:
 
 ```json
 {
-  "title": "My Game",
+  "name": "my-game",
   "orientation": "landscape",
   "aspect": "16x9",
-  "graphics": "M2D",
-  "port": 8080,
+  "width": 1920,
+  "height": 1080,
   "srcDir": "src",
   "publicDir": "public",
-  "outDir": "dist"
+  "outDir": ".l8b",
+  "dev": {
+    "port": 3000,
+    "host": "localhost"
+  }
 }
 ```
 

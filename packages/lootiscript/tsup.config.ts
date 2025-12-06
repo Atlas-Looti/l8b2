@@ -4,9 +4,7 @@ import { treeShakableConfig } from "../../tsup.config.base";
 export default defineConfig([
 	{
 		...treeShakableConfig,
-		dts: {
-			resolve: true,
-		},
+		dts: true,
 	},
 	// Browser-ready IIFE bundle
 	{
@@ -17,6 +15,8 @@ export default defineConfig([
 		platform: "browser",
 		minify: false,
 		sourcemap: true,
+		bundle: true,
+		noExternal: [],
 		outExtension: () => ({ js: ".js" }),
 		esbuildOptions(options) {
 			options.define = {
@@ -33,6 +33,8 @@ export default defineConfig([
 		platform: "browser",
 		minify: true,
 		sourcemap: false,
+		bundle: true,
+		noExternal: [],
 		outExtension: () => ({ js: ".min.js" }),
 		esbuildOptions(options) {
 			options.define = {

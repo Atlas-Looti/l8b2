@@ -15,12 +15,9 @@
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
-	"dependencies": {
-		"@farcaster/miniapp-sdk": "0.2.1"
-	},
+	"dependencies": {},
 	"keywords": [
-		"actions",
-		"farcaster"
+		"actions"
 	],
 	"publishConfig": {
 		"access": "public"

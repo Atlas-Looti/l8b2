@@ -22,7 +22,6 @@ pnpm dlx l8b init my-game
 - [`dev`](#dev) - Start development server with HMR
 - [`build`](#build) - Build project for production
 - [`preview`](#preview) - Preview production build
-- [`contract import`](#contract-import) - Import smart contract ABI
 
 ## init
 
@@ -35,6 +34,7 @@ l8b init <name>
 ### Options
 
 - `--force`, `-f` - Overwrite existing directory
+- `--template`, `-t` - Project template (default: "default")
 
 ### Examples
 
@@ -126,7 +126,6 @@ l8b dev [root]
 - `root` - Path to project root (default: current directory)
 - `--port <number>` - Port for dev server (default: 3000)
 - `--host <hostname>` - Expose to network (use `0.0.0.0` to expose)
-- `--tunnel` - Enable tunneling for Farcaster Mini Apps testing
 
 ### Examples
 
@@ -146,8 +145,6 @@ l8b dev --host 0.0.0.0
 # Custom port and host
 l8b dev --port 8080 --host 0.0.0.0
 
-# Enable tunneling for Farcaster Mini Apps
-l8b dev --tunnel
 ```
 
 ### Features
@@ -157,19 +154,6 @@ l8b dev --tunnel
 - **Error Overlay** - Displays compilation errors in browser
 - **Automatic Compilation** - All `.loot` files in `src/` are automatically compiled
 
-### Tunneling for Farcaster Mini Apps
-
-When developing Farcaster Mini Apps, you need a public HTTPS URL. Use the `--tunnel` flag:
-
-```bash
-l8b dev --tunnel
-```
-
-This will:
-- Start cloudflared tunnel (requires cloudflared installed)
-- Update `/.well-known/farcaster.json` with tunnel URL
-- Display QR code for mobile testing
-- Automatically update manifest URLs for testing
 
 ## build
 
@@ -182,6 +166,13 @@ l8b build [root]
 ### Options
 
 - `root` - Path to project root (default: current directory)
+- `--minify` - Minify output (default: true)
+- `--no-minify` - Disable minification
+- `--sourcemap` - Generate source maps
+- `--pwa` - Generate PWA manifest
+- `--sw` - Generate service worker
+- `--base <url>` - Base URL for assets (default: "")
+- `--minifier <name>` - Minifier to use: "esbuild" or "terser" (default: "esbuild")
 
 ### Examples
 
@@ -230,6 +221,7 @@ l8b preview [root]
 - `root` - Path to project root (default: current directory)
 - `--port <number>` - Port for server (default: 3000)
 - `--host <hostname>` - Expose to network (use `0.0.0.0` to expose)
+- `--outDir <dir>` - Output directory (default: "dist")
 
 ### Examples
 
@@ -245,46 +237,6 @@ l8b preview --host 0.0.0.0
 ```
 
 **Note:** Make sure to run `l8b build` before `l8b preview`.
-
-## contract import
-
-Import smart contract ABI and generate LootiScript wrapper.
-
-```bash
-l8b contract import <address> --chain <chain> --name <name> [options]
-```
-
-### Options
-
-- `address` - Contract address (required)
-- `--chain <chain>` - Blockchain network: `base`, `ethereum`, `optimism`, or `arbitrum` (required)
-- `--name <name>` - Contract name for the generated wrapper (required)
-- `--api-key <key>` - Block explorer API key (optional, can also set `BASE_API_KEY`, `ETHEREUM_API_KEY`, etc.)
-- `--root <path>` - Path to project root (default: current directory)
-
-### Examples
-
-```bash
-# Import contract from Base network
-l8b contract import 0x123... --chain base --name MyContract
-
-# Import with custom API key
-l8b contract import 0x123... --chain ethereum --name MyContract --api-key YOUR_KEY
-
-# Import from specific project
-l8b contract import 0x123... --chain base --name MyContract --root ./my-game
-```
-
-### Environment Variables for API Keys
-
-You can set API keys as environment variables instead of using `--api-key`:
-
-```bash
-export BASE_API_KEY=your_key_here
-export ETHEREUM_API_KEY=your_key_here
-export OPTIMISM_API_KEY=your_key_here
-export ARBITRUM_API_KEY=your_key_here
-```
 
 ## Project Structure
 

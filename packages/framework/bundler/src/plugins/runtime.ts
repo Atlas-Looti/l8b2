@@ -24,14 +24,7 @@ export interface RuntimePluginOptions {
 	sourcemap?: boolean;
 	/** Externalize sources to sources.json (lazy loading) */
 	externalSources?: boolean;
-	/** Enable Wallet service */
-	enableWallet?: boolean;
-	/** Enable EVM service */
-	enableEVM?: boolean;
-	/** Enable Actions service */
-	enableActions?: boolean;
-	/** Enable Notifications service */
-	enableNotifications?: boolean;
+
 }
 
 /**
@@ -42,10 +35,7 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 		minify = false,
 		sourcemap = false,
 		externalSources = false,
-		enableWallet = false,
-		enableEVM = false,
-		enableActions = false,
-		enableNotifications = false,
+
 	} = options;
 
 	return {
@@ -103,11 +93,7 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 					sourcemap: sourcemap ? "inline" : false,
 					define: {
 						"process.env.NODE_ENV": '"production"',
-						// Feature flags are now handled by dynamic imports, but we keep them for consistency
-						"process.env.L8B_ENABLE_WALLET": JSON.stringify(enableWallet),
-						"process.env.L8B_ENABLE_EVM": JSON.stringify(enableEVM),
-						"process.env.L8B_ENABLE_ACTIONS": JSON.stringify(enableActions),
-						"process.env.L8B_ENABLE_NOTIFICATIONS": JSON.stringify(enableNotifications),
+
 					},
 					logLevel: "warning",
 				});

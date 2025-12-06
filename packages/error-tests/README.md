@@ -1,40 +1,40 @@
 # LootiScript Error Tests
 
-Folder ini berisi test file untuk semua error yang bisa di-detect oleh VSCode Extension.
+This folder contains test files for all errors that can be detected by the VSCode Extension.
 
-## Struktur File
+## File Structure
 
 ### Syntax Errors (E1xxx)
-- `syntax-e1001-unterminated-function.loot` - Function tidak ditutup dengan 'end'
-- `syntax-e1002-too-many-end.loot` - Extra 'end' statement tanpa opening
+- `syntax-e1001-unterminated-function.loot` - Function not closed with 'end'
+- `syntax-e1002-too-many-end.loot` - Extra 'end' statement without opening
 - `syntax-e1004-unexpected-token.loot` - Missing parenthesis/bracket
-- `syntax-e1008-unterminated-string.loot` - String tidak ditutup dengan quote
+- `syntax-e1008-unterminated-string.loot` - String not closed with quote
 
 ### API Validation Errors (E7100)
-- `api-e7100-screen-errors.loot` - Invalid properties pada screen API
-- `api-e7100-audio-errors.loot` - Invalid properties pada audio API
-- `api-e7100-keyboard-errors.loot` - Invalid properties pada keyboard API
-- `api-e7100-gamepad-errors.loot` - Invalid properties pada gamepad API
-- `api-e7100-storage-errors.loot` - Invalid properties pada storage API
-- `api-e7100-sprites-errors.loot` - Nested properties pada sprites (selalu error)
-- `api-e7100-map-errors.loot` - Nested properties pada map (selalu error)
+- `api-e7100-screen-errors.loot` - Invalid properties on screen API
+- `api-e7100-audio-errors.loot` - Invalid properties on audio API
+- `api-e7100-keyboard-errors.loot` - Invalid properties on keyboard API
+- `api-e7100-gamepad-errors.loot` - Invalid properties on gamepad API
+- `api-e7100-storage-errors.loot` - Invalid properties on storage API
+- `api-e7100-sprites-errors.loot` - Nested properties on sprites (always error)
+- `api-e7100-map-errors.loot` - Nested properties on map (always error)
 
 ### Warnings (Wxxxx)
-- `warning-w1001-api-assignment.loot` - Assignment ke API variables
+- `warning-w1001-api-assignment.loot` - Assignment to API variables
 
-## Cara Menggunakan
+## How to Use
 
-1. Buka file test yang ingin di-verify di VSCode
-2. Buka Problems panel (`Ctrl+Shift+M`)
-3. Lihat error/warning yang muncul
+1. Open the test file you want to verify in VSCode
+2. Open the Problems panel (`Ctrl+Shift+M`)
+3. View the errors/warnings that appear
 
-Setiap file di-design untuk trigger satu jenis error saja, sehingga mudah untuk testing individual.
+Each file is designed to trigger only one type of error, making it easy for individual testing.
 
-## Catatan
+## Notes
 
-**Error yang TIDAK terdeteksi di VSCode:**
-- Runtime errors (E2xxx) - hanya muncul saat runtime
-- Compilation errors (E3xxx) - hanya muncul saat compile
-- Scene errors (E5xxx) - hanya muncul saat runtime
+**Errors NOT detected in VSCode:**
+- Runtime errors (E2xxx) - only appear at runtime
+- Compilation errors (E3xxx) - only appear at compile time
+- Scene errors (E5xxx) - only appear at runtime
 
-Error-error tersebut tidak bisa di-test melalui VSCode extension karena memerlukan runtime environment.
+These errors cannot be tested via the VSCode extension because they require a runtime environment.
