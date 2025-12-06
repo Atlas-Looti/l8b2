@@ -17,12 +17,13 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"devDependencies": {
+		"@types/node": "^24.10.1",
 		"tsup": "^8.0.0",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
-		"@l8b/stdlib": "workspace:*",
-		"@l8b/diagnostics": "workspace:*"
+		"@l8b/diagnostics": "workspace:*",
+		"@l8b/stdlib": "workspace:*"
 	},
 	"keywords": [
 		"lootiscript"
