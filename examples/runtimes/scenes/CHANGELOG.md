@@ -1,5 +1,12 @@
 # scenes-routing
 
+## 1.0.10
+
+### Patch Changes
+
+- Updated dependencies [2c35a5e]
+  - @l8b/runtime@1.0.10
+
 ## 1.0.9
 
 ### Patch Changes

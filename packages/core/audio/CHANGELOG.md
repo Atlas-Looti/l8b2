@@ -1,5 +1,12 @@
 # @l8b/audio
 
+## 1.0.10
+
+### Patch Changes
+
+- 2c35a5e: .
+  - @l8b/diagnostics@1.0.10
+
 ## 1.0.9
 
 ### Patch Changes

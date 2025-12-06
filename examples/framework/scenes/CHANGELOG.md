@@ -1,5 +1,11 @@
 # example-scenes
 
+## 1.0.4
+
+### Patch Changes
+
+- 2c35a5e: .
+
 ## 1.0.3
 
 ### Patch Changes
