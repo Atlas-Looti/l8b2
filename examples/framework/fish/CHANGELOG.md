@@ -1,5 +1,11 @@
 # fish
 
+## 1.0.8
+
+### Patch Changes
+
+- 2c35a5e: .
+
 ## 1.0.7
 
 ### Patch Changes

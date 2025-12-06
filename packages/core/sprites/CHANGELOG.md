@@ -1,5 +1,12 @@
 # @l8b/sprites
 
+## 1.0.10
+
+### Patch Changes
+
+- @l8b/image@1.0.10
+- @l8b/diagnostics@1.0.10
+
 ## 1.0.9
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
 	"name": "@l8b/stdlib",
-	"version": "1.0.9",
+	"version": "1.0.10",
 	"description": "Standard library for LootiScript",
 	"type": "module",
 	"main": "./dist/index.js",
