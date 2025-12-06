@@ -330,7 +330,7 @@ export class RuntimeOrchestrator {
 		this.vm = new L8BVM(meta, global, this.options.namespace || "/l8b", this.options.preserveStorage || false);
 
 		// Create source updater for hot reload
-		// Pass audio, screen, and reportWarnings callback to match microstudio behavior
+		// Pass audio, screen, and reportWarnings callback
 		this.sourceUpdater = new SourceUpdater(this.vm, this.listener, this.audio, this.screen, () => this.reportWarnings());
 
 		// Create time machine for debugging
@@ -439,7 +439,7 @@ export class RuntimeOrchestrator {
 			onDraw: () => this.handleDraw(),
 			onTick: () => this.handleTick(),
 			onWatchStep: () => this.handleWatchStep(),
-			// Read update_rate from VM context each frame (matches microstudio line 397)
+			// Read update_rate from VM context each frame
 			getUpdateRate: () => {
 				if (!this.vm) return undefined;
 				try {
@@ -448,7 +448,7 @@ export class RuntimeOrchestrator {
 					return undefined;
 				}
 			},
-			// Set fps in VM context each frame (matches microstudio line 395)
+			// Set fps in VM context each frame
 			setFPS: (fps: number) => {
 				if (!this.vm) return;
 				try {

@@ -203,7 +203,7 @@ function generateProductionHTML(options: {
 		window.resources = ${resourcesJson};
 	</script>
 	
-	<script type="module" src="${base}game.js"></script>
+	<script src="${base}game.js"></script>
 </body>
 </html>`;
 

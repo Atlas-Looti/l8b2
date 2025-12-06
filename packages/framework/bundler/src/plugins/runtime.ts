@@ -3,7 +3,7 @@
  *
  * This plugin is responsible for:
  * 1. Bundling the @l8b/runtime package with proper optimization
- * 2. Creating the Player class (like microstudio's player.coffee)
+ * 2. Creating the Player class
  * 3. Embedding compiled routines
  */
 
@@ -24,7 +24,6 @@ export interface RuntimePluginOptions {
 	sourcemap?: boolean;
 	/** Externalize sources to sources.json (lazy loading) */
 	externalSources?: boolean;
-
 }
 
 /**
@@ -35,22 +34,19 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 		minify = false,
 		sourcemap = false,
 		externalSources = false,
-
 	} = options;
 
 	return {
 		name: "l8b:runtime",
 
-		// Clear cache at build start to prevent stale data in watch mode
 		buildStart() {
-			// TODO: Verify if explicit cache clearing is needed with esbuild incremental build.
+			// No-op: esbuild handles incremental builds automatically
 		},
 
 		async generateBundle(files, ctx) {
 			logger.info("Generating runtime bundle...");
 
 			try {
-				// 1. Generate sources code
 				let sourcesCode = "";
 				if (externalSources) {
 					const sourcesData = generateSourcesData(ctx.resources.sources);
@@ -61,20 +57,14 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 					sourcesCode = generateSourcesCode(ctx.resources.sources);
 				}
 
-				// 2. Create virtual entry point
 				const virtualEntry = [
 					`import { RuntimeOrchestrator } from "@l8b/runtime";`,
-					`// Sources`,
-					sourcesCode,
-					`// Player Template`,
-					PLAYER_TEMPLATE,
-					`// Init Template`,
-					INIT_TEMPLATE,
-					`// Export Runtime`,
 					`window.Runtime = RuntimeOrchestrator;`,
+					sourcesCode,
+					PLAYER_TEMPLATE,
+					INIT_TEMPLATE,
 				].join("\n");
 
-				// 3. Build with esbuild (splitting enabled)
 				const esbuild = await import("esbuild");
 				const result = await esbuild.build({
 					stdin: {
@@ -84,31 +74,50 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 						loader: "ts",
 					},
 					bundle: true,
-					format: "esm",
-					splitting: true,
+					format: "iife",
+					globalName: "L8BGame",
+					splitting: false,
 					platform: "browser",
-					outdir: "dist", // Virtual output directory for in-memory build
+					outdir: ".",
 					write: false,
 					minify,
 					sourcemap: sourcemap ? "inline" : false,
 					define: {
 						"process.env.NODE_ENV": '"production"',
-
 					},
 					logLevel: "warning",
 				});
 
-				// 4. Write all output files to the bundle
+				let mainEntryContent: string | null = null;
+				const chunkFiles: Array<{ name: string; content: string }> = [];
+
 				for (const file of result.outputFiles) {
-					// esbuild returns absolute paths or paths relative to outdir
-					// We need the basename to set in the files map
 					const fileName = file.path.split("/").pop()!;
-					files.set(fileName, file.text);
+
+					if (fileName === "stdin.js" || (result.outputFiles.length === 1 && !mainEntryContent)) {
+						mainEntryContent = file.text;
+					} else {
+						chunkFiles.push({ name: fileName, content: file.text });
+					}
 				}
 
-				const mainFile = result.outputFiles.find((f) => f.path.endsWith("game.js"));
-				const sizeKB = mainFile ? (mainFile.text.length / 1024).toFixed(1) : "0";
-				logger.success(`Runtime bundle generated (${sizeKB} KB + ${result.outputFiles.length - 1} chunks)`);
+				if (mainEntryContent) {
+					files.set("game.js", mainEntryContent);
+				} else if (result.outputFiles.length > 0) {
+					files.set("game.js", result.outputFiles[0].text);
+					logger.warn(`Using first output file as game.js`);
+				} else {
+					throw new Error("No output files generated from esbuild");
+				}
+
+				for (const chunk of chunkFiles) {
+					files.set(chunk.name, chunk.content);
+				}
+
+				const mainFile = files.get("game.js");
+				const sizeKB = mainFile ? ((typeof mainFile === "string" ? mainFile.length : 0) / 1024).toFixed(1) : "0";
+				const chunkInfo = chunkFiles.length > 0 ? ` + ${chunkFiles.length} chunks` : "";
+				logger.success(`Runtime bundle generated: game.js (${sizeKB} KB${chunkInfo})`);
 			} catch (err) {
 				logger.error("Failed to generate runtime bundle:", err);
 				ctx.errors.push(`Runtime bundle error: ${err}`);
@@ -117,18 +126,11 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 	};
 }
 
-/**
- * Generate code to embed sources (similar to MicroStudio's approach)
- * Sources are embedded and compiled at runtime
- */
 function generateSourcesCode(sources: Array<{ name: string; content?: string }>): string {
 	const embedded = generateSourcesData(sources);
 	return `window.__L8B_SOURCES__ = ${JSON.stringify(embedded)};`;
 }
 
-/**
- * Generate sources data object
- */
 function generateSourcesData(sources: Array<{ name: string; content?: string }>): Record<string, string> {
 	const embedded: Record<string, string> = {};
 

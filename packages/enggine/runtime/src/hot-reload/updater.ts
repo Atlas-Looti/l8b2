@@ -1,6 +1,6 @@
 /**
  * Source code updater for hot reload
- * Matches microstudio runtime.coffee updateSource behavior exactly
+ * Matches runtime behavior for source updates
  */
 
 import type { L8BVM } from "@l8b/vm";
@@ -17,22 +17,21 @@ export class SourceUpdater {
 		private audio?: { cancelBeeps(): void },
 		private screen?: { clear(): void },
 		private reportWarnings?: () => void,
-	) {}
+	) { }
 
 	/**
 	 * Update source code (hot reload)
-	 * Matches microstudio runtime.coffee updateSource exactly
 	 */
 	updateSource(file: string, src: string, reinit = false): boolean {
-		// Return false if VM is not available (same as microstudio line 37)
+		// Return false if VM is not available
 		if (!this.vm) return false;
 
-		// Return false if source code hasn't changed (same as microstudio line 38)
+		// Return false if source code hasn't changed
 		if (src === this.updateMemory[file]) return false;
 
 		this.updateMemory[file] = src;
 
-		// Cancel beeps and clear screen before hot reload (same as microstudio lines 40-41)
+		// Cancel beeps and clear screen before hot reload
 		if (this.audio) {
 			this.audio.cancelBeeps();
 		}
@@ -41,11 +40,11 @@ export class SourceUpdater {
 		}
 
 		try {
-			// Compile and execute updated source code (same as microstudio line 44)
+			// Compile and execute updated source code
 			// Timeout of 3000ms prevents infinite loops during hot reload
 			this.vm.run(src, 3000, file);
 
-			// Notify parent process of successful compilation (same as microstudio lines 46-48)
+			// Notify parent process of successful compilation
 			if (this.listener.postMessage) {
 				this.listener.postMessage({
 					name: "compile_success",
@@ -53,12 +52,12 @@ export class SourceUpdater {
 				});
 			}
 
-			// Report warnings after compilation (same as microstudio line 50)
+			// Report warnings after compilation
 			if (this.reportWarnings) {
 				this.reportWarnings();
 			}
 
-			// Check for compilation or runtime errors from VM (same as microstudio lines 51-56)
+			// Check for compilation or runtime errors from VM
 			if (this.vm.error_info) {
 				const err: any = Object.assign({}, this.vm.error_info);
 				err.type = "init";
@@ -67,7 +66,7 @@ export class SourceUpdater {
 				return false;
 			}
 
-			// Re-run init() function if it was modified during hot reload (same as microstudio lines 58-66)
+			// Re-run init() function if it was modified during hot reload
 			// This allows reinitialization without full page refresh
 			if ((this.vm.runner as any)?.getFunctionSource) {
 				const init = (this.vm.runner as any).getFunctionSource("init");
@@ -84,7 +83,7 @@ export class SourceUpdater {
 
 			return true;
 		} catch (err: any) {
-			// Handle exceptions during compilation or execution (same as microstudio lines 69-74)
+			// Handle exceptions during compilation or execution
 			// Only report errors if report_errors flag is true
 			if (this.reportErrors) {
 				console.error(err);

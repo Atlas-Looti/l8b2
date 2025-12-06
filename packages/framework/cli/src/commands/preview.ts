@@ -2,7 +2,9 @@
  * Preview command - Serve production build
  */
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 import { createLogger } from "@l8b/framework-shared";
+import { loadConfig } from "@l8b/framework-config";
 import sirv from "sirv";
 import http from "node:http";
 
@@ -17,8 +19,26 @@ export interface PreviewOptions {
 }
 
 export async function previewCommand(options: PreviewOptions): Promise<void> {
-	const { root, port, host, open, outDir = "dist" } = options;
-	const distDir = resolve(root, outDir);
+	const { root, port, host, open, outDir } = options;
+	
+	// Load config to get the correct output directory (same as build command)
+	const config = loadConfig(root);
+	const distDir = outDir ? resolve(root, outDir) : config.outPath;
+
+	// Check if build directory exists
+	if (!existsSync(distDir)) {
+		logger.error(`Build directory not found: ${distDir}`);
+		logger.info(`Please run 'l8b build' first to create a production build.`);
+		process.exit(1);
+	}
+
+	// Check if game.js exists
+	const gameJsPath = resolve(distDir, "game.js");
+	if (!existsSync(gameJsPath)) {
+		logger.warn(`game.js not found in ${distDir}`);
+		logger.warn(`The build may be incomplete or outdated.`);
+		logger.warn(`Please run 'l8b build' to rebuild.`);
+	}
 
 	logger.info(`Starting preview server for ${distDir}...`);
 
@@ -37,9 +57,6 @@ export async function previewCommand(options: PreviewOptions): Promise<void> {
 		logger.info(`Preview server running at ${url}`);
 
 		if (open) {
-			// In a real implementation we would use 'open' package
-			// import openBrowser from 'open';
-			// openBrowser(url);
 			logger.info(`Open ${url} in your browser`);
 		}
 	});

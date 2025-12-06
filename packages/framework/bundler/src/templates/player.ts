@@ -1,6 +1,5 @@
 /**
  * L8B Player - Main game controller
- * Based on microstudio's Player class
  */
 export const PLAYER_TEMPLATE = `
 class Player {
@@ -117,9 +116,11 @@ class Player {
 			env: window.__L8B_ENV__ || {}
 		};
 		
-		// Create runtime
 		try {
-			this.runtime = new Runtime(runtimeConfig);
+			if (typeof window.Runtime === 'undefined') {
+				throw new Error('Runtime is not defined. Make sure @l8b/runtime is properly bundled.');
+			}
+			this.runtime = new window.Runtime(runtimeConfig);
 			wrapper.appendChild(this.runtime.screen.canvas);
 			
 			// Handle window resize
@@ -145,7 +146,7 @@ class Player {
 	}
 	
 	/**
-	 * Handle window resize - microstudio-style with aspect ratio and orientation
+	 * Handle window resize with aspect ratio and orientation support
 	 */
 	resize() {
 		if (!this.runtime || !this.runtime.screen) return;
@@ -161,7 +162,7 @@ class Player {
 		// Normalize aspect (support both 16x9 and 16:9 formats)
 		const normalizedAspect = configAspect.replace(/:/g, 'x');
 		
-		// Aspect ratio mappings - same as microstudio
+		// Aspect ratio mappings
 		const aspectRatios = {
 			'4x3': 4/3,
 			'16x9': 16/9,

@@ -90,7 +90,7 @@ export class L8BBundler {
 		const plugins: L8BPlugin[] = [];
 
 		// Assets plugin - always included
-		// For Microstudio-style games, we copy all assets as files with original names
+		// We copy all assets as files with original names
 		plugins.push(
 			assetsPlugin({
 				hash: false, // Keep original filenames

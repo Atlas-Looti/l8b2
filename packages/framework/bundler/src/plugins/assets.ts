@@ -64,7 +64,7 @@ const MIME_TYPES: Record<string, string> = {
 /**
  * Create assets plugin
  *
- * Note: For Microstudio-style games, we need to:
+ * Note: We need to:
  * - Copy ALL assets as files (no inlining)
  * - Keep original filenames (no hashing)
  * This allows the runtime to fetch assets by their original names.
