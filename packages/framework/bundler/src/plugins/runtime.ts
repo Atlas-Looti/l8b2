@@ -90,7 +90,7 @@ async function buildProductionRuntime(minify: boolean, sourcemap: boolean): Prom
 
 /**
  * Generate the Player class (inspired by microstudio's player.coffee)
- * 
+ *
  * TODO: [Code Quality] Refactor 371-line function into smaller methods
  * Consider moving to template file for better maintainability
  * See: framework_audit_report.md #13

@@ -1,5 +1,5 @@
 /**
- * Dev command - Start development server
+ * Dev command - Start development server with interactive CLI
  */
 import { createLogger } from "@l8b/framework-shared";
 import { createDevServer } from "@l8b/framework-server";
@@ -29,6 +29,9 @@ export async function devCommand(options: DevOptions): Promise<void> {
 			host: options.host,
 			open: options.open,
 		});
+
+		// Bind interactive CLI shortcuts (r=restart, o=open, c=clear, q=quit, h=help)
+		server.bindCLIShortcuts({ print: true });
 
 		// Handle shutdown signals
 		const shutdown = async () => {

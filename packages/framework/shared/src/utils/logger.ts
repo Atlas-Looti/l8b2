@@ -115,4 +115,3 @@ export const logger = new Logger();
 export function createLogger(namespace: string, level?: LogLevel): Logger {
 	return new Logger(`l8b:${namespace}`, level);
 }
-

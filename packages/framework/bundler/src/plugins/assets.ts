@@ -40,7 +40,7 @@ interface ManifestEntry {
 
 /**
  * MIME type map
- * 
+ *
  * TODO: [P2] Consolidate MIME types in @l8b/framework-shared
  * Duplicated in multiple files, creates maintenance burden
  * See: framework_audit_report.md #11

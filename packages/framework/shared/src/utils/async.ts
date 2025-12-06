@@ -146,4 +146,3 @@ export class AsyncQueue {
 		this.running = false;
 	}
 }
-

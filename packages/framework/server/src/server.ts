@@ -7,12 +7,14 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join, dirname } from "node:path";
+import type readline from "node:readline";
 import { type DevServerOptions, type ProjectResources, MIME_TYPES, createLogger } from "@l8b/framework-shared";
 import { type ResolvedConfig, discoverResources, loadConfig } from "@l8b/framework-config";
 import { compileSource } from "@l8b/framework-compiler";
 import { createWatcher, type L8BWatcher } from "@l8b/framework-watcher";
 import { generateDevHTML, generateHMRClient } from "@l8b/framework-html";
 import { HMRServer } from "./hmr";
+import { bindCLIShortcuts as _bindCLIShortcuts, type BindCLIShortcutsOptions } from "./shortcuts";
 
 const logger = createLogger("server");
 
@@ -65,6 +67,16 @@ export class L8BDevServer {
 	private watcher: L8BWatcher | null = null;
 	private resources: ProjectResources;
 	private watcherUnsubscribe: (() => void) | null = null;
+
+	/**
+	 * @internal - Readline interface for CLI shortcuts
+	 */
+	_rl?: readline.Interface | undefined;
+
+	/**
+	 * @internal - CLI shortcuts options
+	 */
+	_shortcutsOptions?: BindCLIShortcutsOptions<L8BDevServer>;
 
 	constructor(options: DevServerOptions) {
 		this.options = {
@@ -195,6 +207,12 @@ export class L8BDevServer {
 				this.server!.close(() => resolve());
 			});
 			this.server = null;
+		}
+
+		// Close readline interface (shortcuts will rebind after restart if needed)
+		if (this._rl) {
+			this._rl.close();
+			this._rl = undefined;
 		}
 
 		logger.info("Server stopped");
@@ -489,6 +507,41 @@ export class L8BDevServer {
 		});
 
 		logger.success(`Map updated: ${map.name}`);
+	}
+
+	/**
+	 * Get the server host
+	 */
+	getHost(): string {
+		return this.options.host || "localhost";
+	}
+
+	/**
+	 * Get the server port
+	 */
+	getPort(): number {
+		return this.options.port;
+	}
+
+	/**
+	 * Get the full server URL
+	 */
+	getServerUrl(): string {
+		return `http://${this.getHost()}:${this.getPort()}`;
+	}
+
+	/**
+	 * Bind CLI shortcuts for interactive terminal commands
+	 */
+	bindCLIShortcuts(options?: BindCLIShortcutsOptions<L8BDevServer>): void {
+		_bindCLIShortcuts(this, options);
+	}
+
+	/**
+	 * Open the server URL in the default browser
+	 */
+	openInBrowser(): void {
+		this.openBrowser(this.getServerUrl());
 	}
 
 	/**

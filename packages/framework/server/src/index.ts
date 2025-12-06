@@ -5,3 +5,4 @@
 export * from "./server";
 export * from "./hmr";
 export * from "./middleware";
+export * from "./shortcuts";

@@ -1,6 +1,6 @@
 /**
  * Resource discovery for L8B projects
- * 
+ *
  * Note: This module uses synchronous file operations for simplicity.
  * For large projects (1000+ files), consider converting to async with
  * fs/promises and Promise.all for parallel processing.

@@ -154,4 +154,7 @@ Visit [https://l8b.dev](https://l8b.dev) for documentation.
 	logger.info(`    cd ${options.name}`);
 	logger.info("    l8b dev");
 	logger.info("");
+
+	// Exit successfully
+	process.exit(0);
 }

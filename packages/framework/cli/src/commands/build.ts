@@ -1,6 +1,6 @@
 /**
  * Build command - Creates production bundle
- * 
+ *
  * Uses the L8B bundler with plugin system for:
  * - LootiScript compilation
  * - Asset processing with hashing
@@ -100,6 +100,9 @@ export async function buildCommand(options: BuildOptions): Promise<void> {
 		if (options.serviceWorker) {
 			logger.info("  SW:      sw.js generated");
 		}
+
+		// Exit successfully (ensures all async resources are cleaned up)
+		process.exit(0);
 	} catch (err) {
 		logger.error("Build failed:", err);
 		process.exit(1);
