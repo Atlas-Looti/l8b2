@@ -17,7 +17,10 @@
 	"types": "./dist/index.d.ts",
 	"dependencies": {
 		"@l8b/framework-shared": "workspace:*",
-		"chokidar": "^4.0.3"
+		"chokidar": "^4.0.1"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.1"
 	},
 	"keywords": [
 		"l8b",

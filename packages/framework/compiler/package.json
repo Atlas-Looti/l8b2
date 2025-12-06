@@ -19,6 +19,9 @@
 		"@l8b/framework-shared": "workspace:*",
 		"@l8b/lootiscript": "workspace:*"
 	},
+	"devDependencies": {
+		"@types/node": "^22.10.1"
+	},
 	"keywords": [
 		"l8b",
 		"framework",
