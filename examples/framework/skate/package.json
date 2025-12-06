@@ -4,11 +4,11 @@
 	"version": "1.0.6",
 	"type": "module",
 	"scripts": {
-		"dev": "node ../../packages/framework/cli/dist/bin.js dev",
-		"preview": "node ../../packages/framework/cli/dist/bin.js preview",
-		"build": "node ../../packages/framework/cli/dist/bin.js build"
+		"dev": "node ../../../packages/framework/cli/dist/bin.mjs dev",
+		"preview": "node ../../../packages/framework/cli/dist/bin.mjs preview",
+		"build": "node ../../../packages/framework/cli/dist/bin.mjs build"
 	},
 	"devDependencies": {
-		"@l8b/cli": "latest"
+		"@l8b/cli": "workspace:*"
 	}
 }
