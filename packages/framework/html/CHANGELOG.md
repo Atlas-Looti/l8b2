@@ -1,5 +1,13 @@
 # @l8b/framework-html
 
+## 1.0.9
+
+### Patch Changes
+
+- 4e9b563: .
+- 5408ebb: .
+  - @l8b/framework-shared@1.0.9
+
 ## 1.0.8
 
 ### Patch Changes
