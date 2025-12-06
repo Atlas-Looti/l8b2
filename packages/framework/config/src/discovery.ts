@@ -1,11 +1,10 @@
 /**
  * Resource discovery for L8B projects
  *
- * Note: This module uses synchronous file operations for simplicity.
- * For large projects (1000+ files), consider converting to async with
- * fs/promises and Promise.all for parallel processing.
+ * Uses async file operations and streams for performance and stability.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { access, readdir, readFile, stat } from "node:fs/promises";
+import { constants } from "node:fs";
 import { join, relative } from "node:path";
 import {
 	type MapInfo,
@@ -14,7 +13,7 @@ import {
 	type SoundInfo,
 	type SourceInfo,
 	type SpriteInfo,
-	generateVersion,
+	generateFileVersion,
 	getBaseName,
 	getModuleName,
 	getResourceName,
@@ -27,9 +26,21 @@ import {
 import type { ResolvedConfig } from "./config";
 
 /**
+ * Check if a file exists
+ */
+async function exists(path: string): Promise<boolean> {
+	try {
+		await access(path, constants.F_OK);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
  * Discover all resources in a L8B project
  */
-export function discoverResources(config: ResolvedConfig): ProjectResources {
+export async function discoverResources(config: ResolvedConfig): Promise<ProjectResources> {
 	const resources: ProjectResources = {
 		sources: [],
 		images: [],
@@ -40,46 +51,63 @@ export function discoverResources(config: ResolvedConfig): ProjectResources {
 		fonts: [],
 	};
 
-	// Discover source files
-	if (existsSync(config.srcPath)) {
-		resources.sources = discoverSourceFiles(config.srcPath);
-	}
+	// Parallelize discovery of different resource types
+	await Promise.all([
+		// Discover source files
+		(async () => {
+			if (await exists(config.srcPath)) {
+				resources.sources = await discoverSourceFiles(config.srcPath);
+			}
+		})(),
 
-	// Discover sprites
-	const spritesDir = join(config.publicPath, "sprites");
-	if (existsSync(spritesDir)) {
-		resources.images = discoverSprites(spritesDir);
-	}
+		// Discover sprites
+		(async () => {
+			const spritesDir = join(config.publicPath, "sprites");
+			if (await exists(spritesDir)) {
+				resources.images = await discoverSprites(spritesDir);
+			}
+		})(),
 
-	// Discover maps
-	const mapsDir = join(config.publicPath, "maps");
-	if (existsSync(mapsDir)) {
-		resources.maps = discoverMaps(mapsDir);
-	}
+		// Discover maps
+		(async () => {
+			const mapsDir = join(config.publicPath, "maps");
+			if (await exists(mapsDir)) {
+				resources.maps = await discoverMaps(mapsDir);
+			}
+		})(),
 
-	// Discover sounds
-	const soundsDir = join(config.publicPath, "sounds");
-	if (existsSync(soundsDir)) {
-		resources.sounds = discoverAudio(soundsDir, "sound");
-	}
+		// Discover sounds
+		(async () => {
+			const soundsDir = join(config.publicPath, "sounds");
+			if (await exists(soundsDir)) {
+				resources.sounds = await discoverAudio(soundsDir, "sound");
+			}
+		})(),
 
-	// Discover music
-	const musicDir = join(config.publicPath, "music");
-	if (existsSync(musicDir)) {
-		resources.music = discoverAudio(musicDir, "music");
-	}
+		// Discover music
+		(async () => {
+			const musicDir = join(config.publicPath, "music");
+			if (await exists(musicDir)) {
+				resources.music = await discoverAudio(musicDir, "music");
+			}
+		})(),
 
-	// Discover fonts
-	const fontsDir = join(config.publicPath, "fonts");
-	if (existsSync(fontsDir)) {
-		resources.fonts = discoverFonts(fontsDir);
-	}
+		// Discover fonts
+		(async () => {
+			const fontsDir = join(config.publicPath, "fonts");
+			if (await exists(fontsDir)) {
+				resources.fonts = await discoverFonts(fontsDir);
+			}
+		})(),
 
-	// Discover generic assets
-	const assetsDir = join(config.publicPath, "assets");
-	if (existsSync(assetsDir)) {
-		resources.assets = discoverAssets(assetsDir);
-	}
+		// Discover generic assets
+		(async () => {
+			const assetsDir = join(config.publicPath, "assets");
+			if (await exists(assetsDir)) {
+				resources.assets = await discoverAssets(assetsDir);
+			}
+		})(),
+	]);
 
 	return resources;
 }
@@ -87,36 +115,37 @@ export function discoverResources(config: ResolvedConfig): ProjectResources {
 /**
  * Recursively find files in a directory
  */
-function walkDir(dir: string, callback: (filePath: string) => void): void {
-	if (!existsSync(dir)) return;
+async function walkDir(dir: string, callback: (filePath: string) => Promise<void>): Promise<void> {
+	if (!(await exists(dir))) return;
 
-	const entries = readdirSync(dir, { withFileTypes: true });
-	for (const entry of entries) {
+	const entries = await readdir(dir, { withFileTypes: true });
+
+	await Promise.all(entries.map(async (entry) => {
 		const fullPath = join(dir, entry.name);
 		if (entry.isDirectory()) {
-			walkDir(fullPath, callback);
+			await walkDir(fullPath, callback);
 		} else if (entry.isFile()) {
-			callback(fullPath);
+			await callback(fullPath);
 		}
-	}
+	}));
 }
 
 /**
  * Discover LootiScript source files
  */
-function discoverSourceFiles(srcDir: string): SourceInfo[] {
+async function discoverSourceFiles(srcDir: string): Promise<SourceInfo[]> {
 	const sources: SourceInfo[] = [];
 
-	walkDir(srcDir, (filePath) => {
+	await walkDir(srcDir, async (filePath) => {
 		if (isSourceFile(filePath)) {
-			const content = readFileSync(filePath, "utf-8");
+			const content = await readFile(filePath, "utf-8");
 			const moduleName = getModuleName(filePath, srcDir);
 			const fileName = normalizePath(relative(srcDir, filePath));
 
 			sources.push({
 				file: fileName,
 				name: moduleName,
-				version: generateVersion(content),
+				version: await generateFileVersion(filePath),
 				content,
 			});
 		}
@@ -128,22 +157,22 @@ function discoverSourceFiles(srcDir: string): SourceInfo[] {
 /**
  * Discover sprite files
  */
-function discoverSprites(spritesDir: string): SpriteInfo[] {
+async function discoverSprites(spritesDir: string): Promise<SpriteInfo[]> {
 	const sprites: SpriteInfo[] = [];
 
-	walkDir(spritesDir, (filePath) => {
+	await walkDir(spritesDir, async (filePath) => {
 		if (isImageFile(filePath)) {
-			const content = readFileSync(filePath);
 			const name = getResourceName(filePath, spritesDir);
 			const fileName = normalizePath(relative(spritesDir, filePath));
+			const version = await generateFileVersion(filePath);
 
 			// Try to load properties file
 			const propsPath = filePath.replace(/\.[^.]+$/, ".json");
 			let properties: SpriteInfo["properties"];
 
-			if (existsSync(propsPath)) {
+			if (await exists(propsPath)) {
 				try {
-					const propsContent = readFileSync(propsPath, "utf-8");
+					const propsContent = await readFile(propsPath, "utf-8");
 					properties = JSON.parse(propsContent);
 				} catch {
 					// Ignore invalid properties file
@@ -153,7 +182,7 @@ function discoverSprites(spritesDir: string): SpriteInfo[] {
 			sprites.push({
 				file: fileName,
 				name,
-				version: generateVersion(content),
+				version,
 				type: "sprite",
 				properties,
 			});
@@ -166,12 +195,12 @@ function discoverSprites(spritesDir: string): SpriteInfo[] {
 /**
  * Discover map files
  */
-function discoverMaps(mapsDir: string): MapInfo[] {
+async function discoverMaps(mapsDir: string): Promise<MapInfo[]> {
 	const maps: MapInfo[] = [];
 
-	walkDir(mapsDir, (filePath) => {
+	await walkDir(mapsDir, async (filePath) => {
 		if (isMapFile(filePath)) {
-			const content = readFileSync(filePath, "utf-8");
+			const content = await readFile(filePath, "utf-8");
 			const name = getResourceName(filePath, mapsDir).replace(/\.json$/, "");
 			const fileName = normalizePath(relative(mapsDir, filePath));
 
@@ -186,7 +215,7 @@ function discoverMaps(mapsDir: string): MapInfo[] {
 			maps.push({
 				file: fileName,
 				name,
-				version: generateVersion(content),
+				version: await generateFileVersion(filePath),
 				type: "map",
 				data,
 			});
@@ -199,19 +228,19 @@ function discoverMaps(mapsDir: string): MapInfo[] {
 /**
  * Discover audio files
  */
-function discoverAudio(audioDir: string, type: "sound" | "music"): SoundInfo[] {
+async function discoverAudio(audioDir: string, type: "sound" | "music"): Promise<SoundInfo[]> {
 	const audio: SoundInfo[] = [];
 
-	walkDir(audioDir, (filePath) => {
+	await walkDir(audioDir, async (filePath) => {
 		if (isAudioFile(filePath)) {
-			const content = readFileSync(filePath);
 			const name = getResourceName(filePath, audioDir).replace(/\.(wav|mp3|ogg|m4a)$/i, "");
 			const fileName = normalizePath(relative(audioDir, filePath));
+			const version = await generateFileVersion(filePath);
 
 			audio.push({
 				file: fileName,
 				name,
-				version: generateVersion(content),
+				version,
 				type,
 			});
 		}
@@ -223,21 +252,21 @@ function discoverAudio(audioDir: string, type: "sound" | "music"): SoundInfo[] {
 /**
  * Discover font files
  */
-function discoverFonts(fontsDir: string): ResourceInfo[] {
+async function discoverFonts(fontsDir: string): Promise<ResourceInfo[]> {
 	const fonts: ResourceInfo[] = [];
 	const fontExtensions = [".ttf", ".otf", ".woff", ".woff2"];
 
-	walkDir(fontsDir, (filePath) => {
+	await walkDir(fontsDir, async (filePath) => {
 		const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
 		if (fontExtensions.includes(ext)) {
-			const content = readFileSync(filePath);
 			const name = getBaseName(filePath);
 			const fileName = normalizePath(relative(fontsDir, filePath));
+			const version = await generateFileVersion(filePath);
 
 			fonts.push({
 				file: fileName,
 				name,
-				version: generateVersion(content),
+				version,
 				type: "font",
 			});
 		}
@@ -249,20 +278,20 @@ function discoverFonts(fontsDir: string): ResourceInfo[] {
 /**
  * Discover generic asset files
  */
-function discoverAssets(assetsDir: string): ResourceInfo[] {
+async function discoverAssets(assetsDir: string): Promise<ResourceInfo[]> {
 	const assets: ResourceInfo[] = [];
 
-	walkDir(assetsDir, (filePath) => {
-		const stat = statSync(filePath);
-		if (stat.isFile()) {
-			const content = readFileSync(filePath);
+	await walkDir(assetsDir, async (filePath) => {
+		const stats = await stat(filePath);
+		if (stats.isFile()) {
 			const name = getResourceName(filePath, assetsDir);
 			const fileName = normalizePath(relative(assetsDir, filePath));
+			const version = await generateFileVersion(filePath);
 
 			assets.push({
 				file: fileName,
 				name,
-				version: generateVersion(content),
+				version,
 				type: "asset",
 			});
 		}
@@ -274,10 +303,9 @@ function discoverAssets(assetsDir: string): ResourceInfo[] {
 /**
  * Watch a single file for changes
  */
-export function getFileVersion(filePath: string): number {
-	if (!existsSync(filePath)) {
+export async function getFileVersion(filePath: string): Promise<number> {
+	if (!(await exists(filePath))) {
 		return 0;
 	}
-	const content = readFileSync(filePath);
-	return generateVersion(content);
+	return generateFileVersion(filePath);
 }

@@ -118,7 +118,8 @@ export class Transpiler {
 		this.stack = new Stack();
 		this.locals = {};
 		this.variables = {};
-		s = "f = function(stack,stack_index,locals,locals_offset,object,global) {\n";
+		// Body of the function
+		s = "";
 		for (k = i; k <= j; k++) {
 			const op = OPCODES[r.opcodes[k] as keyof typeof OPCODES] as string;
 			const handler = this.opcodeHandlers[op];
@@ -148,18 +149,24 @@ export class Transpiler {
 		} else if (this.stack!.index > 0) {
 			s += "stack_index += " + this.stack!.index + " ;\n";
 		}
-		s += "return stack_index ;\n}";
-		console.info(s);
+		s += "return stack_index ;\n";
+
+		if (process.env.NODE_ENV === "development") {
+			console.info("Transpiled body:\n" + s);
+		}
+
 		try {
-			eval(s);
+			// Use new Function instead of eval
+			const f = new Function("stack", "stack_index", "locals", "locals_offset", "object", "global", s);
+			r.opcodes[i] = OPCODES.COMPILED;
+			r.arg1[i] = f;
 		} catch (error) {
 			err = error;
+			console.error("Transpilation failed:");
 			console.error(s);
 			console.error(err);
 		}
-		r.opcodes[i] = OPCODES.COMPILED;
-		const f = (globalThis as any).f;
-		r.arg1[i] = f;
+
 		for (k = i + 1; k <= j; k++) {
 			r.remove(i + 1);
 		}

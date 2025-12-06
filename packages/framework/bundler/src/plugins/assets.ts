@@ -8,10 +8,10 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+import { stat } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import type { L8BPlugin, BuildContext } from "./index";
-import { createLogger } from "@l8b/framework-shared";
+import { createLogger, hashFile } from "@l8b/framework-shared";
 
 const logger = createLogger("assets-plugin");
 
@@ -236,8 +236,8 @@ async function processAsset(
 	}
 
 	try {
-		const content = readFileSync(srcPath);
-		const size = content.length;
+		const stats = await stat(srcPath);
+		const size = stats.size;
 		const ext = extname(srcPath).toLowerCase();
 
 		// Calculate hash if enabled
@@ -245,7 +245,8 @@ async function processAsset(
 		let finalDestPath = destPath;
 
 		if (options.hash) {
-			fileHash = createHash("md5").update(content).digest("hex").slice(0, options.hashLength);
+			const hash = await hashFile(srcPath);
+			fileHash = hash.slice(0, options.hashLength);
 
 			// Add hash to filename
 			const dir = dirname(destPath);
@@ -255,6 +256,7 @@ async function processAsset(
 
 		// Check if we should inline
 		if (options.inlineLimit > 0 && size <= options.inlineLimit) {
+			const content = readFileSync(srcPath); // Only read if inlining
 			const mimeType = MIME_TYPES[ext] || "application/octet-stream";
 			const base64 = content.toString("base64");
 			const dataUrl = `data:${mimeType};base64,${base64}`;
@@ -270,8 +272,10 @@ async function processAsset(
 
 			logger.debug(`Inlined: ${name} (${size} bytes)`);
 		} else {
-			// Copy to output
-			files.set(finalDestPath, content);
+			// Copy to output using reference
+			// Note: We cast to any here because we extended the Map type in bundler.ts
+			// but the plugin interface hasn't been updated yet.
+			(files as any).set(finalDestPath, { copyFrom: srcPath });
 
 			manifest.set(name, {
 				src: destPath,
@@ -310,14 +314,6 @@ function generateManifest(manifest: Map<string, ManifestEntry>): Record<string, 
 
 	result.assets = assets;
 	return result;
-}
-
-/**
- * Calculate file hash
- */
-export function hashFile(filePath: string, length = 8): string {
-	const content = readFileSync(filePath);
-	return createHash("md5").update(content).digest("hex").slice(0, length);
 }
 
 /**

@@ -5,7 +5,7 @@
  * Uses pre-built browser runtime for instant startup
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, createReadStream } from "node:fs";
 import { extname, join, dirname } from "node:path";
 import type readline from "node:readline";
 import { type DevServerOptions, type ProjectResources, MIME_TYPES, createLogger } from "@l8b/framework-shared";
@@ -66,6 +66,7 @@ export class L8BDevServer {
 	private hmr: HMRServer | null = null;
 	private watcher: L8BWatcher | null = null;
 	private resources: ProjectResources;
+	private sourceMap: Map<string, any> = new Map();
 	private watcherUnsubscribe: (() => void) | null = null;
 
 	/**
@@ -85,7 +86,27 @@ export class L8BDevServer {
 			...options,
 		};
 		this.config = loadConfig(options.root);
-		this.resources = discoverResources(this.config);
+		// Initialize with empty resources, will be populated in start()
+		this.resources = {
+			sources: [],
+			images: [],
+			maps: [],
+			sounds: [],
+			music: [],
+			assets: [],
+			fonts: [],
+		};
+	}
+
+	/**
+	 * Update resource maps for O(1) lookup
+	 */
+	private updateResourceMaps(): void {
+		this.sourceMap.clear();
+		for (const source of this.resources.sources) {
+			this.sourceMap.set(source.file, source);
+			// Also map .loot to .ms if needed, or handle extension normalization
+		}
 	}
 
 	/**
@@ -93,6 +114,10 @@ export class L8BDevServer {
 	 */
 	async start(): Promise<void> {
 		logger.info("Starting L8B development server...");
+
+		// Discover resources
+		this.resources = await discoverResources(this.config);
+		this.updateResourceMaps();
 
 		// Create HTTP server
 		this.server = createServer((req, res) => {
@@ -320,7 +345,14 @@ export class L8BDevServer {
 	private serveSource(path: string, res: ServerResponse): void {
 		// Extract file name from /loot/filename.loot
 		const fileName = path.replace("/loot/", "");
-		const source = this.resources.sources.find((s) => s.file === fileName || s.file === fileName.replace(".loot", ".ms"));
+
+		// O(1) lookup
+		let source = this.sourceMap.get(fileName);
+
+		// Fallback for .ms extension if not found
+		if (!source && fileName.endsWith(".loot")) {
+			source = this.sourceMap.get(fileName.replace(".loot", ".ms"));
+		}
 
 		if (source && source.content) {
 			res.writeHead(200, {
@@ -354,13 +386,23 @@ export class L8BDevServer {
 		const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
 		try {
-			const content = readFileSync(filePath);
+			// Use streams for better performance and memory usage
+			const stream = createReadStream(filePath);
+
+			// Handle stream errors
+			stream.on("error", (err) => {
+				logger.error(`Error serving file ${filePath}:`, err);
+				if (!res.headersSent) {
+					this.serve404(res);
+				}
+			});
+
 			res.writeHead(200, {
 				"Content-Type": contentType,
-				"Content-Length": content.length,
 				"Cache-Control": "max-age=3600",
 			});
-			res.end(content);
+
+			stream.pipe(res);
 		} catch (err) {
 			this.serve404(res);
 		}
@@ -385,11 +427,12 @@ export class L8BDevServer {
 	/**
 	 * Handle file change event
 	 */
-	private handleFileChange(event: { type: string; path: string; resourceType: string | null }): void {
+	private async handleFileChange(event: { type: string; path: string; resourceType: string | null }): Promise<void> {
 		logger.info(`File ${event.type}: ${event.path}`);
 
 		// Refresh resources
-		this.resources = discoverResources(this.config);
+		this.resources = await discoverResources(this.config);
+		this.updateResourceMaps();
 
 		// Handle based on resource type
 		switch (event.resourceType) {

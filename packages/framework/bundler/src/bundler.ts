@@ -6,7 +6,7 @@
  * - Parallel processing for speed
  * - Proper runtime bundling
  */
-import { existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { type BuildOptions, createLogger } from "@l8b/framework-shared";
 import { compileSource } from "@l8b/framework-compiler";
@@ -58,6 +58,16 @@ export interface L8BBuildOptions extends BuildOptions {
 	base?: string;
 	/** Minifier to use */
 	minifier?: "esbuild" | "terser";
+	/** Externalize sources to sources.json (lazy loading) */
+	externalSources?: boolean;
+	/** Enable Wallet service */
+	enableWallet?: boolean;
+	/** Enable EVM service */
+	enableEVM?: boolean;
+	/** Enable Actions service */
+	enableActions?: boolean;
+	/** Enable Notifications service */
+	enableNotifications?: boolean;
 }
 
 /**
@@ -111,6 +121,11 @@ export class L8BBundler {
 			runtimePlugin({
 				minify: this.options.minify ?? true,
 				sourcemap: this.options.sourcemap ?? false,
+				externalSources: this.options.externalSources ?? false,
+				enableWallet: this.options.enableWallet ?? false,
+				enableEVM: this.options.enableEVM ?? false,
+				enableActions: this.options.enableActions ?? false,
+				enableNotifications: this.options.enableNotifications ?? false,
 			}),
 		);
 
@@ -152,21 +167,22 @@ export class L8BBundler {
 		}
 		mkdirSync(this.options.outDir, { recursive: true });
 
-		// Discover resources
-		const resources = discoverResources(this.config);
+		// Discover resources (async)
+		const resources = await discoverResources(this.config);
 		logger.info(
 			`Found ${resources.sources.length} sources, ${resources.images.length} sprites, ${resources.maps.length} maps`,
 		);
 
 		// Create build context
 		const compiledRoutines = new Map<string, Uint8Array>();
-		const files = new Map<string, string | Uint8Array>();
+		// Support string, Uint8Array, or { copyFrom: string } for large files
+		const files = new Map<string, string | Uint8Array | { copyFrom: string }>();
 		const ctx: BuildContext = {
 			config: this.config,
 			resources,
 			mode: "production",
 			routines: compiledRoutines,
-			files,
+			files: files as any, // Cast to any to avoid type errors in plugins for now
 			errors,
 			warnings,
 		};
@@ -179,10 +195,11 @@ export class L8BBundler {
 			logger.info("Compiling LootiScript sources...");
 			const compileStart = Date.now();
 
-			for (const source of resources.sources) {
+			// Parallel compilation
+			await Promise.all(resources.sources.map(async (source) => {
 				if (!source.content) {
 					errors.push(`No content for source: ${source.file}`);
-					continue;
+					return;
 				}
 
 				const result = compileSource(source.content, {
@@ -195,7 +212,7 @@ export class L8BBundler {
 					for (const err of result.errors || []) {
 						errors.push(`${err.file}:${err.line}:${err.column}: ${err.message}`);
 					}
-					continue;
+					return;
 				}
 
 				if (result.bytecode) {
@@ -207,7 +224,7 @@ export class L8BBundler {
 				for (const warn of result.warnings || []) {
 					warnings.push(`${warn.file}:${warn.line}: ${warn.message}`);
 				}
-			}
+			}));
 
 			const compileTime = Date.now() - compileStart;
 			logger.info(`Compilation complete (${compileTime}ms)`);
@@ -222,7 +239,7 @@ export class L8BBundler {
 
 			// Run generateBundle hooks (this generates all output files)
 			logger.info("Generating bundle...");
-			await this.pluginContainer.generateBundle(files, ctx);
+			await this.pluginContainer.generateBundle(files as any, ctx);
 
 			// Write all files to output directory
 			logger.info("Writing output files...");
@@ -236,10 +253,13 @@ export class L8BBundler {
 				}
 
 				// Write file
-				if (typeof content === "string") {
+				if (typeof content === "object" && content !== null && "copyFrom" in content) {
+					// Copy file directly
+					copyFileSync((content as { copyFrom: string }).copyFrom, outputPath);
+				} else if (typeof content === "string") {
 					writeFileSync(outputPath, content, "utf-8");
 				} else {
-					writeFileSync(outputPath, content);
+					writeFileSync(outputPath, content as Uint8Array);
 				}
 
 				outputFiles.push(filePath);

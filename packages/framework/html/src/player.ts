@@ -32,21 +32,24 @@ export function generatePlayerScript(): string {
 	
 	Player.prototype.loadSource = function(source) {
 		var self = this;
-		var req = new XMLHttpRequest();
-		req.onreadystatechange = function() {
-			if (req.readyState === XMLHttpRequest.DONE) {
-				if (req.status === 200) {
-					var name = source.file.split('.')[0];
-					self.sources[name] = req.responseText;
-					self.sourceCount++;
-					if (self.sourceCount >= self.resources.sources.length && !self.runtime) {
-						self.start();
-					}
+		var url = '/loot/' + source.file + '?v=' + source.version;
+		
+		fetch(url)
+			.then(function(response) {
+				if (!response.ok) throw new Error('Network response was not ok');
+				return response.text();
+			})
+			.then(function(code) {
+				var name = source.file.split('.')[0];
+				self.sources[name] = code;
+				self.sourceCount++;
+				if (self.sourceCount >= self.resources.sources.length && !self.runtime) {
+					self.start();
 				}
-			}
-		};
-		req.open('GET', '/loot/' + source.file + '?v=' + source.version);
-		req.send();
+			})
+			.catch(function(error) {
+				console.error('[L8B] Failed to load source:', source.file, error);
+			});
 	};
 	
 	Player.prototype.start = function() {

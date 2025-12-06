@@ -17,28 +17,36 @@
  * @module runtime
  */
 
-import { ActionsService } from "@l8b/actions";
+import type { ActionsService } from "@l8b/actions";
 import { AudioCore } from "@l8b/audio";
 import { createDiagnostic, formatForBrowser } from "@l8b/diagnostics";
 import { EnvService } from "@l8b/env";
-import { EVMService } from "@l8b/evm";
+import type { EVMService } from "@l8b/evm";
 import { HttpService } from "@l8b/http";
+import type { NotificationsService } from "@l8b/notifications";
 import { Random, Routine } from "@l8b/lootiscript";
-import { NotificationsService } from "@l8b/notifications";
 import { Palette } from "@l8b/palette";
 import { PlayerService } from "@l8b/player";
 import { SceneManager } from "@l8b/scene";
 import { Screen } from "@l8b/screen";
 import { TimeMachine } from "@l8b/time";
 import { type GlobalAPI, L8BVM, type MetaFunctions } from "@l8b/vm";
-import { WalletService } from "@l8b/wallet";
+import type { WalletService } from "@l8b/wallet";
 import { AssetLoader, createSoundClass, Image, Map, Sprite } from "../assets";
 import { SourceUpdater } from "../hot-reload";
 import { InputManager } from "../input";
 import { GameLoop } from "../loop";
 import { System } from "../system";
-import type { RuntimeDebugOptions, RuntimeListener, RuntimeOptions } from "../types";
+import type { RuntimeDebugOptions, RuntimeListener, RuntimeOptions as BaseRuntimeOptions } from "../types";
 import { ObjectPool } from "../utils/object-pool";
+
+// Extend RuntimeOptions to include feature flags
+export interface RuntimeOptions extends BaseRuntimeOptions {
+	enableWallet?: boolean;
+	enableEVM?: boolean;
+	enableActions?: boolean;
+	enableNotifications?: boolean;
+}
 
 /**
  * RuntimeOrchestrator - Main coordinator for all runtime components
@@ -67,12 +75,12 @@ export class RuntimeOrchestrator {
 	public system: System;
 	public sceneManager: SceneManager;
 	public player: PlayerService;
-	public wallet: WalletService;
-	public evm: EVMService;
-	public actions: ActionsService;
+	public wallet?: WalletService;
+	public evm?: EVMService;
+	public actions?: ActionsService;
 	public http: HttpService;
 	public env: EnvService;
-	public notifications: NotificationsService;
+	public notifications?: NotificationsService;
 	public vm: L8BVM | null = null;
 
 	// Asset collections (populated by AssetLoader)
@@ -126,11 +134,11 @@ export class RuntimeOrchestrator {
 
 		// Farcaster Mini Apps integration
 		this.player = new PlayerService();
-		this.wallet = new WalletService();
-		this.evm = new EVMService();
-		this.actions = new ActionsService();
+
+		// Optional services are initialized in initializeServices()
+		this.initializeServices();
+
 		this.http = new HttpService();
-		this.notifications = new NotificationsService();
 
 		// Environment variables service
 		this.env = new EnvService(options.env || {});
@@ -193,12 +201,15 @@ export class RuntimeOrchestrator {
 	}
 
 	/**
-	 * Step 1: Load all assets
+	 * Step 1: Initialize optional services and load assets
 	 *
 	 * Triggers the AssetLoader to fetch and parse all resources defined in options.
 	 * Populates the runtime's asset collections (sprites, maps, sounds, etc.).
 	 */
 	private async loadAssets(): Promise<void> {
+		// Initialize optional services in parallel with asset loading
+		await this.initializeServices();
+
 		const collections = await this.assetLoader.loadAll();
 
 		// Populate runtime asset collections from loader results
@@ -207,6 +218,55 @@ export class RuntimeOrchestrator {
 		this.sounds = collections.sounds;
 		this.music = collections.music;
 		this.assets = collections.assets;
+	}
+
+	/**
+	 * Initialize optional services using dynamic imports
+	 * This allows for code splitting and reduces initial bundle size
+	 */
+	private async initializeServices(): Promise<void> {
+		const promises: Promise<void>[] = [];
+
+		// Wallet Service
+		if (this.options.enableWallet) {
+			promises.push(
+				import("@l8b/wallet").then(({ WalletService }) => {
+					this.wallet = new WalletService();
+				})
+			);
+		}
+
+		// EVM Service
+		if (this.options.enableEVM) {
+			promises.push(
+				import("@l8b/evm").then(({ EVMService }) => {
+					this.evm = new EVMService();
+				})
+			);
+		}
+
+		// Actions Service
+		if (this.options.enableActions) {
+			promises.push(
+				import("@l8b/actions").then(({ ActionsService }) => {
+					this.actions = new ActionsService();
+				})
+			);
+		}
+
+		// Notifications Service
+		if (this.options.enableNotifications) {
+			promises.push(
+				import("@l8b/notifications").then(({ NotificationsService }) => {
+					this.notifications = new NotificationsService();
+				})
+			);
+		}
+
+		if (promises.length > 0) {
+			this.logStep("startup: initializing optional services");
+			await Promise.all(promises);
+		}
 	}
 
 	/**
@@ -341,11 +401,12 @@ export class RuntimeOrchestrator {
 			Random: Random,
 			ObjectPool: ObjectPool,
 			// Farcaster Mini Apps APIs
+			// Farcaster Mini Apps APIs
 			player: this.player.getInterface(),
-			wallet: this.wallet.getInterface(),
-			evm: this.evm.getInterface(),
-			actions: this.actions.getInterface(),
-			notifications: this.notifications.getInterface(),
+			wallet: this.wallet?.getInterface(),
+			evm: this.evm?.getInterface(),
+			actions: this.actions?.getInterface(),
+			notifications: this.notifications?.getInterface(),
 			// HTTP client for external APIs
 			http: this.http.getInterface(),
 			// Environment variables API (read-only, secure)

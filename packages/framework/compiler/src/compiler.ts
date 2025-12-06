@@ -180,28 +180,46 @@ function serializeRoutine(routine: unknown): Uint8Array {
 /**
  * Batch compile multiple files
  */
+/**
+ * Batch compile multiple files
+ */
 export async function compileFiles(
 	files: Array<{ path: string; source?: string }>,
 	options: Omit<CompileOptions, "filePath" | "moduleName"> = {},
 ): Promise<CompilationResult[]> {
-	const results: CompilationResult[] = [];
+	const { readFile } = await import("node:fs/promises");
 
-	for (const file of files) {
-		let result: CompilationResult;
-
-		if (file.source !== undefined) {
-			result = compileSource(file.source, {
-				...options,
-				filePath: file.path,
-			});
-		} else {
-			result = compileFile(file.path, options);
-		}
-
-		results.push(result);
-	}
-
-	return results;
+	return Promise.all(
+		files.map(async (file) => {
+			if (file.source !== undefined) {
+				return compileSource(file.source, {
+					...options,
+					filePath: file.path,
+				});
+			} else {
+				try {
+					const source = await readFile(file.path, "utf-8");
+					return compileSource(source, { ...options, filePath: file.path });
+				} catch (error) {
+					const err = error as Error;
+					return {
+						success: false,
+						file: file.path,
+						name: file.path,
+						errors: [
+							{
+								message: `Failed to read file: ${err.message}`,
+								file: file.path,
+								line: 0,
+								column: 0,
+							},
+						],
+						warnings: [],
+					};
+				}
+			}
+		}),
+	);
 }
 
 /**

@@ -27,6 +27,6 @@ export {
 
 // Built-in plugins
 export { runtimePlugin, type RuntimePluginOptions } from "./plugins/runtime";
-export { assetsPlugin, type AssetsPluginOptions, hashFile, getMimeType } from "./plugins/assets";
+export { assetsPlugin, type AssetsPluginOptions, getMimeType } from "./plugins/assets";
 export { htmlPlugin, type HTMLPluginOptions } from "./plugins/html";
 export { minifyPlugin, type MinifyPluginOptions, simpleMinify } from "./plugins/minify";
