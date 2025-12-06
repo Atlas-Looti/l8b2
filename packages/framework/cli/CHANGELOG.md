@@ -1,5 +1,18 @@
 # @l8b/cli
 
+## 1.0.9
+
+### Patch Changes
+
+- 4e9b563: .
+- Updated dependencies [4e9b563]
+- Updated dependencies [5408ebb]
+  - @l8b/framework-bundler@1.0.9
+  - @l8b/framework-server@1.0.9
+  - @l8b/compiler@1.0.9
+  - @l8b/framework-config@1.0.9
+  - @l8b/framework-shared@1.0.9
+
 ## 1.0.8
 
 ### Patch Changes
