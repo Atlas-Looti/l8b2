@@ -145,16 +145,102 @@ class Player {
 	}
 	
 	/**
-	 * Handle window resize
+	 * Handle window resize - microstudio-style with aspect ratio and orientation
 	 */
 	resize() {
-		if (this.runtime && this.runtime.screen) {
-			this.runtime.screen.resize();
-			
-			// Redraw if paused
-			if (this.runtime.vm && this.runtime.stopped) {
-				this.runtime.drawCall();
+		if (!this.runtime || !this.runtime.screen) return;
+		
+		const cw = window.innerWidth;
+		const ch = window.innerHeight;
+		let w, h;
+		
+		// Get config from global scope (defined in HTML template)
+		const configAspect = window.aspect || 'free';
+		const configOrientation = window.orientation || 'any';
+		
+		// Normalize aspect (support both 16x9 and 16:9 formats)
+		const normalizedAspect = configAspect.replace(/:/g, 'x');
+		
+		// Aspect ratio mappings - same as microstudio
+		const aspectRatios = {
+			'4x3': 4/3,
+			'16x9': 16/9,
+			'2x1': 2/1,
+			'1x1': 1/1,
+			'>4x3': 4/3,
+			'>16x9': 16/9,
+			'>2x1': 2/1,
+			'>1x1': 1/1
+		};
+		
+		let ratio = aspectRatios[normalizedAspect];
+		const min = normalizedAspect && normalizedAspect.startsWith('>');
+		
+		if (ratio != null) {
+			// Calculate with aspect ratio constraint
+			if (min) {
+				switch (configOrientation) {
+					case 'portrait':
+						ratio = Math.max(ratio, ch / cw);
+						break;
+					case 'landscape':
+						ratio = Math.max(ratio, cw / ch);
+						break;
+					default:
+						if (ch > cw) {
+							ratio = Math.max(ratio, ch / cw);
+						} else {
+							ratio = Math.max(ratio, cw / ch);
+						}
+				}
 			}
+			
+			let r;
+			switch (configOrientation) {
+				case 'portrait':
+					r = Math.min(cw, ch / ratio) / cw;
+					w = cw * r;
+					h = cw * r * ratio;
+					break;
+				case 'landscape':
+					r = Math.min(cw / ratio, ch) / ch;
+					w = ch * r * ratio;
+					h = ch * r;
+					break;
+				default:
+					if (cw > ch) {
+						r = Math.min(cw / ratio, ch) / ch;
+						w = ch * r * ratio;
+						h = ch * r;
+					} else {
+						r = Math.min(cw, ch / ratio) / cw;
+						w = cw * r;
+						h = cw * r * ratio;
+					}
+			}
+		} else {
+			// Free aspect - use full window
+			w = cw;
+			h = ch;
+		}
+		
+		// Apply styles to canvas
+		const canvas = this.runtime.screen.canvas;
+		canvas.style.marginTop = Math.round((ch - h) / 2) + 'px';
+		canvas.style.width = Math.round(w) + 'px';
+		canvas.style.height = Math.round(h) + 'px';
+		
+		// Calculate actual canvas resolution with device pixel ratio
+		const dpr = window.devicePixelRatio || 1;
+		const canvasW = Math.round(w * dpr);
+		const canvasH = Math.round(h * dpr);
+		
+		// Resize internal canvas
+		this.runtime.screen.resize(canvasW, canvasH);
+		
+		// Redraw if paused
+		if (this.runtime.vm && this.runtime.stopped) {
+			this.runtime.drawCall();
 		}
 	}
 	

@@ -196,35 +196,37 @@ export class L8BBundler {
 			const compileStart = Date.now();
 
 			// Parallel compilation
-			await Promise.all(resources.sources.map(async (source) => {
-				if (!source.content) {
-					errors.push(`No content for source: ${source.file}`);
-					return;
-				}
-
-				const result = compileSource(source.content, {
-					filePath: source.file,
-					moduleName: source.name,
-					srcDir: this.config.srcPath,
-				});
-
-				if (!result.success) {
-					for (const err of result.errors || []) {
-						errors.push(`${err.file}:${err.line}:${err.column}: ${err.message}`);
+			await Promise.all(
+				resources.sources.map(async (source) => {
+					if (!source.content) {
+						errors.push(`No content for source: ${source.file}`);
+						return;
 					}
-					return;
-				}
 
-				if (result.bytecode) {
-					compiledRoutines.set(source.name, result.bytecode);
-					logger.debug(`Compiled: ${source.name}`);
-				}
+					const result = compileSource(source.content, {
+						filePath: source.file,
+						moduleName: source.name,
+						srcDir: this.config.srcPath,
+					});
 
-				// Collect warnings
-				for (const warn of result.warnings || []) {
-					warnings.push(`${warn.file}:${warn.line}: ${warn.message}`);
-				}
-			}));
+					if (!result.success) {
+						for (const err of result.errors || []) {
+							errors.push(`${err.file}:${err.line}:${err.column}: ${err.message}`);
+						}
+						return;
+					}
+
+					if (result.bytecode) {
+						compiledRoutines.set(source.name, result.bytecode);
+						logger.debug(`Compiled: ${source.name}`);
+					}
+
+					// Collect warnings
+					for (const warn of result.warnings || []) {
+						warnings.push(`${warn.file}:${warn.line}: ${warn.message}`);
+					}
+				}),
+			);
 
 			const compileTime = Date.now() - compileStart;
 			logger.info(`Compilation complete (${compileTime}ms)`);

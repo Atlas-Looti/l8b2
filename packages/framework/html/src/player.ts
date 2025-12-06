@@ -89,6 +89,13 @@ export function generatePlayerScript(): string {
 		var ch = window.innerHeight;
 		var w, h;
 		
+		// Get config from global scope (defined in HTML template)
+		var configAspect = window.aspect || 'free';
+		var configOrientation = window.orientation || 'any';
+		
+		// Normalize aspect (support both 16x9 and 16:9 formats)
+		var normalizedAspect = configAspect.replace(/:/g, 'x');
+		
 		// Get aspect ratio - same logic as microstudio screen.js
 		var aspectRatios = {
 			'4x3': 4/3,
@@ -101,13 +108,13 @@ export function generatePlayerScript(): string {
 			'>1x1': 1/1
 		};
 		
-		var ratio = aspectRatios[aspect];
-		var min = aspect && aspect.startsWith('>');
+		var ratio = aspectRatios[normalizedAspect];
+		var min = normalizedAspect && normalizedAspect.startsWith('>');
 		
 		if (ratio != null) {
 			// Calculate with aspect ratio constraint
 			if (min) {
-				switch (orientation) {
+				switch (configOrientation) {
 					case 'portrait':
 						ratio = Math.max(ratio, ch / cw);
 						break;
@@ -124,7 +131,7 @@ export function generatePlayerScript(): string {
 			}
 			
 			var r;
-			switch (orientation) {
+			switch (configOrientation) {
 				case 'portrait':
 					r = Math.min(cw, ch / ratio) / cw;
 					w = cw * r;

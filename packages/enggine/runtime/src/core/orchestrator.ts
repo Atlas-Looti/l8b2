@@ -232,7 +232,7 @@ export class RuntimeOrchestrator {
 			promises.push(
 				import("@l8b/wallet").then(({ WalletService }) => {
 					this.wallet = new WalletService();
-				})
+				}),
 			);
 		}
 
@@ -241,7 +241,7 @@ export class RuntimeOrchestrator {
 			promises.push(
 				import("@l8b/evm").then(({ EVMService }) => {
 					this.evm = new EVMService();
-				})
+				}),
 			);
 		}
 
@@ -250,7 +250,7 @@ export class RuntimeOrchestrator {
 			promises.push(
 				import("@l8b/actions").then(({ ActionsService }) => {
 					this.actions = new ActionsService();
-				})
+				}),
 			);
 		}
 
@@ -259,7 +259,7 @@ export class RuntimeOrchestrator {
 			promises.push(
 				import("@l8b/notifications").then(({ NotificationsService }) => {
 					this.notifications = new NotificationsService();
-				})
+				}),
 			);
 		}
 

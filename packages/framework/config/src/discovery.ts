@@ -120,14 +120,16 @@ async function walkDir(dir: string, callback: (filePath: string) => Promise<void
 
 	const entries = await readdir(dir, { withFileTypes: true });
 
-	await Promise.all(entries.map(async (entry) => {
-		const fullPath = join(dir, entry.name);
-		if (entry.isDirectory()) {
-			await walkDir(fullPath, callback);
-		} else if (entry.isFile()) {
-			await callback(fullPath);
-		}
-	}));
+	await Promise.all(
+		entries.map(async (entry) => {
+			const fullPath = join(dir, entry.name);
+			if (entry.isDirectory()) {
+				await walkDir(fullPath, callback);
+			} else if (entry.isFile()) {
+				await callback(fullPath);
+			}
+		}),
+	);
 }
 
 /**

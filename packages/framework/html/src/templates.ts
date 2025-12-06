@@ -79,10 +79,10 @@ export function generateDevHTML(options: DevTemplateOptions): string {
 	<script>
 		// Resources and configuration - like microstudio
 		window.resources = ${resourcesJson};
-		var orientation = '${config.orientation || "any"}';
-		var aspect = '${config.aspect || "free"}';
-		var graphics = 'M2D';
-		var ms_libs = [];
+		window.orientation = '${config.orientation || "any"}';
+		window.aspect = '${config.aspect || "free"}';
+		window.graphics = 'M2D';
+		window.ms_libs = [];
 		window.ms_in_editor = ${debug};
 		window.ms_use_server = false;
 		window.__L8B_HMR_PORT__ = ${port};
@@ -135,10 +135,10 @@ export function generateProdHTML(options: TemplateOptions): string {
 	
 	<script>
 		window.resources = ${resourcesJson};
-		var orientation = '${config.orientation || "any"}';
-		var aspect = '${config.aspect || "free"}';
-		var graphics = 'M2D';
-		var ms_libs = [];
+		window.orientation = '${config.orientation || "any"}';
+		window.aspect = '${config.aspect || "free"}';
+		window.graphics = 'M2D';
+		window.ms_libs = [];
 		window.exported_project = true;
 		window.skip_service_worker = true;
 		window.ms_use_server = false;
