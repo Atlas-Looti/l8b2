@@ -12,6 +12,7 @@
 	],
 	"scripts": {
 		"build": "tsup",
+		"prepare": "pnpm run build",
 		"clean": "rm -rf dist",
 		"test": "vitest run --passWithNoTests"
 	},

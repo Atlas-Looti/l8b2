@@ -11,8 +11,39 @@ import type { L8BPlugin } from "./index";
 import { createLogger } from "@l8b/framework-shared";
 import { PLAYER_TEMPLATE } from "../templates/player";
 import { INIT_TEMPLATE } from "../templates/init";
+import { dirname, join } from "node:path";
+import { existsSync } from "node:fs";
 
 const logger = createLogger("runtime-plugin");
+
+/**
+ * Find the resolve directory for esbuild to resolve @l8b/runtime
+ * This walks up from the resolved package location to find node_modules
+ */
+function findResolveDir(): string {
+	try {
+		// Resolve @l8b/runtime from the bundler's node_modules
+		const runtimePath = require.resolve("@l8b/runtime");
+		let currentDir = dirname(runtimePath);
+		
+		// Walk up to find node_modules or workspace root
+		while (currentDir !== dirname(currentDir)) {
+			// Check if this directory has node_modules
+			const nodeModulesPath = join(currentDir, "node_modules");
+			if (existsSync(nodeModulesPath)) {
+				return currentDir;
+			}
+			currentDir = dirname(currentDir);
+		}
+		
+		// Fallback: use the directory containing the resolved package
+		return dirname(runtimePath);
+	} catch (err) {
+		// Fallback to process.cwd() if resolution fails
+		logger.warn("Failed to resolve @l8b/runtime, using process.cwd() as resolveDir");
+		return process.cwd();
+	}
+}
 
 /**
  * Runtime plugin options
@@ -62,10 +93,11 @@ export function runtimePlugin(options: RuntimePluginOptions = {}): L8BPlugin {
 				].join("\n");
 
 				const esbuild = await import("esbuild");
+				const resolveDir = findResolveDir();
 				const result = await esbuild.build({
 					stdin: {
 						contents: virtualEntry,
-						resolveDir: process.cwd(),
+						resolveDir,
 						sourcefile: "game.js",
 						loader: "ts",
 					},
