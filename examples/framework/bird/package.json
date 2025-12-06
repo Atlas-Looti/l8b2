@@ -4,9 +4,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm exec l8b dev || node ../../packages/framework/cli/dist/bin.js dev",
-		"build": "pnpm exec l8b build || node ../../packages/framework/cli/dist/bin.js build",
-		"preview": "pnpm exec l8b preview || node ../../packages/framework/cli/dist/bin.js preview"
+		"dev": "node ../../packages/framework/cli/dist/bin.js dev",
+		"build": "node ../../packages/framework/cli/dist/bin.js build",
+		"preview": "node ../../packages/framework/cli/dist/bin.js preview"
 	},
 	"dependencies": {},
 	"devDependencies": {
