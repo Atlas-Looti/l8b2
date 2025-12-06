@@ -4,12 +4,11 @@
 	"version": "1.0.6",
 	"type": "module",
 	"scripts": {
-		"prebuild": "node ../../../scripts/ensure-deps-built.js",
-		"dev": "l8b dev",
-		"preview": "l8b preview",
-		"build": "l8b build"
+		"dev": "pnpm exec l8b dev || node ../../packages/framework/cli/dist/bin.js dev",
+		"preview": "pnpm exec l8b preview || node ../../packages/framework/cli/dist/bin.js preview",
+		"build": "pnpm exec l8b build || node ../../packages/framework/cli/dist/bin.js build"
 	},
 	"devDependencies": {
-		"@l8b/cli": "workspace:*"
+		"@l8b/cli": "latest"
 	}
 }
