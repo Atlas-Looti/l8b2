@@ -9,7 +9,7 @@ Custom build framework for L8B Game Engine. **Does not use Vite** - implements a
 | `@l8b/cli`                | Command line interface      |
 | `@l8b/framework-server`   | Development server with HMR |
 | `@l8b/framework-bundler`  | Production bundler          |
-| `@l8b/framework-compiler` | LootiScript compilation     |
+| `@l8b/compiler`            | LootiScript compilation     |
 | `@l8b/framework-watcher`  | File watching system        |
 | `@l8b/framework-html`     | HTML template generation    |
 | `@l8b/framework-config`   | Configuration management    |
@@ -40,7 +40,7 @@ Custom build framework for L8B Game Engine. **Does not use Vite** - implements a
         │                 │
         ▼                 ▼
 ┌─────────────────────────────────────┐
-│        @l8b/framework-compiler      │
+│        @l8b/compiler               │
 │  ┌──────────┐  ┌─────────────────┐  │
 │  │  Parser  │→ │    Compiler     │  │
 │  │(tokenize)│  │  (bytecode)     │  │

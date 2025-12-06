@@ -9,7 +9,7 @@
 import { copyFileSync, existsSync, mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { type BuildOptions, createLogger } from "@l8b/framework-shared";
-import { compileSource } from "@l8b/framework-compiler";
+import { compileSource } from "@l8b/compiler";
 import { type ResolvedConfig, discoverResources } from "@l8b/framework-config";
 import { type L8BPlugin, type BuildContext, PluginContainer } from "./plugins/index";
 import { runtimePlugin } from "./plugins/runtime";

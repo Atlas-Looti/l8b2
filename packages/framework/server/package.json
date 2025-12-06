@@ -18,7 +18,7 @@
 	"dependencies": {
 		"@l8b/framework-shared": "workspace:*",
 		"@l8b/framework-config": "workspace:*",
-		"@l8b/framework-compiler": "workspace:*",
+		"@l8b/compiler": "workspace:*",
 		"@l8b/framework-watcher": "workspace:*",
 		"@l8b/framework-html": "workspace:*",
 		"@l8b/runtime": "workspace:*",

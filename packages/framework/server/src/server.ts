@@ -10,7 +10,7 @@ import { extname, join, dirname } from "node:path";
 import type readline from "node:readline";
 import { type DevServerOptions, type ProjectResources, MIME_TYPES, createLogger } from "@l8b/framework-shared";
 import { type ResolvedConfig, discoverResources, loadConfig } from "@l8b/framework-config";
-import { compileSource } from "@l8b/framework-compiler";
+import { compileSource } from "@l8b/compiler";
 import { createWatcher, type L8BWatcher } from "@l8b/framework-watcher";
 import { generateDevHTML, generateHMRClient } from "@l8b/framework-html";
 import { HMRServer } from "./hmr";

@@ -23,7 +23,7 @@
 		"@l8b/framework-config": "workspace:*",
 		"@l8b/framework-server": "workspace:*",
 		"@l8b/framework-bundler": "workspace:*",
-		"@l8b/framework-compiler": "workspace:*",
+		"@l8b/compiler": "workspace:*",
 		"cac": "^6.7.14",
 		"sirv": "^2.0.4"
 	},

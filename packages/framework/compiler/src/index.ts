@@ -1,5 +1,5 @@
 /**
- * @l8b/framework-compiler - LootiScript compilation pipeline
+ * @l8b/compiler - LootiScript compilation pipeline
  */
 
 export * from "./compiler";

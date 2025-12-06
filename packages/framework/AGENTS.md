@@ -27,12 +27,12 @@ This framework does NOT use Vite. It implements a custom build system because:
 ```
 @l8b/cli
 ├── @l8b/framework-server
-│   ├── @l8b/framework-compiler
+│   ├── @l8b/compiler
 │   ├── @l8b/framework-watcher
 │   ├── @l8b/framework-html
 │   └── @l8b/framework-config
 ├── @l8b/framework-bundler
-│   ├── @l8b/framework-compiler
+│   ├── @l8b/compiler
 │   └── @l8b/framework-config
 └── @l8b/framework-shared (all packages depend on this)
 ```
